@@ -137,7 +137,7 @@ export default function HomePage() {
         }}
       >
         <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
-          <Grid container spacing={4} alignItems="center">
+          <Grid container spacing={4} sx={{ alignItems: "center" }}>
             <Grid size={{ xs: 12, md: 7 }}>
               <Typography
                 variant="h2"

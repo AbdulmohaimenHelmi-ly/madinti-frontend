@@ -27,7 +27,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const primaryImage = product.images?.find((img) => img.is_primary) || product.images?.[0];
   const hasDiscount = product.compare_price && product.compare_price > product.price;
   const discountPercent = hasDiscount
-    ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100)
+    ? Math.round(((product.compare_price! - product.price) / product.compare_price!) * 100)
     : 0;
 
   return (

@@ -186,10 +186,12 @@ export default function Header() {
         anchor={locale === "ar" ? "right" : "left"}
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        PaperProps={{
-          sx: {
-            width: 300,
-            bgcolor: "background.paper",
+        slotProps={{
+          paper: {
+            sx: {
+              width: 300,
+              bgcolor: "background.paper",
+            },
           },
         }}
       >
@@ -230,7 +232,7 @@ export default function Header() {
                   </ListItemIcon>
                   <ListItemText
                     primary={t(item.key)}
-                    primaryTypographyProps={{ fontWeight: 500 }}
+                    slotProps={{ primary: { sx: { fontWeight: 500 } } }}
                   />
                 </ListItemButton>
               </ListItem>
@@ -251,7 +253,7 @@ export default function Header() {
                       <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
                         <StorefrontIcon fontSize="small" />
                       </ListItemIcon>
-                      <ListItemText primary={t("vendors")} primaryTypographyProps={{ fontWeight: 500 }} />
+                      <ListItemText primary={t("vendors")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
                     </ListItemButton>
                   </ListItem>
                 )}
@@ -270,7 +272,7 @@ export default function Header() {
                     <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
                       <LoginIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText primary={t("login")} primaryTypographyProps={{ fontWeight: 500 }} />
+                    <ListItemText primary={t("login")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
                   </ListItemButton>
                 </ListItem>
                 <ListItem disablePadding sx={{ mb: 0.5 }}>
@@ -285,7 +287,7 @@ export default function Header() {
                     <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
                       <PersonAddIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText primary={t("register")} primaryTypographyProps={{ fontWeight: 500 }} />
+                    <ListItemText primary={t("register")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
                   </ListItemButton>
                 </ListItem>
               </>
