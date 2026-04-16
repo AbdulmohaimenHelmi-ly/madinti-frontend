@@ -124,7 +124,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             variant="h3"
             sx={{
               fontWeight: 800,
-              background: "linear-gradient(135deg, #1B5E20, #4CAF50)",
+              background: "linear-gradient(135deg, #FFB744, #FFCC80)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}

@@ -5,9 +5,9 @@ export const createAppTheme = (direction: "rtl" | "ltr") =>
     direction,
     palette: {
       primary: {
-        main: "#1B5E20",
-        light: "#4C8C4A",
-        dark: "#003300",
+        main: "#FFB744",
+        light: "#FFD180",
+        dark: "#CC8800",
         contrastText: "#FFFFFF",
       },
       secondary: {
@@ -47,9 +47,9 @@ export const createAppTheme = (direction: "rtl" | "ltr") =>
             transition: "all 0.2s ease-in-out",
           },
           contained: {
-            boxShadow: "0 2px 8px rgba(27, 94, 32, 0.25)",
+            boxShadow: "0 2px 8px rgba(255, 183, 68, 0.25)",
             "&:hover": {
-              boxShadow: "0 4px 16px rgba(27, 94, 32, 0.35)",
+              boxShadow: "0 4px 16px rgba(255, 183, 68, 0.35)",
               transform: "translateY(-1px)",
             },
           },
@@ -86,7 +86,7 @@ export const createAppTheme = (direction: "rtl" | "ltr") =>
               borderRadius: 12,
               transition: "box-shadow 0.2s ease",
               "&.Mui-focused": {
-                boxShadow: "0 0 0 3px rgba(27, 94, 32, 0.12)",
+                boxShadow: "0 0 0 3px rgba(255, 183, 68, 0.12)",
               },
             },
           },

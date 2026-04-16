@@ -51,7 +51,7 @@ function SectionHeader({
             width: 48,
             height: 4,
             borderRadius: 2,
-            background: "linear-gradient(90deg, #1B5E20, #4CAF50)",
+            background: "linear-gradient(90deg, #FFB744, #FFCC80)",
             mt: 1,
           }}
         />
@@ -107,7 +107,7 @@ export default function HomePage() {
       <Box
         sx={{
           position: "relative",
-          background: "linear-gradient(135deg, #1B5E20 0%, #2E7D32 30%, #388E3C 60%, #1B5E20 100%)",
+          background: "linear-gradient(135deg, #FFB744 0%, #E6A33E 30%, #FFCC80 60%, #FFB744 100%)",
           color: "white",
           py: { xs: 8, md: 12 },
           mb: 8,
@@ -227,6 +227,30 @@ export default function HomePage() {
       </Box>
 
       <Container maxWidth="lg">
+        {/* Top Categories */}
+        {categories.length > 0 && (
+          <Box sx={{ mb: 10 }}>
+            <SectionHeader
+              title={t("home.topCategories")}
+              linkText={t("common.viewAll")}
+              linkHref={`/${locale}/categories`}
+              ArrowIcon={ArrowIcon}
+            />
+            <Box
+              sx={{
+                display: "flex",
+                gap: 3,
+                justifyContent: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              {categories.slice(0, 6).map((category) => (
+                <CategoryCard key={category.id} category={category} />
+              ))}
+            </Box>
+          </Box>
+        )}
+
         {/* Featured Products */}
         {featured.length > 0 && (
           <Box sx={{ mb: 10 }}>
@@ -237,25 +261,6 @@ export default function HomePage() {
               ArrowIcon={ArrowIcon}
             />
             <ProductGrid products={featured.slice(0, 8)} />
-          </Box>
-        )}
-
-        {/* Top Categories */}
-        {categories.length > 0 && (
-          <Box sx={{ mb: 10 }}>
-            <SectionHeader
-              title={t("home.topCategories")}
-              linkText={t("common.viewAll")}
-              linkHref={`/${locale}/categories`}
-              ArrowIcon={ArrowIcon}
-            />
-            <Grid container spacing={3}>
-              {categories.slice(0, 6).map((category) => (
-                <Grid key={category.id} size={{ xs: 6, sm: 4, md: 3 }}>
-                  <CategoryCard category={category} />
-                </Grid>
-              ))}
-            </Grid>
           </Box>
         )}
 

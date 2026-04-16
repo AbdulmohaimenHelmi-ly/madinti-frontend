@@ -170,7 +170,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 pl: 0.5,
                 transition: "all 0.2s ease",
                 "&:hover": {
-                  boxShadow: "0 2px 8px rgba(27, 94, 32, 0.3)",
+                  boxShadow: "0 2px 8px rgba(255, 183, 68, 0.3)",
                 },
               }}
             />

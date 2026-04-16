@@ -36,7 +36,7 @@ export default function RegisterPage() {
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            background: "linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #388E3C 100%)",
+            background: "linear-gradient(135deg, #FFB744 0%, #E6A33E 50%, #FFCC80 100%)",
             borderRadius: "16px 0 0 16px",
             color: "white",
             p: 4,
@@ -110,7 +110,7 @@ export default function RegisterPage() {
               </Box>
               <Typography sx={{ mt: 3, textAlign: "center", color: "text.secondary" }}>
                 {t("auth.hasAccount")}{" "}
-                <Link href={`/${locale}/auth/login`} style={{ color: "#1B5E20", fontWeight: 700, textDecoration: "none" }}>
+                <Link href={`/${locale}/auth/login`} style={{ color: "#FFB744", fontWeight: 700, textDecoration: "none" }}>
                   {t("common.login")}
                 </Link>
               </Typography>

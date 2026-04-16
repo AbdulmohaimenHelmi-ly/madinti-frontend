@@ -59,7 +59,7 @@ export default function Header() {
         position="sticky"
         elevation={0}
         sx={{
-          background: "linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #1B5E20 100%)",
+          background: "linear-gradient(135deg, #FFB744 0%, #E6A33E 50%, #FFB744 100%)",
           backdropFilter: "blur(20px)",
           borderBottom: "1px solid rgba(255,255,255,0.1)",
         }}
@@ -202,7 +202,7 @@ export default function Header() {
               justifyContent: "space-between",
               alignItems: "center",
               p: 2.5,
-              background: "linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%)",
+              background: "linear-gradient(135deg, #FFB744 0%, #E6A33E 100%)",
               color: "white",
             }}
           >

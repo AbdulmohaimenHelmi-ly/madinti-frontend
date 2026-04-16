@@ -33,7 +33,7 @@ export default function CartSummary({ cart }: CartSummaryProps) {
           left: 0,
           right: 0,
           height: 4,
-          background: "linear-gradient(90deg, #1B5E20, #4CAF50)",
+          background: "linear-gradient(90deg, #FFB744, #FFCC80)",
           borderRadius: "16px 16px 0 0",
         },
       }}
@@ -68,7 +68,7 @@ export default function CartSummary({ cart }: CartSummaryProps) {
             variant="h6"
             sx={{
               fontWeight: 800,
-              background: "linear-gradient(135deg, #1B5E20, #4CAF50)",
+              background: "linear-gradient(135deg, #FFB744, #FFCC80)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}

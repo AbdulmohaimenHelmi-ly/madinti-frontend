@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardMedia, Typography, Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import type { Category } from "@/lib/types";
@@ -14,89 +14,99 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   const name = locale === "en" && category.name_en ? category.name_en : category.name;
 
   return (
-    <Card
+    <Box
       component={Link}
       href={`/${locale}/categories/${category.id}`}
       sx={{
         textDecoration: "none",
-        height: "100%",
         display: "flex",
         flexDirection: "column",
-        overflow: "hidden",
+        alignItems: "center",
+        gap: 1.5,
+        cursor: "pointer",
+        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         "&:hover": {
           transform: "translateY(-6px)",
-          boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
-          "& .category-overlay": {
-            background: "linear-gradient(180deg, transparent 20%, rgba(27,94,32,0.85) 100%)",
+          "& .category-circle": {
+            boxShadow: "0 12px 32px rgba(255, 183, 68, 0.35)",
+            borderColor: "#FFB744",
           },
           "& .category-image": {
-            transform: "scale(1.08)",
+            transform: "scale(1.1)",
           },
         },
       }}
     >
-      <Box sx={{ position: "relative", overflow: "hidden" }}>
-        <CardMedia
-          className="category-image"
-          sx={{
-            height: 180,
-            bgcolor: "grey.100",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
-          image={category.image || undefined}
-        >
-          {!category.image && (
-            <Box
-              sx={{
-                width: "100%",
-                height: "100%",
-                background: "linear-gradient(135deg, #1B5E20 0%, #4CAF50 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Typography
-                variant="h2"
-                sx={{
-                  color: "white",
-                  opacity: 0.35,
-                  fontWeight: 900,
-                  fontSize: "4rem",
-                }}
-              >
-                {name[0]}
-              </Typography>
-            </Box>
-          )}
-        </CardMedia>
-        {category.image && (
+      <Box
+        className="category-circle"
+        sx={{
+          width: { xs: 100, sm: 120 },
+          height: { xs: 100, sm: 120 },
+          borderRadius: "50%",
+          overflow: "hidden",
+          border: "3px solid",
+          borderColor: "rgba(255, 183, 68, 0.3)",
+          boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          bgcolor: "grey.50",
+        }}
+      >
+        {category.image ? (
           <Box
-            className="category-overlay"
+            className="category-image"
+            component="img"
+            src={category.image}
+            alt={name}
             sx={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: "50%",
-              background: "linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.5) 100%)",
-              transition: "background 0.3s ease",
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           />
+        ) : (
+          <Box
+            className="category-image"
+            sx={{
+              width: "100%",
+              height: "100%",
+              background: "linear-gradient(135deg, #FFB744 0%, #FFCC80 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+            }}
+          >
+            <Typography
+              variant="h3"
+              sx={{
+                color: "white",
+                fontWeight: 900,
+                fontSize: { xs: "2rem", sm: "2.5rem" },
+                textShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
+            >
+              {name[0]}
+            </Typography>
+          </Box>
         )}
       </Box>
-      <CardContent sx={{ p: 2 }}>
-        <Typography
-          variant="subtitle1"
-          color="text.primary"
-          sx={{ fontWeight: 700, textAlign: "center" }}
-        >
-          {name}
-        </Typography>
-      </CardContent>
-    </Card>
+      <Typography
+        variant="subtitle2"
+        color="text.primary"
+        sx={{
+          fontWeight: 700,
+          textAlign: "center",
+          maxWidth: 120,
+          lineHeight: 1.3,
+          fontSize: { xs: "0.8rem", sm: "0.875rem" },
+        }}
+      >
+        {name}
+      </Typography>
+    </Box>
   );
 }

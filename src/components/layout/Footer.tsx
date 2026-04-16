@@ -34,7 +34,7 @@ export default function Footer() {
     <Box
       component="footer"
       sx={{
-        background: "linear-gradient(135deg, #1B5E20 0%, #2E7D32 40%, #1B5E20 100%)",
+        background: "linear-gradient(135deg, #FFB744 0%, #E6A33E 40%, #FFB744 100%)",
         color: "white",
         pt: { xs: 6, md: 8 },
         pb: 4,

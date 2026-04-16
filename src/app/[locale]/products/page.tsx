@@ -77,7 +77,7 @@ export default function ProductsPage() {
             width: 48,
             height: 4,
             borderRadius: 2,
-            background: "linear-gradient(90deg, #1B5E20, #4CAF50)",
+            background: "linear-gradient(90deg, #FFB744, #FFCC80)",
           }}
         />
       </Box>
