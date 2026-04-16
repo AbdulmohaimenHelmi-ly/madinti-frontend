@@ -239,9 +239,10 @@ export default function HomePage() {
             <Box
               sx={{
                 display: "flex",
-                gap: 3,
+                gap: { xs: 2, sm: 3 },
                 justifyContent: "center",
                 flexWrap: "wrap",
+                px: { xs: 1, sm: 0 },
               }}
             >
               {categories.slice(0, 6).map((category) => (
