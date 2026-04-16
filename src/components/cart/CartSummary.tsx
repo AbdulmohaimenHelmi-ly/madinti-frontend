@@ -79,7 +79,7 @@ export default function CartSummary({ cart }: CartSummaryProps) {
 
         <Button
           component={Link}
-          href={`/${locale}/orders`}
+          href={`/${locale}/checkout`}
           variant="contained"
           fullWidth
           size="large"

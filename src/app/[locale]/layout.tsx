@@ -3,6 +3,8 @@ import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import ThemeRegistry from "@/components/providers/ThemeRegistry";
+import AuthInitializer from "@/components/providers/AuthInitializer";
+import ImpersonationBanner from "@/components/layout/ImpersonationBanner";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
@@ -52,6 +54,8 @@ export default async function LocaleLayout({
       <body style={{ background: "#F5F7FA" }}>
         <NextIntlClientProvider messages={messages}>
           <ThemeRegistry>
+            <AuthInitializer />
+            <ImpersonationBanner />
             <Header />
             <main style={{ minHeight: "80vh" }}>{children}</main>
             <Footer />

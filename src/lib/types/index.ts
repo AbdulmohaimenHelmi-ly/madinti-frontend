@@ -5,7 +5,11 @@ export interface User {
   phone: string | null;
   avatar: string | null;
   role: "customer" | "vendor" | "admin";
+  is_admin: boolean;
+  is_vendor: boolean;
+  is_active: boolean;
   locale: string;
+  created_at?: string;
 }
 
 export interface Vendor {
@@ -21,10 +25,15 @@ export interface Vendor {
   phone: string | null;
   address: string | null;
   city: string | null;
+  city_id: number | null;
+  area_id: number | null;
+  city_details?: { id: number; name: string } | null;
+  area_details?: { id: number; name: string } | null;
   is_active: boolean;
   rating: number;
   total_sales: number;
   user?: User;
+  created_at?: string;
 }
 
 export interface Category {

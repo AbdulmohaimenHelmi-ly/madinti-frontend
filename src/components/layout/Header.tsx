@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   AppBar,
   Toolbar,
@@ -19,7 +20,6 @@ import {
   ListItemIcon,
   Divider,
   Container,
-  Avatar,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
@@ -32,8 +32,12 @@ import StorefrontIcon from "@mui/icons-material/Storefront";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import LoginIcon from "@mui/icons-material/Login";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import AddBusinessIcon from "@mui/icons-material/AddBusiness";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import LogoutIcon from "@mui/icons-material/Logout";
 import Navbar from "./Navbar";
 import LanguageSwitcher from "./LanguageSwitcher";
+import ProfileMenu from "./ProfileMenu";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore } from "@/lib/store/cartStore";
 
@@ -48,10 +52,18 @@ const mobileNavItems = [
 export default function Header() {
   const t = useTranslations("common");
   const locale = useLocale();
+  const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const itemCount = useCartStore((s) => s.itemCount);
+
+  // The admin area has its own full-screen dashboard chrome.
+  if (pathname?.startsWith(`/${locale}/admin`)) {
+    return null;
+  }
 
   return (
     <>
@@ -128,39 +140,37 @@ export default function Header() {
               </Badge>
             </IconButton>
 
-            {isAuthenticated ? (
+            {isAuthenticated && !user?.is_admin && !user?.is_vendor && (
               <Button
                 component={Link}
-                href={
-                  user?.role === "vendor"
-                    ? `/${locale}/vendor`
-                    : `/${locale}/orders`
-                }
-                color="inherit"
+                href={`/${locale}/become-vendor`}
+                startIcon={<AddBusinessIcon />}
                 sx={{
-                  display: { xs: "none", sm: "flex" },
-                  gap: 1,
+                  display: { xs: "none", md: "inline-flex" },
+                  color: "white",
                   borderRadius: 100,
-                  pl: 0.5,
-                  pr: 2,
-                  py: 0.5,
-                  bgcolor: "rgba(255,255,255,0.1)",
-                  "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+                  px: 2,
+                  bgcolor: "rgba(255,255,255,0.12)",
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.22)" },
+                  fontWeight: 600,
                 }}
               >
-                <Avatar
-                  sx={{
-                    width: 30,
-                    height: 30,
-                    bgcolor: "rgba(255,255,255,0.25)",
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  {user?.name?.[0]?.toUpperCase()}
-                </Avatar>
-                {user?.name?.split(" ")[0]}
+                {t("becomeVendor")}
               </Button>
+            )}
+
+            {!isInitialized ? (
+              <Box
+                sx={{
+                  width: 110,
+                  height: 40,
+                  borderRadius: 100,
+                  bgcolor: "rgba(255,255,255,0.12)",
+                  display: { xs: "none", sm: "block" },
+                }}
+              />
+            ) : isAuthenticated ? (
+              <ProfileMenu />
             ) : (
               <Button
                 component={Link}
@@ -242,21 +252,78 @@ export default function Header() {
           <List sx={{ px: 1, pt: 1 }}>
             {isAuthenticated ? (
               <>
-                {user?.role === "vendor" && (
+                {user?.is_admin && (
+                  <ListItem disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                      component={Link}
+                      href={`/${locale}/admin`}
+                      onClick={() => setDrawerOpen(false)}
+                      sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
+                        <AdminPanelSettingsIcon fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText primary={t("adminPanel")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
+                    </ListItemButton>
+                  </ListItem>
+                )}
+                {user?.is_vendor && (
                   <ListItem disablePadding sx={{ mb: 0.5 }}>
                     <ListItemButton
                       component={Link}
                       href={`/${locale}/vendor`}
                       onClick={() => setDrawerOpen(false)}
-                      sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white" } }}
+                      sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
                     >
                       <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
                         <StorefrontIcon fontSize="small" />
                       </ListItemIcon>
-                      <ListItemText primary={t("vendors")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
+                      <ListItemText primary={t("vendorDashboard")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
                     </ListItemButton>
                   </ListItem>
                 )}
+                <ListItem disablePadding sx={{ mb: 0.5 }}>
+                  <ListItemButton
+                    component={Link}
+                    href={`/${locale}/profile`}
+                    onClick={() => setDrawerOpen(false)}
+                    sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
+                      <PersonIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText primary={t("myProfile")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
+                  </ListItemButton>
+                </ListItem>
+                {!user?.is_vendor && !user?.is_admin && (
+                  <ListItem disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                      component={Link}
+                      href={`/${locale}/become-vendor`}
+                      onClick={() => setDrawerOpen(false)}
+                      sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
+                        <AddBusinessIcon fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText primary={t("becomeVendor")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
+                    </ListItemButton>
+                  </ListItem>
+                )}
+                <ListItem disablePadding sx={{ mb: 0.5 }}>
+                  <ListItemButton
+                    onClick={async () => {
+                      setDrawerOpen(false);
+                      await logout();
+                    }}
+                    sx={{ borderRadius: 2, "&:hover": { bgcolor: "error.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 40, color: "error.main" }}>
+                      <LogoutIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText primary={t("logout")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
+                  </ListItemButton>
+                </ListItem>
               </>
             ) : (
               <>

@@ -11,6 +11,7 @@ import {
   Stack,
 } from "@mui/material";
 import { useLocale } from "next-intl";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
@@ -21,6 +22,11 @@ import XIcon from "@mui/icons-material/X";
 export default function Footer() {
   const t = useTranslations();
   const locale = useLocale();
+  const pathname = usePathname();
+
+  if (pathname?.startsWith(`/${locale}/admin`)) {
+    return null;
+  }
 
   const linkStyle = {
     opacity: 0.8,

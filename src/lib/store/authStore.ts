@@ -7,6 +7,8 @@ interface AuthState {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isInitialized: boolean;
+  impersonator: { token: string; user: User } | null;
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
   login: (email: string, password: string) => Promise<void>;
@@ -21,6 +23,20 @@ interface AuthState {
   logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
   initialize: () => void;
+  startImpersonation: (token: string, user: User) => void;
+  stopImpersonation: () => void;
+}
+
+const IMPERSONATOR_KEY = "impersonator";
+
+function readImpersonator(): AuthState["impersonator"] {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(IMPERSONATOR_KEY);
+    return raw ? (JSON.parse(raw) as { token: string; user: User }) : null;
+  } catch {
+    return null;
+  }
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -28,6 +44,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
   isLoading: false,
   isAuthenticated: false,
+  isInitialized: false,
+  impersonator: null,
 
   setUser: (user) => set({ user, isAuthenticated: !!user }),
   setToken: (token) => {
@@ -47,7 +65,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await authApi.login({ email, password });
       const { user, token } = response.data.data;
       get().setToken(token);
-      set({ user, isAuthenticated: true, isLoading: false });
+      set({ user, isAuthenticated: true, isLoading: false, isInitialized: true });
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -60,7 +78,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const response = await authApi.register(data);
       const { user, token } = response.data.data;
       get().setToken(token);
-      set({ user, isAuthenticated: true, isLoading: false });
+      set({ user, isAuthenticated: true, isLoading: false, isInitialized: true });
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -72,28 +90,87 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await authApi.logout();
     } finally {
       get().setToken(null);
-      set({ user: null, isAuthenticated: false });
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(IMPERSONATOR_KEY);
+      }
+      set({
+        user: null,
+        isAuthenticated: false,
+        impersonator: null,
+        isInitialized: true,
+      });
     }
   },
 
   fetchUser: async () => {
-    set({ isLoading: true });
     try {
       const response = await authApi.getMe();
-      set({ user: response.data.data, isAuthenticated: true, isLoading: false });
+      set({
+        user: response.data.data,
+        isAuthenticated: true,
+        isLoading: false,
+        isInitialized: true,
+      });
     } catch {
       get().setToken(null);
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      set({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        isInitialized: true,
+      });
     }
   },
 
   initialize: () => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("auth_token");
-      if (token) {
-        set({ token });
-        get().fetchUser();
-      }
+    if (typeof window === "undefined") return;
+    if (get().isInitialized) return;
+
+    const token = localStorage.getItem("auth_token");
+    const impersonator = readImpersonator();
+
+    if (token) {
+      // Optimistically mark as authenticated so the UI does not flicker.
+      set({ token, isAuthenticated: true, isLoading: true, impersonator });
+      get().fetchUser();
+    } else {
+      set({ isInitialized: true, impersonator: null });
     }
+  },
+
+  startImpersonation: (token, user) => {
+    if (typeof window === "undefined") return;
+    const current = get();
+    if (!current.token || !current.user) return;
+
+    // Save the admin session as "impersonator" so we can return later.
+    const imp = { token: current.token, user: current.user };
+    localStorage.setItem(IMPERSONATOR_KEY, JSON.stringify(imp));
+    localStorage.setItem("auth_token", token);
+
+    set({
+      token,
+      user,
+      isAuthenticated: true,
+      impersonator: imp,
+      isInitialized: true,
+    });
+  },
+
+  stopImpersonation: () => {
+    if (typeof window === "undefined") return;
+    const { impersonator } = get();
+    if (!impersonator) return;
+
+    localStorage.setItem("auth_token", impersonator.token);
+    localStorage.removeItem(IMPERSONATOR_KEY);
+
+    set({
+      token: impersonator.token,
+      user: impersonator.user,
+      isAuthenticated: true,
+      impersonator: null,
+      isInitialized: true,
+    });
   },
 }));
