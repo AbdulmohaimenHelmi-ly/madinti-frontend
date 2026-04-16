@@ -39,9 +39,6 @@ export default function EmptyState({ message }: EmptyStateProps) {
       <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 600 }}>
         {message || t("noResults")}
       </Typography>
-      <Typography variant="body2" color="text.disabled">
-        {t("noResults")}
-      </Typography>
     </Box>
   );
 }
