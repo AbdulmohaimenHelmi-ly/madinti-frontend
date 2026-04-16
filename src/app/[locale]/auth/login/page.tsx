@@ -26,14 +26,14 @@ export default function LoginPage() {
   return (
     <Container maxWidth="sm" sx={{ py: 8 }}>
       <Card><CardContent sx={{ p: 4 }}>
-        <Typography variant="h4" fontWeight={700} textAlign="center" gutterBottom>{t("auth.loginTitle")}</Typography>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, textAlign: "center" }}>{t("auth.loginTitle")}</Typography>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
           <TextField label={t("auth.email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required fullWidth />
           <TextField label={t("auth.password")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required fullWidth />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={isLoading}>{t("auth.loginTitle")}</Button>
         </Box>
-        <Typography textAlign="center" sx={{ mt: 3 }}>
+        <Typography sx={{ mt: 3, textAlign: "center" }}>
           {t("auth.noAccount")}{" "}
           <Link href={`/${locale}/auth/register`} style={{ color: "inherit", fontWeight: 600 }}>{t("common.register")}</Link>
         </Typography>

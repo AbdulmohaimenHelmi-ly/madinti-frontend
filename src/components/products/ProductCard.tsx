@@ -85,7 +85,7 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         <Box sx={{ mt: "auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Box>
-            <Typography variant="h6" color="primary" fontWeight={700}>
+            <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
               {product.price} {t("currency")}
             </Typography>
             {product.compare_price && product.compare_price > product.price && (

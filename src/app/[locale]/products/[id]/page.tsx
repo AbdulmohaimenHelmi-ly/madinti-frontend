@@ -73,7 +73,7 @@ export default function ProductDetailPage({
       <ProductDetails product={product} />
 
       <Box sx={{ mt: 6 }}>
-        <Typography variant="h5" fontWeight={700} gutterBottom>
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
           {t("product.reviews")} ({reviews.length})
         </Typography>
         <Divider sx={{ mb: 3 }} />
@@ -122,7 +122,7 @@ export default function ProductDetailPage({
                   {review.user?.name?.[0]}
                 </Avatar>
                 <Box>
-                  <Typography fontWeight={600}>
+                  <Typography sx={{ fontWeight: 600 }}>
                     {review.user?.name || ""}
                   </Typography>
                   <Rating value={review.rating} readOnly size="small" />

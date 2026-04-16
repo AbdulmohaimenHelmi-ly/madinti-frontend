@@ -32,7 +32,7 @@ export default function CategoryDetailPage({ params }: { params: Promise<{ id: s
   const name = category ? (locale === "en" && category.name_en ? category.name_en : category.name) : "";
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" fontWeight={700} gutterBottom>{t("category.productsIn")} {name}</Typography>
+      <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>{t("category.productsIn")} {name}</Typography>
       {products.length === 0 ? <EmptyState message={t("product.noProducts")} /> : (
         <>
           <ProductGrid products={products} />

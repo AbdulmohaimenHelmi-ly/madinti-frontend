@@ -48,8 +48,8 @@ export default function CategoryCard({ category }: CategoryCardProps) {
       <CardContent>
         <Typography
           variant="h6"
-          fontWeight={600}
-          textAlign="center"
+
+
           color="text.primary"
         >
           {name}

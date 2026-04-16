@@ -32,7 +32,7 @@ export default function CartPage() {
   }
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" fontWeight={700} gutterBottom>{t("cart.title")}</Typography>
+      <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>{t("cart.title")}</Typography>
       <Grid container spacing={4}>
         <Grid size={{ xs: 12, md: 8 }}>
           {cart.items.map((item) => (<CartItem key={item.id} item={item} />))}

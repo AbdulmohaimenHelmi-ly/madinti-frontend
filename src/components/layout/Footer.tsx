@@ -22,7 +22,7 @@ export default function Footer() {
       <Container maxWidth="lg">
         <Grid container spacing={4}>
           <Grid size={{ xs: 12, md: 4 }}>
-            <Typography variant="h6" gutterBottom fontWeight={700}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
               {t("common.appName")}
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.85 }}>
@@ -31,7 +31,7 @@ export default function Footer() {
           </Grid>
 
           <Grid size={{ xs: 12, md: 4 }}>
-            <Typography variant="h6" gutterBottom fontWeight={600}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
               {t("footer.quickLinks")}
             </Typography>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
@@ -63,7 +63,7 @@ export default function Footer() {
           </Grid>
 
           <Grid size={{ xs: 12, md: 4 }}>
-            <Typography variant="h6" gutterBottom fontWeight={600}>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
               {t("footer.contactUs")}
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.85 }}>

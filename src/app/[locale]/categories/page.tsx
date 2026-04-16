@@ -19,7 +19,7 @@ export default function CategoriesPage() {
   if (categories.length === 0) return <EmptyState message={t("category.noCategories")} />;
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" fontWeight={700} gutterBottom>{t("category.allCategories")}</Typography>
+      <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>{t("category.allCategories")}</Typography>
       <Grid container spacing={3}>
         {categories.map((cat) => (<Grid key={cat.id} size={{ xs: 6, sm: 4, md: 3 }}><CategoryCard category={cat} /></Grid>))}
       </Grid>

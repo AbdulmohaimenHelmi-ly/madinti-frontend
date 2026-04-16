@@ -27,7 +27,7 @@ export default function RegisterPage() {
   return (
     <Container maxWidth="sm" sx={{ py: 8 }}>
       <Card><CardContent sx={{ p: 4 }}>
-        <Typography variant="h4" fontWeight={700} textAlign="center" gutterBottom>{t("auth.registerTitle")}</Typography>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, textAlign: "center" }}>{t("auth.registerTitle")}</Typography>
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
         <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
           <TextField label={t("auth.name")} value={form.name} onChange={handleChange("name")} required fullWidth />
@@ -38,7 +38,7 @@ export default function RegisterPage() {
           <FormControlLabel control={<Checkbox checked={isVendor} onChange={(e) => setIsVendor(e.target.checked)} />} label={t("auth.registerAsVendor")} />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={isLoading}>{t("auth.registerTitle")}</Button>
         </Box>
-        <Typography textAlign="center" sx={{ mt: 3 }}>
+        <Typography sx={{ mt: 3, textAlign: "center" }}>
           {t("auth.hasAccount")}{" "}
           <Link href={`/${locale}/auth/login`} style={{ color: "inherit", fontWeight: 600 }}>{t("common.login")}</Link>
         </Typography>

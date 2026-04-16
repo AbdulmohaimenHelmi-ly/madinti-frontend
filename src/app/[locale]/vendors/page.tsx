@@ -19,7 +19,7 @@ export default function VendorsPage() {
   if (vendors.length === 0) return <EmptyState message={t("vendor.noVendors")} />;
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" fontWeight={700} gutterBottom>{t("vendor.title")}</Typography>
+      <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>{t("vendor.title")}</Typography>
       <Grid container spacing={3}>
         {vendors.map((v) => (<Grid key={v.id} size={{ xs: 12, sm: 6, md: 4 }}><VendorCard vendor={v} /></Grid>))}
       </Grid>

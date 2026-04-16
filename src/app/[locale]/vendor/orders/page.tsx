@@ -7,7 +7,7 @@ export default function VendorOrdersPage() {
   const t = useTranslations();
   return (
     <>
-      <Typography variant="h4" fontWeight={700} gutterBottom>{t("vendor.myOrders")}</Typography>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>{t("vendor.myOrders")}</Typography>
       <EmptyState message={t("order.noOrders")} />
     </>
   );

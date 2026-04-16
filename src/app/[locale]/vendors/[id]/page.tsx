@@ -39,7 +39,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
         <StorefrontIcon sx={{ fontSize: 40, color: "primary.main" }} />
-        <Typography variant="h3" fontWeight={700}>{name}</Typography>
+        <Typography variant="h3" sx={{ fontWeight: 700 }}>{name}</Typography>
       </Box>
       {desc && <Typography color="text.secondary" sx={{ mb: 2 }}>{desc}</Typography>}
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
@@ -47,7 +47,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
         <Chip label={`${t("vendor.totalSales")}: ${vendor.total_sales}`} variant="outlined" />
       </Box>
       <Divider sx={{ mb: 4 }} />
-      <Typography variant="h5" fontWeight={600} gutterBottom>{t("vendor.products")}</Typography>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>{t("vendor.products")}</Typography>
       {products.length === 0 ? <EmptyState message={t("product.noProducts")} /> : (
         <>
           <ProductGrid products={products} />

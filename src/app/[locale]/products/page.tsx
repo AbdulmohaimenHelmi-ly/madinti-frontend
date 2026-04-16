@@ -66,7 +66,7 @@ export default function ProductsPage() {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" fontWeight={700} gutterBottom>
+      <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>
         {t("common.products")}
       </Typography>
 

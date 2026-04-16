@@ -63,7 +63,7 @@ export default function HomePage() {
       >
         <Container maxWidth="lg">
           <Box sx={{ maxWidth: 600 }}>
-            <Typography variant="h2" fontWeight={700} gutterBottom>
+            <Typography variant="h2" gutterBottom sx={{ fontWeight: 700 }}>
               {t("home.hero")}
             </Typography>
             <Typography variant="h5" sx={{ opacity: 0.9, mb: 4 }}>
@@ -101,7 +101,7 @@ export default function HomePage() {
                 mb: 3,
               }}
             >
-              <Typography variant="h4" fontWeight={700}>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
                 {t("home.featuredProducts")}
               </Typography>
               <Button
@@ -127,7 +127,7 @@ export default function HomePage() {
                 mb: 3,
               }}
             >
-              <Typography variant="h4" fontWeight={700}>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
                 {t("home.topCategories")}
               </Typography>
               <Button
@@ -159,7 +159,7 @@ export default function HomePage() {
                 mb: 3,
               }}
             >
-              <Typography variant="h4" fontWeight={700}>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
                 {t("home.topVendors")}
               </Typography>
               <Button

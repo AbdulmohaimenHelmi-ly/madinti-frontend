@@ -22,30 +22,30 @@ export default function CartSummary({ cart }: CartSummaryProps) {
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6" fontWeight={600} gutterBottom>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
           {t("title")}
         </Typography>
         <Divider sx={{ mb: 2 }} />
 
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
           <Typography color="text.secondary">{t("subtotal")}</Typography>
-          <Typography fontWeight={500}>
+          <Typography sx={{ fontWeight: 500 }}>
             {subtotal.toFixed(2)} {tc("currency")}
           </Typography>
         </Box>
 
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
           <Typography color="text.secondary">{t("shipping")}</Typography>
-          <Typography fontWeight={500}>0.00 {tc("currency")}</Typography>
+          <Typography sx={{ fontWeight: 500 }}>0.00 {tc("currency")}</Typography>
         </Box>
 
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-          <Typography variant="h6" fontWeight={700}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
             {t("total")}
           </Typography>
-          <Typography variant="h6" fontWeight={700} color="primary">
+          <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
             {subtotal.toFixed(2)} {tc("currency")}
           </Typography>
         </Box>

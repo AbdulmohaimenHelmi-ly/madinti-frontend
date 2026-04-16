@@ -75,7 +75,7 @@ export default function VendorCard({ vendor }: VendorCardProps) {
               }}
             />
           )}
-          <Typography variant="h6" fontWeight={600} color="text.primary">
+          <Typography variant="h6" color="text.primary" sx={{ fontWeight: 600 }}>
             {name}
           </Typography>
         </Box>

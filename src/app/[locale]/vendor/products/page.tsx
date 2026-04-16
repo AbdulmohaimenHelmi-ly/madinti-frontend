@@ -9,7 +9,7 @@ export default function VendorProductsPage() {
   return (
     <>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Typography variant="h4" fontWeight={700}>{t("vendor.myProducts")}</Typography>
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>{t("vendor.myProducts")}</Typography>
         <Button variant="contained" startIcon={<AddIcon />}>{t("common.addToCart")}</Button>
       </Box>
       <EmptyState message={t("product.noProducts")} />

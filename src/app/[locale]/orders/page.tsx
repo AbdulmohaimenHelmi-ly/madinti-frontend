@@ -24,18 +24,18 @@ export default function OrdersPage() {
   if (orders.length === 0) return <Container maxWidth="lg" sx={{ py: 4 }}><EmptyState message={t("order.noOrders")} /></Container>;
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" fontWeight={700} gutterBottom>{t("order.title")}</Typography>
+      <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>{t("order.title")}</Typography>
       {orders.map((order) => (
         <Card key={order.id} sx={{ mb: 2 }}>
           <CardContent>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 2 }}>
               <Box>
-                <Typography fontWeight={600}>{t("order.orderNumber")}: #{order.order_number}</Typography>
+                <Typography sx={{ fontWeight: 600 }}>{t("order.orderNumber")}: #{order.order_number}</Typography>
                 <Typography variant="body2" color="text.secondary">{new Date(order.created_at).toLocaleDateString(locale === "ar" ? "ar-LY" : "en-US")}</Typography>
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <Chip label={t(`order.statuses.${order.status}`)} color={statusColors[order.status] || "default"} size="small" />
-                <Typography fontWeight={700} color="primary">{order.total} {t("common.currency")}</Typography>
+                <Typography color="primary" sx={{ fontWeight: 700 }}>{order.total} {t("common.currency")}</Typography>
                 <Button component={Link} href={`/${locale}/orders/${order.id}`} size="small" variant="outlined">{t("order.orderDetails")}</Button>
               </Box>
             </Box>

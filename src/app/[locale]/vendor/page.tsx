@@ -14,7 +14,7 @@ export default function VendorDashboard() {
   ];
   return (
     <>
-      <Typography variant="h4" fontWeight={700} gutterBottom>{t("dashboard")}</Typography>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>{t("dashboard")}</Typography>
       <Grid container spacing={3}>
         {stats.map((s) => (
           <Grid key={s.label} size={{ xs: 12, sm: 4 }}>
@@ -23,7 +23,7 @@ export default function VendorDashboard() {
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Box sx={{ color: "primary.main" }}>{s.icon}</Box>
                   <Box>
-                    <Typography variant="h4" fontWeight={700}>{s.value}</Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700 }}>{s.value}</Typography>
                     <Typography color="text.secondary">{s.label}</Typography>
                   </Box>
                 </Box>

@@ -92,7 +92,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       </Grid>
 
       <Grid size={{ xs: 12, md: 6 }}>
-        <Typography variant="h4" fontWeight={700} gutterBottom>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700 }}>
           {name}
         </Typography>
 
@@ -104,7 +104,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "baseline", gap: 2, mb: 3 }}>
-          <Typography variant="h4" color="primary" fontWeight={700}>
+          <Typography variant="h4" color="primary" sx={{ fontWeight: 700 }}>
             {product.price} {t("common.currency")}
           </Typography>
           {product.compare_price && product.compare_price > product.price && (
@@ -150,7 +150,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
         {product.quantity > 0 && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
-            <Typography variant="body1" fontWeight={500}>
+            <Typography variant="body1" sx={{ fontWeight: 500 }}>
               {t("common.quantity")}:
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

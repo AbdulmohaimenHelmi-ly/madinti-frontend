@@ -131,7 +131,7 @@ export default function Header() {
               p: 2,
             }}
           >
-            <Typography variant="h6" fontWeight={700} color="primary">
+            <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
               {t("appName")}
             </Typography>
             <IconButton onClick={() => setDrawerOpen(false)}>

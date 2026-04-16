@@ -52,10 +52,10 @@ export default function CartItem({ item }: CartItemProps) {
           />
 
           <Box sx={{ flexGrow: 1 }}>
-            <Typography variant="body1" fontWeight={600}>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>
               {productName}
             </Typography>
-            <Typography variant="body2" color="primary" fontWeight={600}>
+            <Typography variant="body2" color="primary" sx={{ fontWeight: 600 }}>
               {item.price} {t("currency")}
             </Typography>
           </Box>
@@ -78,7 +78,7 @@ export default function CartItem({ item }: CartItemProps) {
             </IconButton>
           </Box>
 
-          <Typography variant="body1" fontWeight={700} sx={{ minWidth: 80, textAlign: "end" }}>
+          <Typography variant="body1" sx={{ minWidth: 80, textAlign: "end", fontWeight: 700 }}>
             {(item.price * item.quantity).toFixed(2)} {t("currency")}
           </Typography>
 
