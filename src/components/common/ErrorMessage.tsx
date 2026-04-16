@@ -12,7 +12,16 @@ export default function ErrorMessage({ message }: ErrorMessageProps) {
 
   return (
     <Box sx={{ py: 4 }}>
-      <Alert severity="error">{message || t("error")}</Alert>
+      <Alert
+        severity="error"
+        variant="outlined"
+        sx={{
+          borderRadius: 3,
+          "& .MuiAlert-icon": { fontSize: 24 },
+        }}
+      >
+        {message || t("error")}
+      </Alert>
     </Box>
   );
 }

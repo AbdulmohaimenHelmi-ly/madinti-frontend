@@ -18,13 +18,29 @@ export default function EmptyState({ message }: EmptyStateProps) {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        py: 8,
+        py: 10,
         gap: 2,
       }}
     >
-      <InboxIcon sx={{ fontSize: 64, color: "text.disabled" }} />
-      <Typography variant="h6" color="text.secondary">
+      <Box
+        sx={{
+          width: 100,
+          height: 100,
+          borderRadius: "50%",
+          bgcolor: "grey.100",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          mb: 1,
+        }}
+      >
+        <InboxIcon sx={{ fontSize: 48, color: "text.disabled" }} />
+      </Box>
+      <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 600 }}>
         {message || t("noResults")}
+      </Typography>
+      <Typography variant="body2" color="text.disabled">
+        {t("noResults")}
       </Typography>
     </Box>
   );

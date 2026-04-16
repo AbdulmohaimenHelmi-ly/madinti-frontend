@@ -20,10 +20,16 @@ export default function CartPage() {
   if (isLoading) return <LoadingSpinner />;
   if (!cart || cart.items.length === 0) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth="lg" sx={{ py: 6 }}>
         <EmptyState message={t("cart.empty")} />
-        <Box sx={{ textAlign: "center", mt: 2 }}>
-          <Button component={Link} href={`/${locale}/products`} variant="contained" startIcon={<ShoppingCartIcon />}>
+        <Box sx={{ textAlign: "center", mt: 3 }}>
+          <Button
+            component={Link}
+            href={`/${locale}/products`}
+            variant="contained"
+            startIcon={<ShoppingCartIcon />}
+            sx={{ borderRadius: 100, px: 4, py: 1.2 }}
+          >
             {t("cart.continueShopping")}
           </Button>
         </Box>
@@ -31,8 +37,20 @@ export default function CartPage() {
     );
   }
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>{t("cart.title")}</Typography>
+    <Container maxWidth="lg" sx={{ py: 5 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
+          {t("cart.title")}
+        </Typography>
+        <Box
+          sx={{
+            width: 48,
+            height: 4,
+            borderRadius: 2,
+            background: "linear-gradient(90deg, #1B5E20, #4CAF50)",
+          }}
+        />
+      </Box>
       <Grid container spacing={4}>
         <Grid size={{ xs: 12, md: 8 }}>
           {cart.items.map((item) => (<CartItem key={item.id} item={item} />))}

@@ -13,7 +13,9 @@ import {
   Card,
   CardContent,
   Avatar,
+  Paper,
 } from "@mui/material";
+import RateReviewIcon from "@mui/icons-material/RateReview";
 import ProductDetails from "@/components/products/ProductDetails";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import ErrorMessage from "@/components/common/ErrorMessage";
@@ -69,27 +71,42 @@ export default function ProductDetailPage({
   if (error || !product) return <ErrorMessage message={error || undefined} />;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ py: 5 }}>
       <ProductDetails product={product} />
 
-      <Box sx={{ mt: 6 }}>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
-          {t("product.reviews")} ({reviews.length})
-        </Typography>
-        <Divider sx={{ mb: 3 }} />
+      <Box sx={{ mt: 8 }}>
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" sx={{ fontWeight: 800 }}>
+            {t("product.reviews")} ({reviews.length})
+          </Typography>
+          <Box
+            sx={{
+              width: 48,
+              height: 4,
+              borderRadius: 2,
+              background: "linear-gradient(90deg, #1B5E20, #4CAF50)",
+              mt: 1,
+            }}
+          />
+        </Box>
+        <Divider sx={{ mb: 4 }} />
 
-        <Card sx={{ mb: 4 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              {t("product.addReview")}
-            </Typography>
+        <Card sx={{ mb: 4, overflow: "visible" }}>
+          <CardContent sx={{ p: 3 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2.5 }}>
+              <RateReviewIcon color="primary" />
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                {t("product.addReview")}
+              </Typography>
+            </Box>
             <Box
               sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}
             >
-              <Typography>{t("product.rating")}:</Typography>
+              <Typography sx={{ fontWeight: 500 }}>{t("product.rating")}:</Typography>
               <Rating
                 value={newRating}
                 onChange={(_, val) => setNewRating(val)}
+                size="large"
               />
             </Box>
             <TextField
@@ -101,49 +118,71 @@ export default function ProductDetailPage({
               onChange={(e) => setNewComment(e.target.value)}
               sx={{ mb: 2 }}
             />
-            <Button variant="contained" onClick={handleSubmitReview}>
+            <Button
+              variant="contained"
+              onClick={handleSubmitReview}
+              sx={{ borderRadius: 2, px: 4 }}
+            >
               {t("product.addReview")}
             </Button>
           </CardContent>
         </Card>
 
         {reviews.map((review) => (
-          <Card key={review.id} sx={{ mb: 2 }}>
-            <CardContent>
-              <Box
+          <Paper
+            key={review.id}
+            elevation={0}
+            sx={{
+              mb: 2,
+              p: 3,
+              borderRadius: 3,
+              border: "1px solid",
+              borderColor: "grey.200",
+              transition: "border-color 0.2s ease",
+              "&:hover": { borderColor: "grey.300" },
+            }}
+          >
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                mb: 1.5,
+              }}
+            >
+              <Avatar
+                src={review.user?.avatar || undefined}
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 2,
-                  mb: 1,
+                  bgcolor: "primary.main",
+                  width: 44,
+                  height: 44,
+                  fontWeight: 700,
                 }}
               >
-                <Avatar src={review.user?.avatar || undefined}>
-                  {review.user?.name?.[0]}
-                </Avatar>
-                <Box>
-                  <Typography sx={{ fontWeight: 600 }}>
-                    {review.user?.name || ""}
-                  </Typography>
-                  <Rating value={review.rating} readOnly size="small" />
-                </Box>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ ml: "auto" }}
-                >
-                  {new Date(review.created_at).toLocaleDateString(
-                    locale === "ar" ? "ar-LY" : "en-US"
-                  )}
+                {review.user?.name?.[0]}
+              </Avatar>
+              <Box>
+                <Typography sx={{ fontWeight: 700 }}>
+                  {review.user?.name || ""}
                 </Typography>
+                <Rating value={review.rating} readOnly size="small" />
               </Box>
-              {review.comment && (
-                <Typography variant="body2" color="text.secondary">
-                  {review.comment}
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ ml: "auto", fontWeight: 500 }}
+              >
+                {new Date(review.created_at).toLocaleDateString(
+                  locale === "ar" ? "ar-LY" : "en-US"
+                )}
+              </Typography>
+            </Box>
+            {review.comment && (
+              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.7, pl: 7 }}>
+                {review.comment}
+              </Typography>
+            )}
+          </Paper>
         ))}
       </Box>
     </Container>

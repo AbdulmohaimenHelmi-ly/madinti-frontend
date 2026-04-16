@@ -3,11 +3,11 @@
 import {
   Card,
   CardContent,
-  CardMedia,
   Typography,
   Box,
   Rating,
   Chip,
+  Avatar,
 } from "@mui/material";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import Link from "next/link";
@@ -39,46 +39,62 @@ export default function VendorCard({ vendor }: VendorCardProps) {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        transition: "transform 0.2s, box-shadow 0.2s",
+        overflow: "hidden",
         "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: "0 8px 25px rgba(0,0,0,0.12)",
+          transform: "translateY(-6px)",
+          boxShadow: "0 12px 40px rgba(0,0,0,0.12)",
+          "& .vendor-banner": {
+            transform: "scale(1.05)",
+          },
         },
       }}
     >
-      <CardMedia
-        sx={{
-          height: 140,
-          bgcolor: "secondary.light",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        image={vendor.banner || undefined}
-      >
-        {!vendor.banner && (
-          <StorefrontIcon sx={{ fontSize: 48, color: "white", opacity: 0.5 }} />
-        )}
-      </CardMedia>
-      <CardContent>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-          {vendor.logo && (
-            <Box
-              component="img"
-              src={vendor.logo}
-              alt={name}
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: "50%",
-                objectFit: "cover",
-              }}
-            />
+      <Box sx={{ position: "relative", overflow: "hidden" }}>
+        <Box
+          className="vendor-banner"
+          sx={{
+            height: 120,
+            background: vendor.banner
+              ? `url(${vendor.banner}) center/cover`
+              : "linear-gradient(135deg, #E65100 0%, #FF833A 100%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          {!vendor.banner && (
+            <StorefrontIcon sx={{ fontSize: 40, color: "white", opacity: 0.4 }} />
           )}
-          <Typography variant="h6" color="text.primary" sx={{ fontWeight: 600 }}>
-            {name}
-          </Typography>
         </Box>
+        <Avatar
+          src={vendor.logo || undefined}
+          alt={name}
+          sx={{
+            width: 56,
+            height: 56,
+            position: "absolute",
+            bottom: -28,
+            left: "50%",
+            transform: "translateX(-50%)",
+            border: "3px solid white",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+            bgcolor: "primary.main",
+            fontSize: "1.2rem",
+            fontWeight: 700,
+          }}
+        >
+          {name[0]}
+        </Avatar>
+      </Box>
+      <CardContent sx={{ pt: 5, textAlign: "center" }}>
+        <Typography
+          variant="subtitle1"
+          color="text.primary"
+          sx={{ fontWeight: 700, mb: 0.5 }}
+        >
+          {name}
+        </Typography>
 
         {description && (
           <Typography
@@ -89,16 +105,23 @@ export default function VendorCard({ vendor }: VendorCardProps) {
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
-              mb: 1,
+              mb: 1.5,
+              lineHeight: 1.6,
+              fontSize: "0.8rem",
             }}
           >
             {description}
           </Typography>
         )}
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
           <Rating value={vendor.rating} readOnly size="small" precision={0.5} />
-          <Chip label={`${t("products")}: ${vendor.total_sales}`} size="small" variant="outlined" />
+          <Chip
+            label={`${t("products")}: ${vendor.total_sales}`}
+            size="small"
+            variant="outlined"
+            sx={{ fontSize: "0.7rem", height: 24 }}
+          />
         </Box>
       </CardContent>
     </Card>

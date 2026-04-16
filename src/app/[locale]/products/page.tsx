@@ -12,8 +12,10 @@ import {
   FormControl,
   InputLabel,
   Pagination,
+  Paper,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import TuneIcon from "@mui/icons-material/Tune";
 import ProductGrid from "@/components/products/ProductGrid";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import EmptyState from "@/components/common/EmptyState";
@@ -65,12 +67,37 @@ export default function ProductsPage() {
   }, [search, categoryId, sortBy, page, t]);
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>
-        {t("common.products")}
-      </Typography>
+    <Container maxWidth="lg" sx={{ py: 5 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
+          {t("common.products")}
+        </Typography>
+        <Box
+          sx={{
+            width: 48,
+            height: 4,
+            borderRadius: 2,
+            background: "linear-gradient(90deg, #1B5E20, #4CAF50)",
+          }}
+        />
+      </Box>
 
-      <Box sx={{ display: "flex", gap: 2, mb: 4, flexWrap: "wrap" }}>
+      <Paper
+        elevation={0}
+        sx={{
+          display: "flex",
+          gap: 2,
+          mb: 4,
+          flexWrap: "wrap",
+          p: 2.5,
+          borderRadius: 3,
+          bgcolor: "white",
+          border: "1px solid",
+          borderColor: "grey.200",
+          alignItems: "center",
+        }}
+      >
+        <TuneIcon sx={{ color: "text.secondary", display: { xs: "none", sm: "block" } }} />
         <TextField
           placeholder={t("product.searchProducts")}
           value={search}
@@ -79,7 +106,7 @@ export default function ProductsPage() {
             setPage(1);
           }}
           size="small"
-          sx={{ minWidth: 250 }}
+          sx={{ minWidth: 250, flex: 1 }}
           slotProps={{
             input: {
               startAdornment: (
@@ -121,7 +148,7 @@ export default function ProductsPage() {
             <MenuItem value="top_rated">{t("product.topRated")}</MenuItem>
           </Select>
         </FormControl>
-      </Box>
+      </Paper>
 
       {loading ? (
         <LoadingSpinner />
@@ -133,13 +160,18 @@ export default function ProductsPage() {
         <>
           <ProductGrid products={products} />
           {totalPages > 1 && (
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
               <Pagination
                 count={totalPages}
                 page={page}
                 onChange={(_, val) => setPage(val)}
                 color="primary"
                 size="large"
+                sx={{
+                  "& .MuiPaginationItem-root": {
+                    fontWeight: 600,
+                  },
+                }}
               />
             </Box>
           )}

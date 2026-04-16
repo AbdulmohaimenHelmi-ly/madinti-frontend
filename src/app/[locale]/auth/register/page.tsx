@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { Container, Typography, TextField, Button, Card, CardContent, Box, Alert, FormControlLabel, Checkbox } from "@mui/material";
+import { Container, Typography, TextField, Button, Card, CardContent, Box, Alert, FormControlLabel, Checkbox, Grid } from "@mui/material";
+import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
 
@@ -25,24 +26,98 @@ export default function RegisterPage() {
     } catch { setError(t("common.error")); }
   };
   return (
-    <Container maxWidth="sm" sx={{ py: 8 }}>
-      <Card><CardContent sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 700, textAlign: "center" }}>{t("auth.registerTitle")}</Typography>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-          <TextField label={t("auth.name")} value={form.name} onChange={handleChange("name")} required fullWidth />
-          <TextField label={t("auth.email")} type="email" value={form.email} onChange={handleChange("email")} required fullWidth />
-          <TextField label={t("auth.phone")} value={form.phone} onChange={handleChange("phone")} fullWidth />
-          <TextField label={t("auth.password")} type="password" value={form.password} onChange={handleChange("password")} required fullWidth />
-          <TextField label={t("auth.confirmPassword")} type="password" value={form.password_confirmation} onChange={handleChange("password_confirmation")} required fullWidth />
-          <FormControlLabel control={<Checkbox checked={isVendor} onChange={(e) => setIsVendor(e.target.checked)} />} label={t("auth.registerAsVendor")} />
-          <Button type="submit" variant="contained" size="large" fullWidth disabled={isLoading}>{t("auth.registerTitle")}</Button>
-        </Box>
-        <Typography sx={{ mt: 3, textAlign: "center" }}>
-          {t("auth.hasAccount")}{" "}
-          <Link href={`/${locale}/auth/login`} style={{ color: "inherit", fontWeight: 600 }}>{t("common.login")}</Link>
-        </Typography>
-      </CardContent></Card>
+    <Container maxWidth="md" sx={{ py: { xs: 4, md: 8 } }}>
+      <Grid container spacing={0} sx={{ minHeight: { md: 580 } }}>
+        {/* Decorative side panel */}
+        <Grid
+          size={{ xs: 12, md: 5 }}
+          sx={{
+            display: { xs: "none", md: "flex" },
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            background: "linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #388E3C 100%)",
+            borderRadius: "16px 0 0 16px",
+            color: "white",
+            p: 4,
+            position: "relative",
+            overflow: "hidden",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: "-50%",
+              right: "-30%",
+              width: "200px",
+              height: "200px",
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.06)",
+            },
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              bottom: "-20%",
+              left: "-20%",
+              width: "150px",
+              height: "150px",
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.04)",
+            },
+          }}
+        >
+          <PersonAddAltIcon sx={{ fontSize: 56, mb: 2, opacity: 0.9 }} />
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, textAlign: "center" }}>
+            {t("common.appName")}
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.8, textAlign: "center" }}>
+            {t("home.heroSubtitle")}
+          </Typography>
+        </Grid>
+        {/* Form */}
+        <Grid size={{ xs: 12, md: 7 }}>
+          <Card sx={{ height: "100%", borderRadius: { xs: 4, md: "0 16px 16px 0" } }}>
+            <CardContent sx={{ p: { xs: 3, md: 5 }, height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <Typography variant="h4" gutterBottom sx={{ fontWeight: 800, mb: 3 }}>
+                {t("auth.registerTitle")}
+              </Typography>
+              {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
+              <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <TextField label={t("auth.name")} value={form.name} onChange={handleChange("name")} required fullWidth />
+                <TextField label={t("auth.email")} type="email" value={form.email} onChange={handleChange("email")} required fullWidth />
+                <TextField label={t("auth.phone")} value={form.phone} onChange={handleChange("phone")} fullWidth />
+                <TextField label={t("auth.password")} type="password" value={form.password} onChange={handleChange("password")} required fullWidth />
+                <TextField label={t("auth.confirmPassword")} type="password" value={form.password_confirmation} onChange={handleChange("password_confirmation")} required fullWidth />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={isVendor}
+                      onChange={(e) => setIsVendor(e.target.checked)}
+                      sx={{ "&.Mui-checked": { color: "primary.main" } }}
+                    />
+                  }
+                  label={t("auth.registerAsVendor")}
+                  sx={{ "& .MuiFormControlLabel-label": { fontWeight: 500, fontSize: "0.9rem" } }}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  disabled={isLoading}
+                  sx={{ py: 1.5, borderRadius: 3, fontSize: "1rem" }}
+                >
+                  {t("auth.registerTitle")}
+                </Button>
+              </Box>
+              <Typography sx={{ mt: 3, textAlign: "center", color: "text.secondary" }}>
+                {t("auth.hasAccount")}{" "}
+                <Link href={`/${locale}/auth/login`} style={{ color: "#1B5E20", fontWeight: 700, textDecoration: "none" }}>
+                  {t("common.login")}
+                </Link>
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Container>
   );
 }
