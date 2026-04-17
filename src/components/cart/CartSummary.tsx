@@ -22,7 +22,7 @@ export default function CartSummary({ cart }: CartSummaryProps) {
 
   return (
     <Card
-      sx={{
+      sx={(theme) => ({
         position: "sticky",
         top: 90,
         overflow: "visible",
@@ -33,10 +33,10 @@ export default function CartSummary({ cart }: CartSummaryProps) {
           left: 0,
           right: 0,
           height: 4,
-          background: "linear-gradient(90deg, #FFB744, #FFCC80)",
+          background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
           borderRadius: "16px 16px 0 0",
         },
-      }}
+      })}
     >
       <CardContent sx={{ p: 3 }}>
         <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
@@ -66,12 +66,12 @@ export default function CartSummary({ cart }: CartSummaryProps) {
           </Typography>
           <Typography
             variant="h6"
-            sx={{
+            sx={(theme) => ({
               fontWeight: 800,
-              background: "linear-gradient(135deg, #FFB744, #FFCC80)",
+              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-            }}
+            })}
           >
             {subtotal.toFixed(2)} {tc("currency")}
           </Typography>

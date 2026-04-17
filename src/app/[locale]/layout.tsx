@@ -7,6 +7,7 @@ import AuthInitializer from "@/components/providers/AuthInitializer";
 import ImpersonationBanner from "@/components/layout/ImpersonationBanner";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { ContentFilterProvider } from "@/lib/context/ContentFilterContext";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -19,7 +20,7 @@ export async function generateMetadata({
 }) {
   const { locale } = await params;
   return {
-    title: locale === "ar" ? "أجمل - سوق إلكتروني" : "Ajjmal - Marketplace",
+    title: locale === "ar" ? "مياو - سوق إلكتروني" : "Meow - Marketplace",
     description:
       locale === "ar"
         ? "أفضل المنتجات من أفضل المتاجر"
@@ -53,13 +54,15 @@ export default async function LocaleLayout({
       </head>
       <body style={{ background: "#F5F7FA" }}>
         <NextIntlClientProvider messages={messages}>
-          <ThemeRegistry>
-            <AuthInitializer />
-            <ImpersonationBanner />
-            <Header />
-            <main style={{ minHeight: "80vh" }}>{children}</main>
-            <Footer />
-          </ThemeRegistry>
+          <ContentFilterProvider>
+            <ThemeRegistry>
+              <AuthInitializer />
+              <ImpersonationBanner />
+              <Header />
+              <main style={{ minHeight: "80vh" }}>{children}</main>
+              <Footer />
+            </ThemeRegistry>
+          </ContentFilterProvider>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -31,11 +31,12 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 import { adminApi, type CreateCategoryPayload } from "@/lib/api/admin";
-import type { Category } from "@/lib/types";
+import type { Category, ContentType } from "@/lib/types";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
+import AudienceChip, { useAudienceOptions } from "@/components/common/AudienceChip";
 
 interface FormState extends CreateCategoryPayload {
   id?: number;
@@ -49,11 +50,13 @@ const emptyForm: FormState = {
   parent_id: null,
   sort_order: 0,
   is_active: true,
+  content_type: "unisex",
 };
 
 export default function AdminCategoriesPage() {
   const t = useTranslations("admin");
   const tCommon = useTranslations("common");
+  const tContent = useTranslations("content");
   const locale = useLocale();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -65,6 +68,8 @@ export default function AdminCategoriesPage() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [audience, setAudience] = useState("");
+  const audienceOptions = useAudienceOptions(true);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -103,6 +108,7 @@ export default function AdminCategoriesPage() {
       parent_id: c.parent_id,
       is_active: c.is_active,
       sort_order: 0,
+      content_type: c.content_type ?? "unisex",
     });
     setFormOpen(true);
   };
@@ -121,6 +127,7 @@ export default function AdminCategoriesPage() {
         description_en: form.description_en || undefined,
         parent_id: form.parent_id || null,
         is_active: form.is_active,
+        content_type: form.content_type,
       };
       if (form.id) {
         await adminApi.updateCategory(form.id, payload);
@@ -155,6 +162,7 @@ export default function AdminCategoriesPage() {
   const filteredCategories = categories.filter((c) => {
     if (status === "1" && !c.is_active) return false;
     if (status === "0" && c.is_active) return false;
+    if (audience && (c.content_type ?? "unisex") !== audience) return false;
     if (search) {
       const q = search.toLowerCase();
       const n = displayName(c).toLowerCase();
@@ -193,6 +201,13 @@ export default function AdminCategoriesPage() {
               { value: "0", label: t("inactive") },
             ],
           },
+          {
+            key: "audience",
+            label: tContent("contentType"),
+            value: audience,
+            onChange: setAudience,
+            options: audienceOptions,
+          },
         ]}
       />
 
@@ -213,6 +228,9 @@ export default function AdminCategoriesPage() {
               <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>{t("name")}</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("parent")}</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>
+                  {tContent("contentType")}
+                </TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
                 <TableCell align="end" sx={{ fontWeight: 700 }}>
                   {t("actions")}
@@ -230,7 +248,10 @@ export default function AdminCategoriesPage() {
                       ? displayName(
                           categories.find((p) => p.id === c.parent_id) ?? c
                         )
-                      : "—"}
+                      : "\u2014"}
+                  </TableCell>
+                  <TableCell>
+                    <AudienceChip value={c.content_type} />
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -325,6 +346,23 @@ export default function AdminCategoriesPage() {
               rows={2}
               fullWidth
             />
+            <TextField
+              label={tContent("contentType")}
+              select
+              value={form.content_type ?? "unisex"}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  content_type: e.target.value as ContentType,
+                })
+              }
+              helperText={tContent("contentTypeHint")}
+              fullWidth
+            >
+              <MenuItem value="unisex">{tContent("unisex")}</MenuItem>
+              <MenuItem value="female">{tContent("female")}</MenuItem>
+              <MenuItem value="male">{tContent("male")}</MenuItem>
+            </TextField>
             <FormControlLabel
               control={
                 <Switch

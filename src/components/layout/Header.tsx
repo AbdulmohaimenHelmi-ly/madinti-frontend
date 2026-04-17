@@ -21,6 +21,7 @@ import {
   Divider,
   Container,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import MenuIcon from "@mui/icons-material/Menu";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PersonIcon from "@mui/icons-material/Person";
@@ -35,6 +36,7 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import LogoutIcon from "@mui/icons-material/Logout";
+import PetsIcon from "@mui/icons-material/Pets";
 import Navbar from "./Navbar";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ProfileMenu from "./ProfileMenu";
@@ -53,6 +55,7 @@ export default function Header() {
   const t = useTranslations("common");
   const locale = useLocale();
   const pathname = usePathname();
+  const theme = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isInitialized = useAuthStore((s) => s.isInitialized);
@@ -60,8 +63,11 @@ export default function Header() {
   const logout = useAuthStore((s) => s.logout);
   const itemCount = useCartStore((s) => s.itemCount);
 
-  // The admin area has its own full-screen dashboard chrome.
-  if (pathname?.startsWith(`/${locale}/admin`)) {
+  // The admin/vendor areas have their own full-screen dashboard chrome.
+  if (
+    pathname?.startsWith(`/${locale}/admin`) ||
+    pathname?.startsWith(`/${locale}/vendor`)
+  ) {
     return null;
   }
 
@@ -70,8 +76,10 @@ export default function Header() {
       <AppBar
         position="sticky"
         elevation={0}
+        style={{
+          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 50%, ${theme.palette.primary.main} 100%)`,
+        }}
         sx={{
-          background: "linear-gradient(135deg, #FFB744 0%, #E6A33E 50%, #FFB744 100%)",
           backdropFilter: "blur(20px)",
           borderBottom: "1px solid rgba(255,255,255,0.1)",
         }}
@@ -101,11 +109,19 @@ export default function Header() {
                 flexShrink: 0,
                 letterSpacing: "0.02em",
                 fontSize: { xs: "1.3rem", md: "1.5rem" },
-                background: "linear-gradient(135deg, #FFFFFF 0%, #E8F5E9 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 1,
               }}
             >
+              <PetsIcon
+                sx={{
+                  color: "white",
+                  fontSize: { xs: 22, md: 26 },
+                  transform: "rotate(-15deg)",
+                  filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))",
+                }}
+              />
               {t("appName")}
             </Typography>
 
@@ -207,16 +223,22 @@ export default function Header() {
       >
         <Box>
           <Box
+            style={{
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+            }}
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
               p: 2.5,
-              background: "linear-gradient(135deg, #FFB744 0%, #E6A33E 100%)",
               color: "white",
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: 800 }}>
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 1 }}
+            >
+              <PetsIcon sx={{ fontSize: 22, transform: "rotate(-15deg)" }} />
               {t("appName")}
             </Typography>
             <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: "white" }}>

@@ -52,16 +52,16 @@ export default function VendorCard({ vendor }: VendorCardProps) {
       <Box sx={{ position: "relative", overflow: "hidden" }}>
         <Box
           className="vendor-banner"
-          sx={{
+          sx={(theme) => ({
             height: 120,
             background: vendor.banner
               ? `url(${vendor.banner}) center/cover`
-              : "linear-gradient(135deg, #E65100 0%, #FF833A 100%)",
+              : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
+          })}
         >
           {!vendor.banner && (
             <StorefrontIcon sx={{ fontSize: 40, color: "white", opacity: 0.4 }} />
@@ -117,7 +117,7 @@ export default function VendorCard({ vendor }: VendorCardProps) {
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
           <Rating value={vendor.rating} readOnly size="small" precision={0.5} />
           <Chip
-            label={`${t("products")}: ${vendor.total_sales}`}
+            label={`${t("products")}: ${vendor.products_count ?? vendor.total_sales ?? 0}`}
             size="small"
             variant="outlined"
             sx={{ fontSize: "0.7rem", height: 24 }}

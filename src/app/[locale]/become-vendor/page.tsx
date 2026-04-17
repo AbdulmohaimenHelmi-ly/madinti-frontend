@@ -148,16 +148,16 @@ export default function BecomeVendorPage() {
     <Container maxWidth="md" sx={{ py: 6 }}>
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
         <Box
-          sx={{
+          sx={(theme) => ({
             width: 48,
             height: 48,
             borderRadius: 2,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "linear-gradient(135deg, #FFB744 0%, #E6A33E 100%)",
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: "white",
-          }}
+          })}
         >
           <StorefrontIcon />
         </Box>

@@ -10,6 +10,7 @@ import {
   IconButton,
   Stack,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useLocale } from "next-intl";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -18,13 +19,18 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import XIcon from "@mui/icons-material/X";
+import PetsIcon from "@mui/icons-material/Pets";
 
 export default function Footer() {
   const t = useTranslations();
   const locale = useLocale();
   const pathname = usePathname();
+  const theme = useTheme();
 
-  if (pathname?.startsWith(`/${locale}/admin`)) {
+  if (
+    pathname?.startsWith(`/${locale}/admin`) ||
+    pathname?.startsWith(`/${locale}/vendor`)
+  ) {
     return null;
   }
 
@@ -39,8 +45,10 @@ export default function Footer() {
   return (
     <Box
       component="footer"
-      sx={{
-        background: "linear-gradient(135deg, #FFB744 0%, #E6A33E 40%, #FFB744 100%)",
+      style={{
+        background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 40%, ${theme.palette.primary.main} 100%)`,
+      }}
+      sx={(theme) => ({
         color: "white",
         pt: { xs: 6, md: 8 },
         pb: 4,
@@ -54,9 +62,9 @@ export default function Footer() {
           left: 0,
           right: 0,
           height: "4px",
-          background: "linear-gradient(90deg, #E65100, #FF833A, #E65100)",
+          background: `linear-gradient(90deg, ${theme.palette.secondary.dark}, ${theme.palette.secondary.main}, ${theme.palette.secondary.dark})`,
         },
-      }}
+      })}
     >
       <Container maxWidth="lg">
         <Grid container spacing={4}>
@@ -66,11 +74,20 @@ export default function Footer() {
               gutterBottom
               sx={{
                 fontWeight: 800,
-                background: "linear-gradient(135deg, #FFFFFF 0%, #C8E6C9 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 1,
+                color: "white",
               }}
             >
+              <PetsIcon
+                sx={{
+                  color: "white",
+                  fontSize: 26,
+                  transform: "rotate(-15deg)",
+                  filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))",
+                }}
+              />
               {t("common.appName")}
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.8, lineHeight: 1.8, mb: 3 }}>

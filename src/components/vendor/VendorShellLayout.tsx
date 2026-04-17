@@ -24,17 +24,9 @@ import {
   Typography,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import PeopleIcon from "@mui/icons-material/People";
-import StorefrontIcon from "@mui/icons-material/Storefront";
-import CategoryIcon from "@mui/icons-material/Category";
 import InventoryIcon from "@mui/icons-material/Inventory";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import HowToRegIcon from "@mui/icons-material/HowToReg";
-import LocationCityIcon from "@mui/icons-material/LocationCity";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import TuneIcon from "@mui/icons-material/Tune";
-import ViewCarouselIcon from "@mui/icons-material/ViewCarousel";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import PetsIcon from "@mui/icons-material/Pets";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -49,12 +41,12 @@ const SIDEBAR_BG = "#0F172A";
 const SIDEBAR_HOVER = "rgba(255,255,255,0.06)";
 const SIDEBAR_FG = "rgba(255,255,255,0.72)";
 
-export default function AdminShellLayout({
+export default function VendorShellLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const t = useTranslations("admin");
+  const t = useTranslations("vendor");
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const pathname = usePathname();
@@ -75,30 +67,21 @@ export default function AdminShellLayout({
   }, [isInitialized, initialize]);
 
   useEffect(() => {
-    // Don't redirect until we know the final auth state.
     if (!isInitialized || isLoading) return;
     if (!token) {
       router.replace(`/${locale}/auth/login`);
       return;
     }
-    if (user && !user.is_admin) {
+    if (user && !user.is_vendor && !user.is_admin) {
       router.replace(`/${locale}`);
     }
   }, [isInitialized, isLoading, user, token, locale, router]);
 
   const links = useMemo(
     () => [
-      { label: t("dashboard"), href: `/${locale}/admin`, icon: <DashboardIcon />, exact: true },
-      { label: t("users"), href: `/${locale}/admin/users`, icon: <PeopleIcon /> },
-      { label: t("vendors"), href: `/${locale}/admin/vendors`, icon: <StorefrontIcon /> },
-      { label: t("vendorApplications"), href: `/${locale}/admin/vendor-applications`, icon: <HowToRegIcon /> },
-      { label: t("categories"), href: `/${locale}/admin/categories`, icon: <CategoryIcon /> },
-      { label: t("brands"), href: `/${locale}/admin/brands`, icon: <LocalOfferIcon /> },
-      { label: t("products"), href: `/${locale}/admin/products`, icon: <InventoryIcon /> },
-      { label: t("variants"), href: `/${locale}/admin/variants`, icon: <TuneIcon /> },
-      { label: t("orders"), href: `/${locale}/admin/orders`, icon: <ReceiptLongIcon /> },
-      { label: t("cities"), href: `/${locale}/admin/cities`, icon: <LocationCityIcon /> },
-      { label: t("banners"), href: `/${locale}/admin/banners`, icon: <ViewCarouselIcon /> },
+      { label: t("dashboard"), href: `/${locale}/vendor`, icon: <DashboardIcon />, exact: true },
+      { label: t("myProducts"), href: `/${locale}/vendor/products`, icon: <InventoryIcon /> },
+      { label: t("myOrders"), href: `/${locale}/vendor/orders`, icon: <ReceiptLongIcon /> },
     ],
     [t, locale]
   );
@@ -117,7 +100,7 @@ export default function AdminShellLayout({
     }
   };
 
-  if (!user || !user.is_admin) {
+  if (!user || (!user.is_vendor && !user.is_admin)) {
     return (
       <Box
         sx={{
@@ -165,7 +148,7 @@ export default function AdminShellLayout({
             color: "white",
           })}
         >
-          <AdminPanelSettingsIcon fontSize="small" />
+          <StorefrontIcon fontSize="small" />
         </Box>
         <Box sx={{ minWidth: 0 }}>
           <Typography
@@ -186,7 +169,7 @@ export default function AdminShellLayout({
             variant="caption"
             sx={{ color: "rgba(255,255,255,0.5)", letterSpacing: 0.5 }}
           >
-            {t("adminPanel")}
+            {t("vendorPanel")}
           </Typography>
         </Box>
       </Box>
@@ -202,7 +185,7 @@ export default function AdminShellLayout({
             px: 1.5,
           }}
         >
-          {t("mainMenu")}
+          {t("vendorPanel")}
         </Typography>
         <List sx={{ mt: 0.5 }} disablePadding>
           {links.map((link) => {

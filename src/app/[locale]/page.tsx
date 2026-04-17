@@ -11,16 +11,21 @@ import {
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import LocalMallIcon from "@mui/icons-material/LocalMall";
 import Link from "next/link";
 import ProductGrid from "@/components/products/ProductGrid";
-import CategoryCard from "@/components/categories/CategoryCard";
 import VendorCard from "@/components/vendors/VendorCard";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import type { Product, Category, Vendor } from "@/lib/types";
+import HeroMosaic from "@/components/home/HeroMosaic";
+import CategoriesCarousel from "@/components/home/CategoriesCarousel";
+import ForYouSection from "@/components/home/ForYouSection";
+import type { Product, Category, Vendor, Brand, Banner } from "@/lib/types";
 import { productsApi } from "@/lib/api/products";
 import { categoriesApi } from "@/lib/api/categories";
 import { vendorsApi } from "@/lib/api/vendors";
+import { brandsApi } from "@/lib/api/brands";
+import { bannersApi } from "@/lib/api/banners";
+import { useContentFilter } from "@/lib/context/ContentFilterContext";
+import ContentFilterSwitch from "@/components/common/ContentFilterSwitch";
 
 function SectionHeader({
   title,
@@ -47,13 +52,13 @@ function SectionHeader({
           {title}
         </Typography>
         <Box
-          sx={{
+          sx={(theme) => ({
             width: 48,
             height: 4,
             borderRadius: 2,
-            background: "linear-gradient(90deg, #FFB744, #FFCC80)",
+            background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
             mt: 1,
-          }}
+          })}
         />
       </Box>
       <Button
@@ -84,206 +89,117 @@ export default function HomePage() {
   const [featured, setFeatured] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
+  const { apiParam: contentType } = useContentFilter();
 
   useEffect(() => {
+    setLoading(true);
+    const baseParams: Record<string, string | number> = {};
+    if (contentType) baseParams.content_type = contentType;
+
     Promise.all([
-      productsApi.getFeatured().catch(() => ({ data: { data: [] } })),
-      categoriesApi.getAll().catch(() => ({ data: { data: [] } })),
+      productsApi
+        .getFeatured(baseParams)
+        .catch(() => ({ data: { data: [] } })),
+      categoriesApi.getAll(baseParams).catch(() => ({ data: { data: [] } })),
       vendorsApi.getAll({ per_page: 4 }).catch(() => ({ data: { data: [] } })),
-    ]).then(([featuredRes, categoriesRes, vendorsRes]) => {
+      brandsApi
+        .getAll({ is_featured: 1, per_page: 6, ...baseParams })
+        .catch(() => ({ data: { data: [] } })),
+      bannersApi
+        .getAll({ is_active: 1, ...baseParams })
+        .catch(() => ({ data: { data: [] } })),
+    ]).then(([featuredRes, categoriesRes, vendorsRes, brandsRes, bannersRes]) => {
       setFeatured(featuredRes.data.data);
       setCategories(categoriesRes.data.data);
       setVendors(vendorsRes.data.data);
+      setBrands(brandsRes.data.data);
+      setBanners(bannersRes.data.data);
       setLoading(false);
     });
-  }, []);
+  }, [contentType]);
 
   if (loading) return <LoadingSpinner />;
 
   return (
-    <>
-      {/* Hero Section */}
+    <Container maxWidth="xl" sx={{ pt: { xs: 2, md: 3 } }}>
+      {/* Content audience switch */}
       <Box
         sx={{
-          position: "relative",
-          background: "linear-gradient(135deg, #FFB744 0%, #E6A33E 30%, #FFCC80 60%, #FFB744 100%)",
-          color: "white",
-          py: { xs: 8, md: 12 },
-          mb: 8,
-          overflow: "hidden",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: "-50%",
-            right: isRtl ? "auto" : "-10%",
-            left: isRtl ? "-10%" : "auto",
-            width: "500px",
-            height: "500px",
-            borderRadius: "50%",
-            background: "rgba(255,255,255,0.05)",
-          },
-          "&::after": {
-            content: '""',
-            position: "absolute",
-            bottom: "-30%",
-            right: isRtl ? "auto" : "20%",
-            left: isRtl ? "20%" : "auto",
-            width: "300px",
-            height: "300px",
-            borderRadius: "50%",
-            background: "rgba(255,255,255,0.03)",
-          },
+          display: "flex",
+          justifyContent: "center",
+          mb: { xs: 2, md: 3 },
         }}
       >
-        <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
-          <Grid container spacing={4} sx={{ alignItems: "center" }}>
-            <Grid size={{ xs: 12, md: 7 }}>
-              <Typography
-                variant="h2"
-                gutterBottom
-                sx={{
-                  fontWeight: 900,
-                  fontSize: { xs: "2.2rem", sm: "2.8rem", md: "3.5rem" },
-                  lineHeight: 1.15,
-                  textShadow: "0 2px 20px rgba(0,0,0,0.1)",
-                }}
-              >
-                {t("home.hero")}
-              </Typography>
-              <Typography
-                variant="h6"
-                sx={{
-                  opacity: 0.9,
-                  mb: 5,
-                  fontWeight: 400,
-                  lineHeight: 1.6,
-                  maxWidth: 500,
-                  fontSize: { xs: "1rem", md: "1.15rem" },
-                }}
-              >
-                {t("home.heroSubtitle")}
-              </Typography>
-              <Button
-                component={Link}
-                href={`/${locale}/products`}
-                variant="contained"
-                size="large"
-                startIcon={<LocalMallIcon />}
-                endIcon={<ArrowIcon />}
-                sx={{
-                  bgcolor: "white",
-                  color: "primary.main",
-                  fontWeight: 700,
-                  fontSize: "1rem",
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: 100,
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-                  "&:hover": {
-                    bgcolor: "white",
-                    boxShadow: "0 6px 30px rgba(0,0,0,0.25)",
-                    transform: "translateY(-2px)",
-                  },
-                }}
-              >
-                {t("home.shopNow")}
-              </Button>
-            </Grid>
-            <Grid
-              size={{ xs: 12, md: 5 }}
-              sx={{ display: { xs: "none", md: "flex" }, justifyContent: "center" }}
-            >
-              <Box
-                sx={{
-                  width: 280,
-                  height: 280,
-                  borderRadius: "50%",
-                  background: "rgba(255,255,255,0.08)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "2px solid rgba(255,255,255,0.1)",
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 200,
-                    height: 200,
-                    borderRadius: "50%",
-                    background: "rgba(255,255,255,0.08)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "2px solid rgba(255,255,255,0.1)",
-                  }}
-                >
-                  <LocalMallIcon sx={{ fontSize: 80, opacity: 0.3 }} />
-                </Box>
-              </Box>
-            </Grid>
-          </Grid>
-        </Container>
+        <ContentFilterSwitch />
       </Box>
 
-      <Container maxWidth="lg">
-        {/* Top Categories */}
-        {categories.length > 0 && (
-          <Box sx={{ mb: 10 }}>
-            <SectionHeader
-              title={t("home.topCategories")}
-              linkText={t("common.viewAll")}
-              linkHref={`/${locale}/categories`}
-              ArrowIcon={ArrowIcon}
-            />
+      {/* Mosaic Hero: slider + side tiles */}
+      {(categories.length > 0 || banners.length > 0) && (
+        <HeroMosaic
+          categories={categories}
+          brands={brands}
+          banners={banners}
+        />
+      )}
+
+      {/* Circular categories carousel */}
+      {categories.length > 0 && (
+        <Box>
+          <Box sx={{ px: { xs: 1, md: 5 }, mb: 1 }}>
+            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+              {t("home.topCategories")}
+            </Typography>
             <Box
-              sx={{
-                display: "flex",
-                gap: { xs: 2, sm: 3 },
-                justifyContent: "center",
-                flexWrap: "wrap",
-                px: { xs: 1, sm: 0 },
-              }}
-            >
-              {categories.slice(0, 6).map((category) => (
-                <CategoryCard key={category.id} category={category} />
-              ))}
-            </Box>
-          </Box>
-        )}
-
-        {/* Featured Products */}
-        {featured.length > 0 && (
-          <Box sx={{ mb: 10 }}>
-            <SectionHeader
-              title={t("home.featuredProducts")}
-              linkText={t("common.viewAll")}
-              linkHref={`/${locale}/products`}
-              ArrowIcon={ArrowIcon}
+              sx={(theme) => ({
+                width: 48,
+                height: 4,
+                borderRadius: 2,
+                background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                mt: 1,
+              })}
             />
-            <ProductGrid products={featured.slice(0, 8)} />
           </Box>
-        )}
+          <CategoriesCarousel categories={categories} />
+        </Box>
+      )}
 
-        {/* Top Vendors */}
-        {vendors.length > 0 && (
-          <Box sx={{ mb: 10 }}>
-            <SectionHeader
-              title={t("home.topVendors")}
-              linkText={t("common.viewAll")}
-              linkHref={`/${locale}/vendors`}
-              ArrowIcon={ArrowIcon}
-            />
-            <Grid container spacing={3}>
-              {vendors.slice(0, 4).map((vendor) => (
-                <Grid key={vendor.id} size={{ xs: 12, sm: 6, md: 3 }}>
-                  <VendorCard vendor={vendor} />
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        )}
-      </Container>
-    </>
+      {/* Featured Products */}
+      {featured.length > 0 && (
+        <Box sx={{ mb: 10, px: { xs: 1, md: 5 } }}>
+          <SectionHeader
+            title={t("home.featuredProducts")}
+            linkText={t("common.viewAll")}
+            linkHref={`/${locale}/products`}
+            ArrowIcon={ArrowIcon}
+          />
+          <ProductGrid products={featured.slice(0, 8)} />
+        </Box>
+      )}
+
+      {/* For You — personalised recommendations */}
+      <ForYouSection contentType={contentType ?? undefined} />
+
+      {/* Top Vendors */}
+      {vendors.length > 0 && (
+        <Box sx={{ mb: 10, px: { xs: 1, md: 5 } }}>
+          <SectionHeader
+            title={t("home.topVendors")}
+            linkText={t("common.viewAll")}
+            linkHref={`/${locale}/vendors`}
+            ArrowIcon={ArrowIcon}
+          />
+          <Grid container spacing={3}>
+            {vendors.slice(0, 4).map((vendor) => (
+              <Grid key={vendor.id} size={{ xs: 12, sm: 6, md: 3 }}>
+                <VendorCard vendor={vendor} />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
+    </Container>
   );
 }

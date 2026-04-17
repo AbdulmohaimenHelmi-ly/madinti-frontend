@@ -4,6 +4,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Container, Typography, TextField, Button, Card, CardContent, Box, Alert, Grid } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import PetsIcon from "@mui/icons-material/Pets";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
 
@@ -30,12 +31,12 @@ export default function LoginPage() {
         {/* Decorative side panel */}
         <Grid
           size={{ xs: 12, md: 5 }}
-          sx={{
+          sx={(theme) => ({
             display: { xs: "none", md: "flex" },
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
-            background: "linear-gradient(135deg, #FFB744 0%, #E6A33E 50%, #FFCC80 100%)",
+            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 50%, ${theme.palette.primary.light} 100%)`,
             borderRadius: "16px 0 0 16px",
             color: "white",
             p: 4,
@@ -61,10 +62,21 @@ export default function LoginPage() {
               borderRadius: "50%",
               background: "rgba(255,255,255,0.04)",
             },
-          }}
+          })}
         >
           <LockOutlinedIcon sx={{ fontSize: 56, mb: 2, opacity: 0.9 }} />
-          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, textAlign: "center" }}>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 700,
+              mb: 1,
+              textAlign: "center",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <PetsIcon sx={{ fontSize: 24, transform: "rotate(-15deg)" }} />
             {t("common.appName")}
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.8, textAlign: "center" }}>
@@ -95,9 +107,9 @@ export default function LoginPage() {
               </Box>
               <Typography sx={{ mt: 3, textAlign: "center", color: "text.secondary" }}>
                 {t("auth.noAccount")}{" "}
-                <Link href={`/${locale}/auth/register`} style={{ color: "#FFB744", fontWeight: 700, textDecoration: "none" }}>
+                <Box component={Link} href={`/${locale}/auth/register`} sx={{ color: "primary.main", fontWeight: 700, textDecoration: "none" }}>
                   {t("common.register")}
-                </Link>
+                </Box>
               </Typography>
             </CardContent>
           </Card>

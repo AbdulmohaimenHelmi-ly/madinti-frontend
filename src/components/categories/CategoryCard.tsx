@@ -17,7 +17,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
     <Box
       component={Link}
       href={`/${locale}/categories/${category.id}`}
-      sx={{
+      sx={(theme) => ({
         textDecoration: "none",
         display: "flex",
         flexDirection: "column",
@@ -28,31 +28,31 @@ export default function CategoryCard({ category }: CategoryCardProps) {
         "&:hover": {
           transform: "translateY(-6px)",
           "& .category-circle": {
-            boxShadow: "0 12px 32px rgba(255, 183, 68, 0.35)",
-            borderColor: "#FFB744",
+            boxShadow: `0 12px 32px ${theme.palette.primary.main}59`,
+            borderColor: theme.palette.primary.main,
           },
           "& .category-image": {
             transform: "scale(1.1)",
           },
         },
-      }}
+      })}
     >
       <Box
         className="category-circle"
-        sx={{
-          width: { xs: 100, sm: 120 },
-          height: { xs: 100, sm: 120 },
+        sx={(theme) => ({
+          width: { xs: 80, sm: 92, md: 104 },
+          height: { xs: 80, sm: 92, md: 104 },
           borderRadius: "50%",
           overflow: "hidden",
           border: "3px solid",
-          borderColor: "rgba(255, 183, 68, 0.3)",
+          borderColor: `${theme.palette.primary.main}4D`,
           boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
           transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           bgcolor: "grey.50",
-        }}
+        })}
       >
         {category.image ? (
           <Box
@@ -70,15 +70,15 @@ export default function CategoryCard({ category }: CategoryCardProps) {
         ) : (
           <Box
             className="category-image"
-            sx={{
+            sx={(theme) => ({
               width: "100%",
               height: "100%",
-              background: "linear-gradient(135deg, #FFB744 0%, #FFCC80 100%)",
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-            }}
+            })}
           >
             <Typography
               variant="h3"

@@ -52,6 +52,15 @@ export default function ProductDetailPage({
       .finally(() => setLoading(false));
   }, [id, t]);
 
+  // Fire-and-forget view tracking for the recommendation engine. Runs on every
+  // product detail visit (dedup handled server-side if needed).
+  useEffect(() => {
+    if (!id) return;
+    productsApi.trackView(id).catch(() => {
+      // tracking is best-effort; never block the page
+    });
+  }, [id]);
+
   const handleSubmitReview = async () => {
     if (!newRating) return;
     try {
@@ -80,13 +89,13 @@ export default function ProductDetailPage({
             {t("product.reviews")} ({reviews.length})
           </Typography>
           <Box
-            sx={{
+            sx={(theme) => ({
               width: 48,
               height: 4,
               borderRadius: 2,
-              background: "linear-gradient(90deg, #FFB744, #FFCC80)",
+              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
               mt: 1,
-            }}
+            })}
           />
         </Box>
         <Divider sx={{ mb: 4 }} />

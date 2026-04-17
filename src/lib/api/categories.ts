@@ -2,9 +2,11 @@ import apiClient from "./client";
 import type { ApiResponse, Category, PaginatedResponse, Product } from "../types";
 
 export const categoriesApi = {
-  getAll: () => apiClient.get<ApiResponse<Category[]>>("/categories"),
+  getAll: (params?: Record<string, string | number>) =>
+    apiClient.get<ApiResponse<Category[]>>("/categories", { params }),
 
-  getTree: () => apiClient.get<ApiResponse<Category[]>>("/categories/tree"),
+  getTree: (params?: Record<string, string | number>) =>
+    apiClient.get<ApiResponse<Category[]>>("/categories/tree", { params }),
 
   getById: (id: number | string) =>
     apiClient.get<ApiResponse<Category>>(`/categories/${id}`),

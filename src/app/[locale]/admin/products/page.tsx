@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import Link from "next/link";
 import {
   Alert,
   Box,
+  Button,
   Chip,
   Paper,
   Stack,
@@ -14,8 +16,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
 } from "@mui/material";
+import TuneIcon from "@mui/icons-material/Tune";
 
 import { productsApi } from "@/lib/api/products";
 import type { Product } from "@/lib/types";
@@ -23,6 +25,7 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
+import AudienceChip, { useAudienceOptions } from "@/components/common/AudienceChip";
 
 export default function AdminProductsPage() {
   const t = useTranslations("admin");
@@ -35,6 +38,9 @@ export default function AdminProductsPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [audience, setAudience] = useState("");
+  const tContent = useTranslations("content");
+  const audienceOptions = useAudienceOptions(true);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -59,6 +65,7 @@ export default function AdminProductsPage() {
   const filteredProducts = products.filter((p) => {
     if (status === "1" && !p.is_active) return false;
     if (status === "0" && p.is_active) return false;
+    if (audience && (p.content_type ?? "unisex") !== audience) return false;
     if (search) {
       const q = search.toLowerCase();
       const n = (productName(p) || "").toLowerCase();
@@ -105,6 +112,13 @@ export default function AdminProductsPage() {
               { value: "0", label: t("inactive") },
             ],
           },
+          {
+            key: "audience",
+            label: tContent("contentType"),
+            value: audience,
+            onChange: setAudience,
+            options: audienceOptions,
+          },
         ]}
       />
 
@@ -136,7 +150,13 @@ export default function AdminProductsPage() {
                 <TableCell sx={{ fontWeight: 700 }}>
                   {tCommon("quantity")}
                 </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>
+                  {tContent("contentType")}
+                </TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
+                <TableCell align="end" sx={{ fontWeight: 700 }}>
+                  {t("actions")}
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -151,6 +171,9 @@ export default function AdminProductsPage() {
                     {p.price} {tCommon("currency")}
                   </TableCell>
                   <TableCell>{p.quantity}</TableCell>
+                  <TableCell>
+                    <AudienceChip value={p.content_type} />
+                  </TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={0.5}>
                       <Chip
@@ -168,6 +191,16 @@ export default function AdminProductsPage() {
                         />
                       )}
                     </Stack>
+                  </TableCell>
+                  <TableCell align="end">
+                    <Button
+                      size="small"
+                      component={Link}
+                      href={`/${locale}/admin/products/${p.id}/variants`}
+                      startIcon={<TuneIcon />}
+                    >
+                      {t("variants")}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

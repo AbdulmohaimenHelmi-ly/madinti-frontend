@@ -122,12 +122,12 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         <Box sx={{ display: "flex", alignItems: "baseline", gap: 2, mb: 2 }}>
           <Typography
             variant="h3"
-            sx={{
+            sx={(theme) => ({
               fontWeight: 800,
-              background: "linear-gradient(135deg, #FFB744, #FFCC80)",
+              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
-            }}
+            })}
           >
             {product.price} {t("common.currency")}
           </Typography>

@@ -73,12 +73,12 @@ export default function ProductsPage() {
           {t("common.products")}
         </Typography>
         <Box
-          sx={{
+          sx={(theme) => ({
             width: 48,
             height: 4,
             borderRadius: 2,
-            background: "linear-gradient(90deg, #FFB744, #FFCC80)",
-          }}
+            background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+          })}
         />
       </Box>
 
