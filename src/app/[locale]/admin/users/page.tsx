@@ -36,7 +36,7 @@ import BlockIcon from "@mui/icons-material/Block";
 import { adminApi, type UpdateUserPayload } from "@/lib/api/admin";
 import { useAuthStore } from "@/lib/store/authStore";
 import type { User } from "@/lib/types";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
@@ -249,7 +249,7 @@ export default function AdminUsersPage() {
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <TableRowsSkeleton rows={8} columns={5} />
       ) : users.length === 0 ? (
         <EmptyState message={t("noUsers")} />
       ) : (

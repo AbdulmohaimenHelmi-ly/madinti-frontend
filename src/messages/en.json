@@ -47,7 +47,8 @@
     "vendorDashboard": "Vendor dashboard",
     "myProfile": "My profile",
     "myOrders": "My orders",
-    "myCart": "My cart"
+    "myCart": "My cart",
+    "myFavorites": "My favorites"
   },
   "home": {
     "hero": "Welcome to Ajjmal",
@@ -87,6 +88,11 @@
     "inStock": "In Stock",
     "outOfStock": "Out of Stock",
     "sold": "sold",
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites",
+    "favorites": "Favorites",
+    "myFavorites": "My Favorites",
+    "noFavorites": "You haven't added any favorites yet.",
     "sku": "SKU",
     "vendor": "Store",
     "category": "Category",

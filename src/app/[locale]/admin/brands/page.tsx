@@ -34,7 +34,7 @@ import MenuItem from "@mui/material/MenuItem";
 
 import { adminApi, type BrandPayload } from "@/lib/api/admin";
 import type { Brand, ContentType } from "@/lib/types";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AudienceChip, { useAudienceOptions } from "@/components/common/AudienceChip";
@@ -223,7 +223,7 @@ export default function AdminBrandsPage() {
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <TableRowsSkeleton rows={8} columns={4} />
       ) : brands.length === 0 ? (
         <EmptyState message={t("noBrands")} />
       ) : (

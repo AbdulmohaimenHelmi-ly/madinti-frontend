@@ -10,7 +10,7 @@ import InventoryIcon from "@mui/icons-material/Inventory";
 
 import { adminApi } from "@/lib/api/admin";
 import { productsApi } from "@/lib/api/products";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { StatCardsSkeleton } from "@/components/common/Skeletons";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 interface Stat {
@@ -101,7 +101,7 @@ export default function AdminDashboardPage() {
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <StatCardsSkeleton count={4} />
       ) : (
         <Grid container spacing={3}>
           {stats.map((s) => (

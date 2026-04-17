@@ -22,6 +22,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import LogoutIcon from "@mui/icons-material/Logout";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 import { useAuthStore } from "@/lib/store/authStore";
 
 export default function ProfileMenu() {
@@ -141,6 +142,12 @@ export default function ProfileMenu() {
             <ShoppingCartIcon fontSize="small" />
           </ListItemIcon>
           {t("myCart")}
+        </MenuItem>
+        <MenuItem component={Link} href={`${p}/favorites`} onClick={close}>
+          <ListItemIcon>
+            <FavoriteRoundedIcon fontSize="small" sx={{ color: "#ff3b30" }} />
+          </ListItemIcon>
+          {t("myFavorites")}
         </MenuItem>
 
         {!user.is_vendor && !user.is_admin && (

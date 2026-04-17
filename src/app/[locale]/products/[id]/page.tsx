@@ -174,7 +174,7 @@ export default function ProductDetailPage({
                 <Typography sx={{ fontWeight: 700 }}>
                   {review.user?.name || ""}
                 </Typography>
-                <Rating value={review.rating} readOnly size="small" />
+                <Rating value={Number(review.rating) || 0} readOnly size="small" />
               </Box>
               <Typography
                 variant="caption"

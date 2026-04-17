@@ -26,7 +26,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PersonIcon from "@mui/icons-material/Person";
 import CloseIcon from "@mui/icons-material/Close";
-import HomeIcon from "@mui/icons-material/Home";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import CategoryIcon from "@mui/icons-material/Category";
 import StorefrontIcon from "@mui/icons-material/Storefront";
@@ -44,9 +43,8 @@ import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore } from "@/lib/store/cartStore";
 
 const mobileNavItems = [
-  { key: "home", path: "", icon: HomeIcon },
-  { key: "products", path: "/products", icon: InventoryIcon },
   { key: "categories", path: "/categories", icon: CategoryIcon },
+  { key: "products", path: "/products", icon: InventoryIcon },
   { key: "vendors", path: "/vendors", icon: StorefrontIcon },
   { key: "orders", path: "/orders", icon: ReceiptLongIcon },
 ] as const;

@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 import CategoriesMegaMenu from "./CategoriesMegaMenu";
 
 const navItems = [
-  { key: "home", path: "" },
   { key: "products", path: "/products" },
   { key: "vendors", path: "/vendors" },
 ] as const;
@@ -32,32 +31,9 @@ export default function Navbar() {
         ml: 2,
       }}
     >
-      {navItems.slice(0, 2).map((item) => (
-        <Button
-          key={item.key}
-          component={Link}
-          href={`/${locale}${item.path}`}
-          size="small"
-          sx={{
-            color: "white",
-            fontWeight: isActive(item.path) ? 700 : 500,
-            borderRadius: 100,
-            px: 2,
-            py: 0.75,
-            minWidth: "auto",
-            fontSize: "0.875rem",
-            bgcolor: isActive(item.path) ? "rgba(255,255,255,0.18)" : "transparent",
-            "&:hover": { bgcolor: "rgba(255,255,255,0.12)" },
-            transition: "all 0.2s ease",
-          }}
-        >
-          {t(item.key)}
-        </Button>
-      ))}
-
       <CategoriesMegaMenu />
 
-      {navItems.slice(2).map((item) => (
+      {navItems.map((item) => (
         <Button
           key={item.key}
           component={Link}

@@ -42,9 +42,13 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     addItem(product.id, quantity);
   };
 
-  const hasDiscount = product.compare_price && product.compare_price > product.price;
+  // Laravel serialises decimal casts as strings — coerce before any math.
+  const price = Number(product.price) || 0;
+  const comparePrice =
+    product.compare_price != null ? Number(product.compare_price) : null;
+  const hasDiscount = comparePrice !== null && comparePrice > price;
   const discountPercent = hasDiscount
-    ? Math.round(((product.compare_price! - product.price) / product.compare_price!) * 100)
+    ? Math.round(((comparePrice! - price) / comparePrice!) * 100)
     : 0;
 
   return (
@@ -113,7 +117,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         </Typography>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
-          <Rating value={product.rating} readOnly precision={0.5} size="large" />
+          <Rating value={Number(product.rating) || 0} readOnly precision={0.5} size="large" />
           <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
             ({product.total_reviews} {t("product.reviews")})
           </Typography>
@@ -129,7 +133,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               WebkitTextFillColor: "transparent",
             })}
           >
-            {product.price} {t("common.currency")}
+            {price.toFixed(2)} {t("common.currency")}
           </Typography>
           {hasDiscount && (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -138,7 +142,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 color="text.disabled"
                 sx={{ textDecoration: "line-through" }}
               >
-                {product.compare_price} {t("common.currency")}
+                {comparePrice!.toFixed(2)} {t("common.currency")}
               </Typography>
               <Chip
                 label={`-${discountPercent}%`}

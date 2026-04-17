@@ -35,7 +35,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import { adminApi, type CatalogVariantPayload } from "@/lib/api/admin";
 import type { Variant, ProductVariantType } from "@/lib/types";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
@@ -254,7 +254,7 @@ export default function AdminVariantsCatalogPage() {
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <TableRowsSkeleton rows={6} columns={4} />
       ) : sortedVariants.length === 0 ? (
         <EmptyState message={t("noCatalogVariants")} />
       ) : (

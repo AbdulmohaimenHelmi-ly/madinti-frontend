@@ -4,7 +4,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Container, Typography, Box, Rating, Chip, Divider, Pagination } from "@mui/material";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import ProductGrid from "@/components/products/ProductGrid";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { ProductGridSkeleton } from "@/components/common/Skeletons";
 import ErrorMessage from "@/components/common/ErrorMessage";
 import EmptyState from "@/components/common/EmptyState";
 import type { Vendor, Product } from "@/lib/types";
@@ -31,7 +31,18 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
       if (pRes.data.meta) setTotalPages(pRes.data.meta.last_page);
     }).catch(() => setError(t("common.error"))).finally(() => setLoading(false));
   }, [id, page, t]);
-  if (loading) return <LoadingSpinner />;
+  if (loading)
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+          <StorefrontIcon sx={{ fontSize: 40, color: "primary.main" }} />
+          <Typography variant="h3" sx={{ fontWeight: 700, color: "text.disabled" }}>…</Typography>
+        </Box>
+        <Divider sx={{ mb: 4 }} />
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>{t("vendor.products")}</Typography>
+        <ProductGridSkeleton count={8} />
+      </Container>
+    );
   if (error || !vendor) return <ErrorMessage message={error || undefined} />;
   const name = locale === "en" && vendor.store_name_en ? vendor.store_name_en : vendor.store_name;
   const desc = locale === "en" && vendor.description_en ? vendor.description_en : vendor.description;
@@ -43,7 +54,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
       </Box>
       {desc && <Typography color="text.secondary" sx={{ mb: 2 }}>{desc}</Typography>}
       <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-        <Rating value={vendor.rating} readOnly precision={0.5} />
+        <Rating value={Number(vendor.rating) || 0} readOnly precision={0.5} />
         <Chip label={`${t("vendor.totalSales")}: ${vendor.total_sales}`} variant="outlined" />
       </Box>
       <Divider sx={{ mb: 4 }} />

@@ -21,7 +21,7 @@ import TuneIcon from "@mui/icons-material/Tune";
 
 import { productsApi } from "@/lib/api/products";
 import type { Product } from "@/lib/types";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
@@ -129,7 +129,7 @@ export default function AdminProductsPage() {
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <TableRowsSkeleton rows={8} columns={5} />
       ) : filteredProducts.length === 0 ? (
         <EmptyState message={tProduct("noProducts")} />
       ) : (

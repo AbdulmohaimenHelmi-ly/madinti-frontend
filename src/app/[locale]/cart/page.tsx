@@ -6,7 +6,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import Link from "next/link";
 import CartItem from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { CartSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useAuthStore } from "@/lib/store/authStore";
@@ -17,7 +17,15 @@ export default function CartPage() {
   const { cart, isLoading, fetchCart } = useCartStore();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   useEffect(() => { if (isAuthenticated) fetchCart(); }, [isAuthenticated, fetchCart]);
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading)
+    return (
+      <Container maxWidth="lg" sx={{ py: 5 }}>
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>{t("cart.title")}</Typography>
+        </Box>
+        <CartSkeleton />
+      </Container>
+    );
   if (!cart || cart.items.length === 0) {
     return (
       <Container maxWidth="lg" sx={{ py: 6 }}>

@@ -32,7 +32,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import { adminApi, type CreateCategoryPayload } from "@/lib/api/admin";
 import type { Category, ContentType } from "@/lib/types";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
@@ -218,7 +218,7 @@ export default function AdminCategoriesPage() {
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <TableRowsSkeleton rows={8} columns={4} />
       ) : filteredCategories.length === 0 ? (
         <EmptyState message={t("noCategories")} />
       ) : (

@@ -6,6 +6,7 @@ import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import type { Product } from "@/lib/types";
+import FavoriteButton from "./FavoriteButton";
 
 interface ProductCardProps {
   product: Product;
@@ -26,6 +27,15 @@ export default function ProductCard({ product }: ProductCardProps) {
   const isRtl = locale === "ar";
   const name = locale === "en" && product.name_en ? product.name_en : product.name;
 
+  // Laravel serialises `decimal:x` casts as strings, so coerce every numeric
+  // field defensively before doing math or calling `.toFixed()` on it.
+  const price = Number(product.price) || 0;
+  const comparePrice =
+    product.compare_price != null ? Number(product.compare_price) : null;
+  const rating = Number(product.rating) || 0;
+  const totalReviews = Number(product.total_reviews) || 0;
+  const quantity = Number(product.quantity) || 0;
+
   const primaryImage =
     product.images?.find((img) => img.is_primary) || product.images?.[0];
   const imageSrc =
@@ -33,17 +43,13 @@ export default function ProductCard({ product }: ProductCardProps) {
     (product as unknown as { image?: string }).image ||
     "/placeholder-product.png";
 
-  const hasDiscount =
-    !!product.compare_price && product.compare_price > product.price;
+  const hasDiscount = comparePrice !== null && comparePrice > price;
   const discountPercent = hasDiscount
-    ? Math.round(
-        ((product.compare_price! - product.price) / product.compare_price!) *
-          100,
-      )
+    ? Math.round(((comparePrice! - price) / comparePrice!) * 100)
     : 0;
 
   // Approximate "sold" count so the card feels populated like Shein.
-  const soldCount = Math.max(product.total_reviews * 37, 0);
+  const soldCount = Math.max(totalReviews * 37, 0);
   const soldLabel =
     soldCount >= 1000
       ? `${(soldCount / 1000).toFixed(1).replace(/\.0$/, "")}k+ ${pt("sold")}`
@@ -51,7 +57,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         ? `${soldCount}+ ${pt("sold")}`
         : "";
 
-  const outOfStock = product.quantity <= 0;
+  const outOfStock = quantity <= 0;
 
   return (
     <Box
@@ -165,6 +171,18 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
       </Box>
 
+      {/* Favorite toggle (sibling of the image Link so clicks don't navigate) */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 6,
+          insetInlineEnd: 6,
+          zIndex: 2,
+        }}
+      >
+        <FavoriteButton productId={product.id} size="small" />
+      </Box>
+
       {/* Meta */}
       <Box sx={{ pt: 1, px: 0.25, display: "flex", flexDirection: "column", gap: 0.5, flexGrow: 1 }}>
         {/* Inline -xx% pill + name (single line with ellipsis) */}
@@ -240,15 +258,15 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
 
         {/* Rating */}
-        {product.total_reviews > 0 && (
+        {totalReviews > 0 && (
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
             <StarRoundedIcon sx={{ fontSize: 15, color: "#f59e0b" }} />
             <Typography sx={{ fontSize: "0.72rem", color: "text.secondary", fontWeight: 600 }}>
-              {product.rating.toFixed(1)}
+              {rating.toFixed(1)}
             </Typography>
             <Typography sx={{ fontSize: "0.72rem", color: "text.secondary" }}>
-              ({product.total_reviews}
-              {product.total_reviews >= 100 ? "+" : ""})
+              ({totalReviews}
+              {totalReviews >= 100 ? "+" : ""})
             </Typography>
           </Box>
         )}
@@ -274,7 +292,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 whiteSpace: "nowrap",
               }}
             >
-              {t("currency")} {Number(product.price).toFixed(2)}
+              {t("currency")} {price.toFixed(2)}
             </Typography>
             {hasDiscount && (
               <Typography
@@ -286,7 +304,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                   whiteSpace: "nowrap",
                 }}
               >
-                {Number(product.compare_price).toFixed(2)}
+                {comparePrice!.toFixed(2)}
               </Typography>
             )}
             {soldLabel && (

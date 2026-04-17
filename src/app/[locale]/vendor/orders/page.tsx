@@ -22,7 +22,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import VendorPageHeader from "@/components/vendor/VendorPageHeader";
 import { vendorApi } from "@/lib/api/vendor";
@@ -158,7 +158,7 @@ export default function VendorOrdersPage() {
       </Paper>
 
       {loading ? (
-        <LoadingSpinner />
+        <TableRowsSkeleton rows={8} columns={5} />
       ) : filtered.length === 0 ? (
         <EmptyState message={t("noOrders")} />
       ) : (

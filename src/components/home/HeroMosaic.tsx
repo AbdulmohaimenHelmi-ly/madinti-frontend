@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { Box, Typography, IconButton, Button } from "@mui/material";
@@ -25,6 +25,9 @@ const SLIDE_GRADIENTS = [
 
 const SIDE_TILE_LABELS_EN = ["Hot Sellers", "New Arrivals", "Better Picks"];
 const SIDE_TILE_LABELS_AR = ["الأكثر مبيعاً", "وصل حديثاً", "أفضل الاختيارات"];
+const HERO_DESKTOP_GAP = "clamp(10px, 1.15vw, 16px)";
+const HERO_DESKTOP_SIDE = "21.9%";
+const HERO_DESKTOP_RATIO = "923 / 188";
 
 interface Slide {
   key: string;
@@ -192,20 +195,31 @@ export default function HeroMosaic({
     setActive((i) => (i - 1 + slidesCount) % slidesCount);
   const handleNext = () => setActive((i) => (i + 1) % slidesCount);
 
-  const TileBase = ({ tile, gradient }: { tile: Tile; gradient: string }) => (
+  const TileShell = ({
+    tile,
+    gradient,
+    overlay,
+    children,
+  }: {
+    tile: Tile;
+    gradient: string;
+    overlay?: string;
+    children: ReactNode;
+  }) => (
     <Box
       component={Link}
       href={tile.href}
       sx={{
         position: "relative",
         display: "block",
-        borderRadius: 3,
+        borderRadius: { xs: "10px", md: "8px" },
         overflow: "hidden",
         bgcolor: "grey.100",
         textDecoration: "none",
         color: "white",
         height: "100%",
-        minHeight: 0,
+        minHeight: { xs: "clamp(64px, 16vw, 90px)", md: 0 },
+        isolation: "isolate",
         transition: "transform 0.3s ease, box-shadow 0.3s ease",
         "&:hover": {
           transform: "translateY(-2px)",
@@ -232,78 +246,110 @@ export default function HeroMosaic({
       ) : (
         <Box sx={{ position: "absolute", inset: 0, background: gradient }} />
       )}
+      {overlay && (
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            background: overlay,
+            zIndex: 0,
+          }}
+        />
+      )}
+      <Box sx={{ position: "relative", zIndex: 1, height: "100%" }}>
+        {children}
+      </Box>
+    </Box>
+  );
+
+  const PromoTile = ({ tile, gradient }: { tile: Tile; gradient: string }) => (
+    <TileShell
+      tile={tile}
+      gradient={gradient}
+      overlay="linear-gradient(90deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.62) 42%, rgba(0,0,0,0.18) 74%, rgba(0,0,0,0) 100%)"
+    >
       <Box
         sx={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          p: { xs: 1.25, md: 2 },
-          zIndex: 1,
+          display: "flex",
+          alignItems: "center",
+          height: "100%",
+          px: { xs: 1.5, md: 2 },
+          maxWidth: { xs: "74%", md: "66%" },
         }}
       >
-        {tile.label && (
           <Typography
-            variant="caption"
             sx={{
-              display: "inline-block",
-              fontWeight: 700,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              bgcolor: "rgba(255,255,255,0.92)",
-              color: "text.primary",
-              px: 1,
-              py: 0.25,
-              borderRadius: 1,
-              mb: 0.75,
-              fontSize: "0.65rem",
+              fontWeight: 800,
+              lineHeight: 1,
+              fontSize: { xs: "0.95rem", md: "0.96rem" },
+              textShadow: "0 2px 8px rgba(0,0,0,0.28)",
             }}
           >
-            {tile.label}
+            {tile.title}
           </Typography>
-        )}
+      </Box>
+    </TileShell>
+  );
+
+  const BrandTile = ({ tile, gradient }: { tile: Tile; gradient: string }) => (
+    <TileShell
+      tile={tile}
+      gradient={gradient}
+      overlay="linear-gradient(180deg, rgba(0,0,0,0.14) 0%, rgba(0,0,0,0.24) 100%)"
+    >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          height: "100%",
+          px: { xs: 2, md: 3 },
+        }}
+      >
         <Typography
           sx={{
-            fontWeight: 800,
-            lineHeight: 1.15,
-            fontSize: { xs: "0.95rem", md: "1.05rem" },
-            textShadow: "0 2px 8px rgba(0,0,0,0.4)",
+            fontWeight: locale === "en" ? 400 : 700,
+            letterSpacing: locale === "en" ? "0.14em" : 0,
+            textTransform: locale === "en" ? "uppercase" : "none",
+            lineHeight: 1.05,
+            fontSize: { xs: "1rem", md: "1.18rem" },
+            textShadow: "0 2px 12px rgba(0,0,0,0.32)",
           }}
         >
           {tile.title}
         </Typography>
       </Box>
-    </Box>
+    </TileShell>
   );
 
   return (
-    <Box sx={{ mb: { xs: 4, md: 6 } }}>
+    <Box sx={{ mb: { xs: 2, md: 2.5 } }}>
       <Box
         sx={{
+          mx: { xs: 0, md: "clamp(24px, 2.8vw, 48px)" },
           display: "grid",
-          gap: { xs: 1.5, md: 2 },
+          gap: { xs: 1.5, md: HERO_DESKTOP_GAP },
           gridTemplateColumns: {
             xs: "1fr",
-            md: "1fr 2.2fr 1fr",
+            md: `${HERO_DESKTOP_SIDE} minmax(0, 1fr) ${HERO_DESKTOP_SIDE}`,
           },
-          gridTemplateRows: {
-            xs: "auto",
-            md: "minmax(360px, 62vh)",
-          },
+          alignItems: "stretch",
+          aspectRatio: { md: HERO_DESKTOP_RATIO },
         }}
       >
         {/* LEFT COLUMN */}
         <Box
           sx={{
             display: "grid",
-            gap: { xs: 1.5, md: 2 },
-            gridTemplateRows: "1fr 1fr 1fr",
+            gap: { xs: 1.5, md: HERO_DESKTOP_GAP },
+            gridTemplateRows: { xs: "unset", md: "repeat(3, minmax(0, 1fr))" },
             order: { xs: 2, md: 1 },
-            minHeight: { xs: 360, md: "auto" },
+            height: { md: "100%" },
           }}
         >
           {leftTiles.map((tile, i) => (
-            <TileBase
+            <PromoTile
               key={tile.key}
               tile={tile}
               gradient={SLIDE_GRADIENTS[i % SLIDE_GRADIENTS.length]}
@@ -316,9 +362,11 @@ export default function HeroMosaic({
           sx={{
             position: "relative",
             order: { xs: 1, md: 2 },
-            borderRadius: 3,
+            borderRadius: { xs: "10px", md: "8px" },
             overflow: "hidden",
-            minHeight: { xs: 280, md: "auto" },
+            minHeight: { xs: "clamp(240px, 58vw, 340px)", md: 0 },
+            aspectRatio: { xs: "16 / 10", md: "auto" },
+            height: { md: "100%" },
             bgcolor: "grey.100",
           }}
         >
@@ -351,15 +399,24 @@ export default function HeroMosaic({
                 )}
                 <Box
                   sx={{
+                    position: "absolute",
+                    inset: 0,
+                    background:
+                      "linear-gradient(90deg, rgba(0,0,0,0.24) 0%, rgba(0,0,0,0.14) 34%, rgba(0,0,0,0) 72%)",
+                  }}
+                />
+                <Box
+                  sx={{
                     position: "relative",
                     zIndex: 1,
                     height: "100%",
-                    p: { xs: 3, md: 6 },
+                    p: { xs: 3, md: 2.5 },
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
+                    textAlign: isRtl ? "right" : "left",
                     color: "white",
-                    maxWidth: { md: "60%" },
+                    maxWidth: { md: "46%" },
                   }}
                 >
                   <Typography
@@ -368,7 +425,8 @@ export default function HeroMosaic({
                       fontWeight: 700,
                       letterSpacing: "0.15em",
                       opacity: 0.9,
-                      mb: 1,
+                      mb: { xs: 1, md: 0.25 },
+                      fontSize: { xs: "0.7rem", md: "0.58rem" },
                     }}
                   >
                     {t("home.featuredCollection")}
@@ -376,10 +434,14 @@ export default function HeroMosaic({
                   <Typography
                     sx={{
                       fontWeight: 900,
-                      fontSize: { xs: "1.8rem", md: "3rem" },
+                      fontSize: { xs: "1.8rem", md: "1.9rem" },
                       lineHeight: 1.05,
                       textShadow: "0 2px 16px rgba(0,0,0,0.3)",
-                      mb: 1.5,
+                      mb: { xs: 1.5, md: 0.75 },
+                      display: "-webkit-box",
+                      overflow: "hidden",
+                      WebkitBoxOrient: "vertical",
+                      WebkitLineClamp: 2,
                     }}
                   >
                     {slide.title}
@@ -389,8 +451,9 @@ export default function HeroMosaic({
                       sx={{
                         fontSize: { xs: "0.95rem", md: "1.1rem" },
                         opacity: 0.95,
-                        mb: 3,
-                        maxWidth: 420,
+                        mb: 2.25,
+                        maxWidth: 360,
+                        display: { xs: "block", md: "none" },
                       }}
                     >
                       {slide.subtitle}
@@ -412,9 +475,11 @@ export default function HeroMosaic({
                         bgcolor: "white",
                         color: "text.primary",
                         fontWeight: 700,
-                        px: 3,
-                        py: 1.25,
+                        px: { xs: 3.25, md: 2.25 },
+                        py: { xs: 1, md: 0.55 },
                         borderRadius: 100,
+                        fontSize: { xs: "0.95rem", md: "0.8rem" },
+                        minWidth: { md: 112 },
                         "&:hover": {
                           bgcolor: "white",
                           boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
@@ -436,10 +501,13 @@ export default function HeroMosaic({
                 sx={{
                   position: "absolute",
                   top: "50%",
-                  left: 12,
+                  left: 8,
                   transform: "translateY(-50%)",
                   bgcolor: "rgba(255,255,255,0.85)",
                   color: "text.primary",
+                  width: 34,
+                  height: 34,
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
                   "&:hover": { bgcolor: "white" },
                   zIndex: 2,
                 }}
@@ -451,10 +519,13 @@ export default function HeroMosaic({
                 sx={{
                   position: "absolute",
                   top: "50%",
-                  right: 12,
+                  right: 8,
                   transform: "translateY(-50%)",
                   bgcolor: "rgba(255,255,255,0.85)",
                   color: "text.primary",
+                  width: 34,
+                  height: 34,
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
                   "&:hover": { bgcolor: "white" },
                   zIndex: 2,
                 }}
@@ -464,7 +535,7 @@ export default function HeroMosaic({
               <Box
                 sx={{
                   position: "absolute",
-                  bottom: 16,
+                  bottom: 8,
                   left: "50%",
                   transform: "translateX(-50%)",
                   display: "flex",
@@ -496,14 +567,14 @@ export default function HeroMosaic({
         <Box
           sx={{
             display: "grid",
-            gap: { xs: 1.5, md: 2 },
-            gridTemplateRows: "1fr 1fr 1fr",
+            gap: { xs: 1.5, md: HERO_DESKTOP_GAP },
+            gridTemplateRows: { xs: "unset", md: "repeat(3, minmax(0, 1fr))" },
             order: { xs: 3, md: 3 },
-            minHeight: { xs: 360, md: "auto" },
+            height: { md: "100%" },
           }}
         >
           {rightTiles.map((tile, i) => (
-            <TileBase
+            <BrandTile
               key={tile.key}
               tile={tile}
               gradient={SLIDE_GRADIENTS[(i + 2) % SLIDE_GRADIENTS.length]}

@@ -20,7 +20,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import VendorPageHeader from "@/components/vendor/VendorPageHeader";
 import { vendorApi } from "@/lib/api/vendor";
@@ -105,7 +105,7 @@ export default function VendorProductsPage() {
       </Paper>
 
       {loading ? (
-        <LoadingSpinner />
+        <TableRowsSkeleton rows={6} columns={4} />
       ) : filtered.length === 0 ? (
         <EmptyState message={t("noProducts")} />
       ) : (

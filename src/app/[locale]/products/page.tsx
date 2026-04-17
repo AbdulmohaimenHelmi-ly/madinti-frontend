@@ -17,7 +17,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import TuneIcon from "@mui/icons-material/Tune";
 import ProductGrid from "@/components/products/ProductGrid";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { ProductGridSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import ErrorMessage from "@/components/common/ErrorMessage";
 import type { Product, Category } from "@/lib/types";
@@ -151,7 +151,7 @@ export default function ProductsPage() {
       </Paper>
 
       {loading ? (
-        <LoadingSpinner />
+        <ProductGridSkeleton count={12} />
       ) : error ? (
         <ErrorMessage message={error} />
       ) : products.length === 0 ? (

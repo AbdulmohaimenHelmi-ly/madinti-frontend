@@ -3,7 +3,7 @@ import { useState, useEffect, use } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Container, Typography, Pagination, Box } from "@mui/material";
 import ProductGrid from "@/components/products/ProductGrid";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { ProductGridSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import type { Product, Category } from "@/lib/types";
 import { categoriesApi } from "@/lib/api/categories";
@@ -28,7 +28,13 @@ export default function CategoryDetailPage({ params }: { params: Promise<{ id: s
       if (prodRes.data.meta) setTotalPages(prodRes.data.meta.last_page);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [id, page]);
-  if (loading) return <LoadingSpinner />;
+  if (loading)
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>{t("category.productsIn")}</Typography>
+        <ProductGridSkeleton count={12} />
+      </Container>
+    );
   const name = category ? (locale === "en" && category.name_en ? category.name_en : category.name) : "";
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>

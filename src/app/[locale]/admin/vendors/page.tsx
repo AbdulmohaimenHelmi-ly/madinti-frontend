@@ -32,7 +32,7 @@ import BlockIcon from "@mui/icons-material/Block";
 import { adminApi, type UpdateVendorPayload } from "@/lib/api/admin";
 import { citiesApi, type Area, type City } from "@/lib/api/cities";
 import type { Vendor } from "@/lib/types";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
@@ -277,7 +277,7 @@ export default function AdminVendorsPage() {
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <TableRowsSkeleton rows={8} columns={5} />
       ) : vendors.length === 0 ? (
         <EmptyState message={t("noVendors")} />
       ) : (

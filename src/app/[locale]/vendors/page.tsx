@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Container, Typography, Grid } from "@mui/material";
 import VendorCard from "@/components/vendors/VendorCard";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { VendorGridSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import type { Vendor } from "@/lib/types";
 import { vendorsApi } from "@/lib/api/vendors";
@@ -15,7 +15,13 @@ export default function VendorsPage() {
   useEffect(() => {
     vendorsApi.getAll().then((res) => setVendors(res.data.data)).catch(() => {}).finally(() => setLoading(false));
   }, []);
-  if (loading) return <LoadingSpinner />;
+  if (loading)
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>{t("vendor.title")}</Typography>
+        <VendorGridSkeleton count={6} />
+      </Container>
+    );
   if (vendors.length === 0) return <EmptyState message={t("vendor.noVendors")} />;
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>

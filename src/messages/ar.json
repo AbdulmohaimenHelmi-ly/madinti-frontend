@@ -47,7 +47,8 @@
     "vendorDashboard": "لوحة البائع",
     "myProfile": "ملفيّ",
     "myOrders": "طلباتي",
-    "myCart": "سلتي"
+    "myCart": "سلتي",
+    "myFavorites": "مفضلتي"
   },
   "home": {
     "hero": "مرحباً بك في أجمل",
@@ -87,6 +88,11 @@
     "inStock": "متوفر",
     "outOfStock": "غير متوفر",
     "sold": "مبيع",
+    "addToFavorites": "أضف إلى المفضلة",
+    "removeFromFavorites": "إزالة من المفضلة",
+    "favorites": "المفضلة",
+    "myFavorites": "مفضلتي",
+    "noFavorites": "لم تقم بإضافة أي منتج إلى المفضلة بعد.",
     "sku": "رمز المنتج",
     "vendor": "المتجر",
     "category": "القسم",

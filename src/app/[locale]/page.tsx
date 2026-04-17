@@ -14,7 +14,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Link from "next/link";
 import ProductGrid from "@/components/products/ProductGrid";
 import VendorCard from "@/components/vendors/VendorCard";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { HomePageSkeleton } from "@/components/common/Skeletons";
 import HeroMosaic from "@/components/home/HeroMosaic";
 import CategoriesCarousel from "@/components/home/CategoriesCarousel";
 import ForYouSection from "@/components/home/ForYouSection";
@@ -121,16 +121,24 @@ export default function HomePage() {
     });
   }, [contentType]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <HomePageSkeleton />;
 
   return (
-    <Container maxWidth="xl" sx={{ pt: { xs: 2, md: 3 } }}>
+    <Container
+      maxWidth={false}
+      sx={{
+        maxWidth: 1680,
+        mx: "auto",
+        px: { xs: 2, md: 3 },
+        pt: { xs: 2, md: 3 },
+      }}
+    >
       {/* Content audience switch */}
       <Box
         sx={{
           display: "flex",
           justifyContent: "center",
-          mb: { xs: 2, md: 3 },
+          mb: { xs: 1, md: 1.5 },
         }}
       >
         <ContentFilterSwitch />

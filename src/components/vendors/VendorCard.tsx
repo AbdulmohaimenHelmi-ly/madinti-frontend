@@ -115,7 +115,7 @@ export default function VendorCard({ vendor }: VendorCardProps) {
         )}
 
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
-          <Rating value={vendor.rating} readOnly size="small" precision={0.5} />
+          <Rating value={Number(vendor.rating) || 0} readOnly size="small" precision={0.5} />
           <Chip
             label={`${t("products")}: ${vendor.products_count ?? vendor.total_sales ?? 0}`}
             size="small"

@@ -18,7 +18,7 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import StarIcon from "@mui/icons-material/Star";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { StatCardsSkeleton } from "@/components/common/Skeletons";
 import VendorPageHeader from "@/components/vendor/VendorPageHeader";
 import { vendorApi, type VendorDashboardPayload } from "@/lib/api/vendor";
 
@@ -107,7 +107,7 @@ export default function VendorDashboardPage() {
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <StatCardsSkeleton count={4} />
       ) : (
         <>
           {data?.vendor && (

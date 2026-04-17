@@ -37,7 +37,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { adminApi, type AttachVariantPayload } from "@/lib/api/admin";
 import { productsApi } from "@/lib/api/products";
 import type { Product, ProductVariant, Variant } from "@/lib/types";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
@@ -251,7 +251,7 @@ export default function AdminProductVariantsPage({
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <TableRowsSkeleton rows={6} columns={5} />
       ) : attached.length === 0 ? (
         <EmptyState message={t("noVariants")} />
       ) : (

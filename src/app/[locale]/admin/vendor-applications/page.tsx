@@ -30,7 +30,7 @@ import {
   vendorApplicationsApi,
   type VendorApplication,
 } from "@/lib/api/vendorApplications";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
@@ -133,7 +133,7 @@ export default function AdminVendorApplicationsPage() {
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <TableRowsSkeleton rows={6} columns={5} />
       ) : apps.length === 0 ? (
         <EmptyState message={tApp("noApplications")} />
       ) : (

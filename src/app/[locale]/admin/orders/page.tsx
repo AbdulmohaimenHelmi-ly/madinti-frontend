@@ -28,7 +28,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import { adminApi } from "@/lib/api/admin";
 import type { Order } from "@/lib/types";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
@@ -136,7 +136,7 @@ export default function AdminOrdersPage() {
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <TableRowsSkeleton rows={8} columns={6} />
       ) : orders.length === 0 ? (
         <EmptyState message={tOrder("noOrders")} />
       ) : (
