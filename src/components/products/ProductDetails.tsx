@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Typography,
@@ -53,6 +53,28 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     () => (product.variants || []).filter((v) => v.is_active),
     [product.variants]
   );
+
+  // Auto-select a default variant on mount when the product has variants so
+  // the price/stock reflects a real variant instead of the legacy base price.
+  // Prefer the first in-stock variant, otherwise fall back to the first active one.
+  useEffect(() => {
+    if (!hasVariants || variants.length === 0 || options.length === 0) return;
+    if (Object.keys(selection).length > 0) return;
+    const defaultVariant =
+      variants.find((v) => v.is_default) ||
+      variants.find((v) => Number(v.quantity) > 0) ||
+      variants[0];
+    if (!defaultVariant) return;
+    const picks: Record<number, number> = {};
+    for (const opt of options) {
+      const valId = defaultVariant.option_value_ids.find((id) =>
+        opt.values.some((vv) => vv.id === id)
+      );
+      if (valId) picks[opt.id] = valId;
+    }
+    if (Object.keys(picks).length > 0) setSelection(picks);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id, hasVariants]);
 
   const allOptionsPicked =
     options.length > 0 && options.every((o) => selection[o.id]);

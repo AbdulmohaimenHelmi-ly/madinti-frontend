@@ -94,7 +94,7 @@ export default function HeroMosaic({
           image: c.image,
           title: categoryName(c),
           subtitle: t("home.heroSubtitle"),
-          link: `/${locale}/categories/${c.id}`,
+          link: `/${locale}/products?category_id=${c.id}`,
           contentType: c.content_type,
         }));
 
@@ -128,7 +128,7 @@ export default function HeroMosaic({
       image: c.image,
       label: sideLabels[i] ?? "",
       title: categoryName(c),
-      href: `/${locale}/categories/${c.id}`,
+      href: `/${locale}/products?category_id=${c.id}`,
       contentType: c.content_type,
     };
   });
@@ -163,7 +163,7 @@ export default function HeroMosaic({
         image: c.image,
         label: sideLabels[i] ?? "",
         title: categoryName(c),
-        href: `/${locale}/categories/${c.id}`,
+        href: `/${locale}/products?category_id=${c.id}`,
         contentType: c.content_type,
       };
     }

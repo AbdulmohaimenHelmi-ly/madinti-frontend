@@ -12,4 +12,18 @@ export const vendorsApi = {
     apiClient.get<PaginatedResponse<Product>>(`/vendors/${id}/products`, {
       params,
     }),
+
+  toggleFollow: (id: number | string) =>
+    apiClient.post<ApiResponse<{ is_following: boolean; followers_count: number }>>(
+      `/vendors/${id}/follow`
+    ),
+
+  toggleBlock: (id: number | string) =>
+    apiClient.post<ApiResponse<{ is_blocked: boolean }>>(`/vendors/${id}/block`),
+
+  myFollows: () =>
+    apiClient.get<ApiResponse<{ vendor_ids: number[] }>>("/vendors/me/follows"),
+
+  myBlocks: () =>
+    apiClient.get<ApiResponse<{ vendor_ids: number[] }>>("/vendors/me/blocks"),
 };

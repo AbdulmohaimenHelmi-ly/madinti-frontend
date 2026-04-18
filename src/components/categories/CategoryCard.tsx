@@ -16,7 +16,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   return (
     <Box
       component={Link}
-      href={`/${locale}/categories/${category.id}`}
+      href={`/${locale}/products?category_id=${category.id}`}
       sx={(theme) => ({
         textDecoration: "none",
         display: "flex",

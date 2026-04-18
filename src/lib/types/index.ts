@@ -33,6 +33,9 @@ export interface Vendor {
   rating: number;
   total_sales: number;
   products_count?: number;
+  followers_count?: number;
+  is_following?: boolean;
+  is_blocked?: boolean;
   user?: User;
   created_at?: string;
 }
@@ -116,6 +119,7 @@ export interface ProductVariant {
   quantity: number;
   image: string | null;
   is_active: boolean;
+  is_default: boolean;
   position: number;
   option_value_ids: number[];
 }

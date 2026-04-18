@@ -212,6 +212,7 @@ export interface SaveVariantPayload {
   quantity: number;
   image?: string | null;
   is_active?: boolean;
+  is_default?: boolean;
   position?: number;
 }
 

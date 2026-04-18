@@ -38,6 +38,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
+import StarIcon from "@mui/icons-material/Star";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
 
 import {
   adminApi,
@@ -124,6 +126,7 @@ interface VariantDialogState {
   compare_price: string;
   quantity: string;
   is_active: boolean;
+  is_default: boolean;
 }
 
 const emptyVariantDialog = (): VariantDialogState => ({
@@ -135,6 +138,7 @@ const emptyVariantDialog = (): VariantDialogState => ({
   compare_price: "",
   quantity: "0",
   is_active: true,
+  is_default: false,
 });
 
 export default function AdminProductEditPage({
@@ -269,6 +273,7 @@ export default function AdminProductEditPage({
       compare_price: v.compare_price !== null ? String(v.compare_price) : "",
       quantity: String(v.quantity),
       is_active: !!v.is_active,
+      is_default: !!v.is_default,
     });
   };
 
@@ -293,6 +298,23 @@ export default function AdminProductEditPage({
       setSnack({ msg: "Enter a valid price.", sev: "error" });
       return;
     }
+    // Task 1: prevent duplicate combinations on the client before hitting the API.
+    const pickedSet = new Set(ids);
+    const duplicate = variants.find(
+      (v) =>
+        v.id !== vDialog.editingId &&
+        v.option_value_ids.length === pickedSet.size &&
+        v.option_value_ids.every((id) => pickedSet.has(id))
+    );
+    if (duplicate) {
+      setSnack({
+        msg:
+          t("admin.variantCombinationExists") ||
+          "This combination already exists as another variant.",
+        sev: "error",
+      });
+      return;
+    }
     const payload: SaveVariantPayload = {
       option_value_ids: ids,
       sku: vDialog.sku || null,
@@ -300,6 +322,7 @@ export default function AdminProductEditPage({
       compare_price: vDialog.compare_price ? Number(vDialog.compare_price) : null,
       quantity: Number(vDialog.quantity || 0),
       is_active: vDialog.is_active,
+      is_default: vDialog.is_default,
     };
     setSavingVariant(true);
     try {
@@ -340,6 +363,48 @@ export default function AdminProductEditPage({
     } catch {
       setSnack({ msg: t("common.error"), sev: "error" });
     }
+  };
+
+  // Quick action: promote a variant to be the product's default in one click.
+  const setAsDefault = async (v: ProductVariant) => {
+    if (v.is_default) return;
+    try {
+      await adminApi.updateVariant(productId, v.id, {
+        option_value_ids: v.option_value_ids,
+        sku: v.sku,
+        price: Number(v.price),
+        compare_price: v.compare_price !== null ? Number(v.compare_price) : null,
+        quantity: Number(v.quantity),
+        image: v.image,
+        is_active: v.is_active,
+        is_default: true,
+      });
+      const vRes = await adminApi.listVariants(productId);
+      setVariants(vRes.data.data);
+      setSnack({
+        msg: t("admin.defaultVariantSet") || "Default variant updated",
+        sev: "success",
+      });
+    } catch {
+      setSnack({ msg: t("common.error"), sev: "error" });
+    }
+  };
+
+  // For the Add/Edit dialog: would picking `valueId` for `optionId` complete a
+  // combination that already exists on a different variant? Used to disable
+  // chips that would form duplicates so the user can't even click them.
+  const wouldDuplicate = (optionId: number, valueId: number): boolean => {
+    if (vDialog.picks[optionId] === valueId) return false; // currently selected -> allow click to deselect
+    const hypothetical: Record<number, number> = { ...vDialog.picks, [optionId]: valueId };
+    const ids = Object.values(hypothetical);
+    if (ids.length !== allOptions.length) return false; // not yet a complete combo
+    const set = new Set(ids);
+    return variants.some(
+      (vv) =>
+        vv.id !== vDialog.editingId &&
+        vv.option_value_ids.length === set.size &&
+        vv.option_value_ids.every((id) => set.has(id))
+    );
   };
 
   // ---------- Render ----------
@@ -618,6 +683,9 @@ export default function AdminProductEditPage({
                   <Table size="small">
                     <TableHead>
                       <TableRow>
+                        <TableCell align="center" sx={{ width: 56 }}>
+                          {t("admin.default") || "Default"}
+                        </TableCell>
                         <TableCell>{t("admin.variant") || "Variant"}</TableCell>
                         <TableCell>{t("admin.sku") || "SKU"}</TableCell>
                         <TableCell align="right">{t("admin.price") || "Price"}</TableCell>
@@ -632,7 +700,31 @@ export default function AdminProductEditPage({
                     </TableHead>
                     <TableBody>
                       {variants.map((v) => (
-                        <TableRow key={v.id} hover>
+                        <TableRow key={v.id} hover selected={v.is_default}>
+                          <TableCell align="center">
+                            <Tooltip
+                              title={
+                                v.is_default
+                                  ? t("admin.isDefaultVariant") || "Default variant"
+                                  : t("admin.setAsDefault") || "Set as default"
+                              }
+                            >
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  onClick={() => setAsDefault(v)}
+                                  color={v.is_default ? "warning" : "default"}
+                                  disabled={v.is_default}
+                                >
+                                  {v.is_default ? (
+                                    <StarIcon fontSize="small" />
+                                  ) : (
+                                    <StarBorderIcon fontSize="small" />
+                                  )}
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          </TableCell>
                           <TableCell>
                             <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                               {allOptions.map((opt) => {
@@ -727,29 +819,44 @@ export default function AdminProductEditPage({
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                   {opt.values.map((val) => {
                     const selected = vDialog.picks[opt.id] === val.id;
+                    const blocked = wouldDuplicate(opt.id, val.id);
                     return (
-                      <Chip
+                      <Tooltip
                         key={val.id}
-                        label={valueLabel(val)}
-                        clickable
-                        color={selected ? "primary" : "default"}
-                        variant={selected ? "filled" : "outlined"}
-                        onClick={() => togglePick(opt.id, val.id)}
-                        icon={
-                          val.hex_color ? (
-                            <Box
-                              sx={{
-                                width: 14,
-                                height: 14,
-                                borderRadius: "50%",
-                                bgcolor: val.hex_color,
-                                border: "1px solid rgba(0,0,0,0.2)",
-                                ml: 0.5,
-                              }}
-                            />
-                          ) : undefined
+                        title={
+                          blocked
+                            ? t("admin.variantCombinationExists") ||
+                              "This combination already exists."
+                            : ""
                         }
-                      />
+                        disableHoverListener={!blocked}
+                      >
+                        <span>
+                          <Chip
+                            label={valueLabel(val)}
+                            clickable={!blocked}
+                            disabled={blocked}
+                            color={selected ? "primary" : "default"}
+                            variant={selected ? "filled" : "outlined"}
+                            onClick={() => !blocked && togglePick(opt.id, val.id)}
+                            sx={{ opacity: blocked ? 0.45 : 1 }}
+                            icon={
+                              val.hex_color ? (
+                                <Box
+                                  sx={{
+                                    width: 14,
+                                    height: 14,
+                                    borderRadius: "50%",
+                                    bgcolor: val.hex_color,
+                                    border: "1px solid rgba(0,0,0,0.2)",
+                                    ml: 0.5,
+                                  }}
+                                />
+                              ) : undefined
+                            }
+                          />
+                        </span>
+                      </Tooltip>
                     );
                   })}
                 </Box>
@@ -820,6 +927,17 @@ export default function AdminProductEditPage({
                     />
                   }
                   label={t("admin.active") || "Active"}
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={vDialog.is_default}
+                      onChange={(_, v) =>
+                        setVDialog((s) => ({ ...s, is_default: v }))
+                      }
+                    />
+                  }
+                  label={t("admin.setAsDefault") || "Set as default"}
                 />
               </Grid>
             </Grid>

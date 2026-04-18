@@ -141,7 +141,7 @@ export default function CategoriesMegaMenu() {
                     key={c.id}
                     onMouseEnter={() => setActiveId(c.id)}
                     component={Link}
-                    href={`/${locale}/categories/${c.id}`}
+                    href={`/${locale}/products?category_id=${c.id}`}
                     sx={{
                       display: "flex",
                       alignItems: "center",
@@ -219,7 +219,7 @@ export default function CategoriesMegaMenu() {
                         <Box
                           key={child.id}
                           component={Link}
-                          href={`/${locale}/categories/${child.id}`}
+                          href={`/${locale}/products?category_id=${child.id}`}
                           sx={{
                             display: "flex",
                             flexDirection: "column",

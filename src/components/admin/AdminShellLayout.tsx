@@ -149,7 +149,7 @@ export default function AdminShellLayout({
           display: "flex",
           alignItems: "center",
           px: 2.5,
-          gap: 1.5,
+          gap: 2.25,
           borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
@@ -167,15 +167,25 @@ export default function AdminShellLayout({
         >
           <AdminPanelSettingsIcon fontSize="small" />
         </Box>
-        <Box sx={{ minWidth: 0 }}>
+        <Box
+          sx={{
+            minWidth: 0,
+            display: "flex",
+            alignItems: "baseline",
+            gap: 0.9,
+            flexWrap: "nowrap",
+          }}
+        >
           <Typography
+            component="span"
             sx={{
               color: "white",
               fontWeight: 800,
               lineHeight: 1.1,
-              display: "inline-flex",
+              display: "flex",
               alignItems: "center",
               gap: 0.75,
+              whiteSpace: "nowrap",
             }}
             noWrap
           >
@@ -184,7 +194,12 @@ export default function AdminShellLayout({
           </Typography>
           <Typography
             variant="caption"
-            sx={{ color: "rgba(255,255,255,0.5)", letterSpacing: 0.5 }}
+            component="span"
+            sx={{
+              color: "rgba(255,255,255,0.5)",
+              letterSpacing: 0.5,
+              whiteSpace: "nowrap",
+            }}
           >
             {t("adminPanel")}
           </Typography>
