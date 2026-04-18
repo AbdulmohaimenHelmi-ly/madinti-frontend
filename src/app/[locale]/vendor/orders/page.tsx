@@ -24,6 +24,7 @@ import {
 
 import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
+import DataPagination from "@/components/common/DataPagination";
 import VendorPageHeader from "@/components/vendor/VendorPageHeader";
 import { vendorApi } from "@/lib/api/vendor";
 import type { Order } from "@/lib/types";
@@ -58,17 +59,23 @@ export default function VendorOrdersPage() {
   const [snack, setSnack] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("");
 
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await vendorApi.getOrders({ per_page: 100 });
+      const res = await vendorApi.getOrders({ per_page: 15, page });
       setOrders(res.data.data);
+      setLastPage(res.data.meta.last_page);
+      setTotal(res.data.meta.total);
     } catch {
       setError(t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, page]);
 
   useEffect(() => {
     load();
@@ -162,6 +169,7 @@ export default function VendorOrdersPage() {
       ) : filtered.length === 0 ? (
         <EmptyState message={t("noOrders")} />
       ) : (
+        <>
         <TableContainer
           component={Paper}
           sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}
@@ -215,6 +223,14 @@ export default function VendorOrdersPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        <DataPagination
+          page={page}
+          lastPage={lastPage}
+          total={total}
+          perPage={15}
+          onChange={setPage}
+        />
+        </>
       )}
 
       <Snackbar

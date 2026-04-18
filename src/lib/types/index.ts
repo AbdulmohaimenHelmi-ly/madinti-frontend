@@ -85,34 +85,39 @@ export type ProductVariantType =
   | "other";
 
 /**
- * Global variant catalog entry (managed by admins).
+ * One option group on a product (e.g. "Color", "Size").
  */
-export interface Variant {
+export interface ProductOptionValue {
   id: number;
-  type: ProductVariantType;
-  name: string;
-  name_en: string | null;
+  value: string;
+  value_en: string | null;
   hex_color: string | null;
-  sort_order: number;
-  is_active: boolean;
-  created_at?: string;
+  position: number;
+}
+
+export interface ProductOption {
+  id: number;
+  name: string;
+  name_ar?: string;
+  name_en?: string | null;
+  position: number;
+  values: ProductOptionValue[];
 }
 
 /**
- * A variant attached to a product (catalog fields + per-product pivot overrides).
+ * One concrete variant = a combination of option values, with its own price/stock.
  */
 export interface ProductVariant {
-  id: number; // variant id
-  type: ProductVariantType;
-  name: string;
-  name_en: string | null;
-  hex_color: string | null;
-  sort_order: number;
+  id: number;
+  product_id: number;
   sku: string | null;
-  price_adjustment: number;
+  price: number;
+  compare_price: number | null;
   quantity: number;
   image: string | null;
   is_active: boolean;
+  position: number;
+  option_value_ids: number[];
 }
 
 export interface ProductImage {
@@ -141,8 +146,10 @@ export interface Product {
   is_featured: boolean;
   rating: number;
   total_reviews: number;
+  has_variants: boolean;
   content_type?: ContentType;
   images: ProductImage[];
+  options?: ProductOption[];
   variants?: ProductVariant[];
   vendor?: Vendor;
   category?: Category;
@@ -166,12 +173,32 @@ export interface Brand {
   created_at?: string;
 }
 
+export interface CartItemVariantOption {
+  option: string;
+  option_en?: string | null;
+  value: string;
+  value_en?: string | null;
+  hex_color?: string | null;
+}
+
+export interface CartItemVariant {
+  id: number;
+  sku: string | null;
+  price: number;
+  image: string | null;
+  options: CartItemVariantOption[];
+  label: string | null;
+}
+
 export interface CartItem {
   id: number;
   cart_id: number;
   product_id: number;
+  product_variant_id?: number | null;
+  variant?: CartItemVariant | null;
   quantity: number;
   price: number;
+  subtotal?: number;
   product?: Product;
 }
 
@@ -179,14 +206,19 @@ export interface Cart {
   id: number;
   user_id: number;
   items: CartItem[];
-  total: number;
+  total_price: number;
+  items_count: number;
 }
 
 export interface OrderItem {
   id: number;
   order_id: number;
   product_id: number;
+  product_variant_id?: number | null;
   vendor_id: number;
+  product_name?: string;
+  variant_options?: CartItemVariantOption[] | null;
+  variant_label?: string | null;
   quantity: number;
   price: number;
   total: number;
@@ -202,9 +234,14 @@ export interface Order {
   shipping_cost: number;
   tax: number;
   total: number;
-  shipping_address: string;
-  shipping_city: string;
-  shipping_phone: string;
+  shipping_address: {
+    name?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+  } | string;
+  shipping_city?: string;
+  shipping_phone?: string;
   payment_method: string;
   notes: string | null;
   created_at: string;

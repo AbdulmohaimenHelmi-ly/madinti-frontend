@@ -22,9 +22,12 @@ import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
 
 import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
+import DataPagination from "@/components/common/DataPagination";
 import VendorPageHeader from "@/components/vendor/VendorPageHeader";
 import { vendorApi } from "@/lib/api/vendor";
 import type { Product } from "@/lib/types";
+
+const PER_PAGE = 15;
 
 export default function VendorProductsPage() {
   const t = useTranslations("vendor");
@@ -35,13 +38,20 @@ export default function VendorProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
     vendorApi
-      .getProducts({ per_page: 100 })
+      .getProducts({ per_page: PER_PAGE, page })
       .then((res) => {
-        if (active) setProducts(res.data.data);
+        if (!active) return;
+        setProducts(res.data.data);
+        setLastPage(res.data.meta.last_page);
+        setTotal(res.data.meta.total);
       })
       .catch(() => {
         if (active) setError(t("loadError"));
@@ -52,7 +62,7 @@ export default function VendorProductsPage() {
     return () => {
       active = false;
     };
-  }, [t]);
+  }, [t, page]);
 
   const productName = (p: Product) =>
     locale === "en" && p.name_en ? p.name_en : p.name;
@@ -109,6 +119,7 @@ export default function VendorProductsPage() {
       ) : filtered.length === 0 ? (
         <EmptyState message={t("noProducts")} />
       ) : (
+        <>
         <TableContainer
           component={Paper}
           sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}
@@ -187,6 +198,14 @@ export default function VendorProductsPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        <DataPagination
+          page={page}
+          lastPage={lastPage}
+          total={total}
+          perPage={PER_PAGE}
+          onChange={setPage}
+        />
+        </>
       )}
     </Box>
   );

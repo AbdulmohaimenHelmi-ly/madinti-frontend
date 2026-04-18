@@ -266,6 +266,11 @@ export default function VendorShellLayout({
           display: { xs: "none", md: "block" },
           width: DRAWER_WIDTH,
           flexShrink: 0,
+          position: "sticky",
+          top: 0,
+          alignSelf: "flex-start",
+          height: "100vh",
+          overflow: "hidden",
         }}
       >
         {sidebarContent}

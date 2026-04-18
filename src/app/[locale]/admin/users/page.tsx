@@ -40,6 +40,9 @@ import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
+import DataPagination from "@/components/common/DataPagination";
+
+const PER_PAGE = 15;
 
 const roleColor = (role: User["role"]) => {
   switch (role) {
@@ -78,6 +81,10 @@ export default function AdminUsersPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
   const [editing, setEditing] = useState<User | null>(null);
   const [form, setForm] = useState<EditForm>({
     name: "",
@@ -93,7 +100,7 @@ export default function AdminUsersPage() {
     setLoading(true);
     setError("");
     try {
-      const params: Record<string, string | number> = { per_page: 50 };
+      const params: Record<string, string | number> = { per_page: PER_PAGE, page };
       if (search) params.search = search;
       if (role) params.role = role;
       if (status !== "") params.is_active = status;
@@ -101,12 +108,14 @@ export default function AdminUsersPage() {
       if (dateTo) params.date_to = dateTo;
       const res = await adminApi.getUsers(params);
       setUsers(res.data.data);
+      setLastPage(res.data.meta.last_page);
+      setTotal(res.data.meta.total);
     } catch {
       setError(t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [t, search, role, status, dateFrom, dateTo]);
+  }, [t, search, role, status, dateFrom, dateTo, page]);
 
   useEffect(() => {
     load();
@@ -253,6 +262,7 @@ export default function AdminUsersPage() {
       ) : users.length === 0 ? (
         <EmptyState message={t("noUsers")} />
       ) : (
+        <>
         <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
           <Table>
             <TableHead>
@@ -342,6 +352,14 @@ export default function AdminUsersPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        <DataPagination
+          page={page}
+          lastPage={lastPage}
+          total={total}
+          perPage={PER_PAGE}
+          onChange={setPage}
+        />
+        </>
       )}
 
       <Dialog

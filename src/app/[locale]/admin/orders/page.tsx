@@ -30,6 +30,7 @@ import { adminApi } from "@/lib/api/admin";
 import type { Order } from "@/lib/types";
 import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
+import DataPagination from "@/components/common/DataPagination";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
 
@@ -70,19 +71,25 @@ export default function AdminOrdersPage() {
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
   const [newStatus, setNewStatus] = useState<Status>("pending");
 
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const params: Record<string, string | number> = { per_page: 50 };
+      const params: Record<string, string | number> = { per_page: 15, page };
       if (status) params.status = status;
       const res = await adminApi.getOrders(params);
       setOrders(res.data.data);
+      setLastPage(res.data.meta.last_page);
+      setTotal(res.data.meta.total);
     } catch {
       setError(t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [status, t]);
+  }, [status, t, page]);
 
   useEffect(() => {
     load();
@@ -140,6 +147,7 @@ export default function AdminOrdersPage() {
       ) : orders.length === 0 ? (
         <EmptyState message={tOrder("noOrders")} />
       ) : (
+        <>
         <Paper sx={{ overflow: "hidden", borderRadius: 3 }}>
           <TableContainer>
             <Table>
@@ -220,6 +228,14 @@ export default function AdminOrdersPage() {
             </Table>
           </TableContainer>
         </Paper>
+        <DataPagination
+          page={page}
+          lastPage={lastPage}
+          total={total}
+          perPage={15}
+          onChange={setPage}
+        />
+        </>
       )}
 
       <Dialog

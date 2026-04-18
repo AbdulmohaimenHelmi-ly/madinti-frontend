@@ -34,6 +34,7 @@ import { citiesApi, type Area, type City } from "@/lib/api/cities";
 import type { Vendor } from "@/lib/types";
 import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
+import DataPagination from "@/components/common/DataPagination";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
 
@@ -65,6 +66,10 @@ export default function AdminVendorsPage() {
   const [dateTo, setDateTo] = useState("");
   const [cities, setCities] = useState<City[]>([]);
 
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
   const [editing, setEditing] = useState<Vendor | null>(null);
   const [form, setForm] = useState<EditForm>({
     store_name: "",
@@ -91,7 +96,8 @@ export default function AdminVendorsPage() {
     setError("");
     try {
       const params: Record<string, string | number> = {
-        per_page: 50,
+        per_page: 15,
+        page,
         all: 1,
       };
       if (search) params.search = search;
@@ -101,12 +107,14 @@ export default function AdminVendorsPage() {
       if (dateTo) params.date_to = dateTo;
       const res = await adminApi.getVendors(params);
       setVendors(res.data.data);
+      setLastPage(res.data.meta.last_page);
+      setTotal(res.data.meta.total);
     } catch {
       setError(t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [t, search, status, cityId, dateFrom, dateTo]);
+  }, [t, search, status, cityId, dateFrom, dateTo, page]);
 
   useEffect(() => {
     load();
@@ -281,6 +289,7 @@ export default function AdminVendorsPage() {
       ) : vendors.length === 0 ? (
         <EmptyState message={t("noVendors")} />
       ) : (
+        <>
         <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
           <Table>
             <TableHead>
@@ -356,6 +365,14 @@ export default function AdminVendorsPage() {
             </TableBody>
           </Table>
         </TableContainer>
+        <DataPagination
+          page={page}
+          lastPage={lastPage}
+          total={total}
+          perPage={15}
+          onChange={setPage}
+        />
+        </>
       )}
 
       <Dialog

@@ -95,7 +95,7 @@ export default function AdminShellLayout({
       { label: t("categories"), href: `/${locale}/admin/categories`, icon: <CategoryIcon /> },
       { label: t("brands"), href: `/${locale}/admin/brands`, icon: <LocalOfferIcon /> },
       { label: t("products"), href: `/${locale}/admin/products`, icon: <InventoryIcon /> },
-      { label: t("variants"), href: `/${locale}/admin/variants`, icon: <TuneIcon /> },
+      { label: t("options") || "Options", href: `/${locale}/admin/options`, icon: <TuneIcon /> },
       { label: t("orders"), href: `/${locale}/admin/orders`, icon: <ReceiptLongIcon /> },
       { label: t("cities"), href: `/${locale}/admin/cities`, icon: <LocationCityIcon /> },
       { label: t("banners"), href: `/${locale}/admin/banners`, icon: <ViewCarouselIcon /> },
@@ -283,6 +283,11 @@ export default function AdminShellLayout({
           display: { xs: "none", md: "block" },
           width: DRAWER_WIDTH,
           flexShrink: 0,
+          position: "sticky",
+          top: 0,
+          alignSelf: "flex-start",
+          height: "100vh",
+          overflow: "hidden",
         }}
       >
         {sidebarContent}

@@ -8,10 +8,10 @@ import type {
   ContentType,
   Order,
   PaginatedResponse,
+  Product,
+  ProductOption,
   ProductVariant,
-  ProductVariantType,
   User,
-  Variant,
   Vendor,
 } from "../types";
 
@@ -148,55 +148,87 @@ export const adminApi = {
   updateOrderStatus: (id: number, status: string) =>
     apiClient.put<ApiResponse<Order>>(`/admin/orders/${id}/status`, { status }),
 
-  // Global Variant Catalog (admin-managed)
-  getVariantCatalog: (params?: Record<string, string | number>) =>
-    apiClient.get<ApiResponse<Variant[]>>("/admin/variants", { params }),
-  createCatalogVariant: (data: CatalogVariantPayload) =>
-    apiClient.post<ApiResponse<Variant>>("/admin/variants", data),
-  updateCatalogVariant: (id: number, data: Partial<CatalogVariantPayload>) =>
-    apiClient.put<ApiResponse<Variant>>(`/admin/variants/${id}`, data),
-  deleteCatalogVariant: (id: number) =>
-    apiClient.delete<ApiResponse<null>>(`/admin/variants/${id}`),
+  // Products (admin can list with inactive + full CRUD)
+  getProducts: (params?: Record<string, string | number>) =>
+    apiClient.get<PaginatedResponse<Product>>("/products", {
+      params: { include_inactive: 1, ...params },
+    }),
+  createProduct: (data: ProductPayload & { vendor_id: number }) =>
+    apiClient.post<ApiResponse<Product>>("/admin/products", data),
+  updateProduct: (id: number, data: ProductPayload) =>
+    apiClient.put<ApiResponse<Product>>(`/admin/products/${id}`, data),
+  deleteProduct: (id: number) =>
+    apiClient.delete<ApiResponse<null>>(`/admin/products/${id}`),
 
-  // Product-attached Variants (pivot)
-  getProductVariants: (productId: number) =>
+  // Per-product variants CRUD. Each variant references global option values by id.
+  listVariants: (productId: number) =>
     apiClient.get<ApiResponse<ProductVariant[]>>(
       `/admin/products/${productId}/variants`
     ),
-  attachProductVariant: (productId: number, data: AttachVariantPayload) =>
+  createVariant: (productId: number, data: SaveVariantPayload) =>
     apiClient.post<ApiResponse<ProductVariant>>(
       `/admin/products/${productId}/variants`,
       data
     ),
-  updateProductVariant: (
-    productId: number,
-    variantId: number,
-    data: Partial<Omit<AttachVariantPayload, "variant_id">>
-  ) =>
+  updateVariant: (productId: number, variantId: number, data: SaveVariantPayload) =>
     apiClient.put<ApiResponse<ProductVariant>>(
       `/admin/products/${productId}/variants/${variantId}`,
       data
     ),
-  detachProductVariant: (productId: number, variantId: number) =>
+  deleteVariant: (productId: number, variantId: number) =>
     apiClient.delete<ApiResponse<null>>(
       `/admin/products/${productId}/variants/${variantId}`
     ),
+
+  // Global Options catalog (Color, Size, ...). Shared across all products.
+  listOptions: () =>
+    apiClient.get<ApiResponse<ProductOption[]>>(`/admin/options`),
+  createOption: (data: SaveOptionPayload) =>
+    apiClient.post<ApiResponse<ProductOption>>(`/admin/options`, data),
+  updateOption: (id: number, data: SaveOptionPayload) =>
+    apiClient.put<ApiResponse<ProductOption>>(`/admin/options/${id}`, data),
+  deleteOption: (id: number) =>
+    apiClient.delete<ApiResponse<null>>(`/admin/options/${id}`),
 };
 
-export interface CatalogVariantPayload {
-  type: ProductVariantType;
+export interface SaveOptionPayload {
   name: string;
   name_en?: string | null;
-  hex_color?: string | null;
-  sort_order?: number;
-  is_active?: boolean;
+  position?: number;
+  values: Array<{
+    id?: number;
+    value: string;
+    value_en?: string | null;
+    hex_color?: string | null;
+    position?: number;
+  }>;
 }
 
-export interface AttachVariantPayload {
-  variant_id: number;
+export interface SaveVariantPayload {
+  option_value_ids: number[];
   sku?: string | null;
-  price_adjustment?: number;
-  quantity?: number;
+  price: number;
+  compare_price?: number | null;
+  quantity: number;
   image?: string | null;
   is_active?: boolean;
+  position?: number;
+}
+
+export interface ProductPayload {
+  category_id?: number;
+  brand_id?: number | null;
+  name?: string;
+  name_en?: string | null;
+  description?: string | null;
+  description_en?: string | null;
+  price?: number;
+  compare_price?: number | null;
+  cost?: number | null;
+  sku?: string | null;
+  quantity?: number;
+  is_active?: boolean;
+  is_featured?: boolean;
+  has_variants?: boolean;
+  content_type?: ContentType;
 }

@@ -17,15 +17,19 @@ import {
   TableHead,
   TableRow,
 } from "@mui/material";
-import TuneIcon from "@mui/icons-material/Tune";
+import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
 
-import { productsApi } from "@/lib/api/products";
+import { adminApi } from "@/lib/api/admin";
 import type { Product } from "@/lib/types";
 import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
 import AudienceChip, { useAudienceOptions } from "@/components/common/AudienceChip";
+import DataPagination from "@/components/common/DataPagination";
+
+const PER_PAGE = 15;
 
 export default function AdminProductsPage() {
   const t = useTranslations("admin");
@@ -42,18 +46,25 @@ export default function AdminProductsPage() {
   const tContent = useTranslations("content");
   const audienceOptions = useAudienceOptions(true);
 
+  // Server-side pagination state.
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await productsApi.getAll({ per_page: 50 });
+      const res = await adminApi.getProducts({ per_page: PER_PAGE, page });
       setProducts(res.data.data);
+      setLastPage(res.data.meta.last_page);
+      setTotal(res.data.meta.total);
     } catch {
       setError(t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, page]);
 
   useEffect(() => {
     load();
@@ -94,6 +105,11 @@ export default function AdminProductsPage() {
       <AdminPageHeader
         title={t("products")}
         subtitle={t("productsSubtitle")}
+        action={{
+          label: t("addProduct"),
+          icon: <AddIcon />,
+          href: `/${locale}/admin/products/new`,
+        }}
       />
 
       <AdminToolbar
@@ -133,7 +149,8 @@ export default function AdminProductsPage() {
       ) : filteredProducts.length === 0 ? (
         <EmptyState message={tProduct("noProducts")} />
       ) : (
-        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+        <>
+          <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
           <Table>
             <TableHead>
               <TableRow>
@@ -195,11 +212,12 @@ export default function AdminProductsPage() {
                   <TableCell align="end">
                     <Button
                       size="small"
+                      variant="outlined"
                       component={Link}
-                      href={`/${locale}/admin/products/${p.id}/variants`}
-                      startIcon={<TuneIcon />}
+                      href={`/${locale}/admin/products/${p.id}/edit`}
+                      startIcon={<EditIcon />}
                     >
-                      {t("variants")}
+                      {tCommon("edit")}
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -207,6 +225,14 @@ export default function AdminProductsPage() {
             </TableBody>
           </Table>
         </TableContainer>
+          <DataPagination
+            page={page}
+            lastPage={lastPage}
+            total={total}
+            perPage={PER_PAGE}
+            onChange={setPage}
+          />
+        </>
       )}
     </Box>
   );

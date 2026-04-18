@@ -35,7 +35,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography color="text.secondary">{t("order.shippingAddress")}</Typography>
-              <Typography>{order.shipping_address}, {order.shipping_city}</Typography>
+              <Typography>{typeof order.shipping_address === "string" ? `${order.shipping_address}${order.shipping_city ? ", " + order.shipping_city : ""}` : `${order.shipping_address?.address ?? ""}${order.shipping_address?.city ? ", " + order.shipping_address.city : ""}`}</Typography>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography color="text.secondary">{t("order.date")}</Typography>
@@ -49,9 +49,18 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           <Typography variant="h6" gutterBottom>{t("order.items")}</Typography>
           <Divider sx={{ mb: 2 }} />
           {order.items?.map((item) => (
-            <Box key={item.id} sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-              <Typography>{item.product?.name || `Product #${item.product_id}`} × {item.quantity}</Typography>
-              <Typography sx={{ fontWeight: 600 }}>{item.total} {t("common.currency")}</Typography>
+            <Box key={item.id} sx={{ display: "flex", justifyContent: "space-between", mb: 1.5, gap: 2 }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography>
+                  {item.product_name || item.product?.name || `Product #${item.product_id}`} × {item.quantity}
+                </Typography>
+                {item.variant_label && (
+                  <Typography variant="caption" color="text.secondary">
+                    {item.variant_label}
+                  </Typography>
+                )}
+              </Box>
+              <Typography sx={{ fontWeight: 600, flexShrink: 0 }}>{item.total} {t("common.currency")}</Typography>
             </Box>
           ))}
           <Divider sx={{ my: 2 }} />
