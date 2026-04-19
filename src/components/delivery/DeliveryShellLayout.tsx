@@ -5,7 +5,6 @@ import { useTranslations, useLocale } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  AppBar,
   Avatar,
   Box,
   CircularProgress,
@@ -22,13 +21,12 @@ import {
   Toolbar,
   Tooltip,
   Typography,
+  AppBar,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import StorefrontIcon from "@mui/icons-material/Storefront";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import PetsIcon from "@mui/icons-material/Pets";
+import PriceChangeIcon from "@mui/icons-material/PriceChange";
+import BusinessIcon from "@mui/icons-material/Business";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -37,17 +35,16 @@ import { useAuthStore } from "@/lib/store/authStore";
 
 const DRAWER_WIDTH = 264;
 const APPBAR_HEIGHT = 64;
-
 const SIDEBAR_BG = "#0F172A";
 const SIDEBAR_HOVER = "rgba(255,255,255,0.06)";
 const SIDEBAR_FG = "rgba(255,255,255,0.72)";
 
-export default function VendorShellLayout({
+export default function DeliveryShellLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const t = useTranslations("vendor");
+  const t = useTranslations("delivery");
   const tCommon = useTranslations("common");
   const locale = useLocale();
   const pathname = usePathname();
@@ -73,24 +70,22 @@ export default function VendorShellLayout({
       router.replace(`/${locale}/auth/login`);
       return;
     }
-    if (user && !user.is_vendor && !user.is_admin) {
+    if (user && !user.is_delivery && !user.is_admin) {
       router.replace(`/${locale}`);
     }
   }, [isInitialized, isLoading, user, token, locale, router]);
 
   const links = useMemo(
     () => [
-      { label: t("dashboard"), href: `/${locale}/vendor`, icon: <DashboardIcon />, exact: true },
-      { label: t("myProducts"), href: `/${locale}/vendor/products`, icon: <InventoryIcon /> },
-      { label: t("myOrders"), href: `/${locale}/vendor/orders`, icon: <ReceiptLongIcon /> },
-      { label: t("trustedCarriers"), href: `/${locale}/vendor/carriers`, icon: <LocalShippingIcon /> },
+      { label: t("dashboard"), href: `/${locale}/delivery`, icon: <DashboardIcon />, exact: true },
+      { label: t("company"), href: `/${locale}/delivery/company`, icon: <BusinessIcon /> },
+      { label: t("prices"), href: `/${locale}/delivery/prices`, icon: <PriceChangeIcon /> },
     ],
     [t, locale]
   );
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
-
   const currentPage = links.find((l) => isActive(l.href, l.exact));
 
   const handleLogout = async () => {
@@ -102,7 +97,7 @@ export default function VendorShellLayout({
     }
   };
 
-  if (!user || (!user.is_vendor && !user.is_admin)) {
+  if (!user || (!user.is_delivery && !user.is_admin)) {
     return (
       <Box
         sx={{
@@ -119,15 +114,7 @@ export default function VendorShellLayout({
   }
 
   const sidebarContent = (
-    <Box
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        bgcolor: SIDEBAR_BG,
-        color: SIDEBAR_FG,
-      }}
-    >
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column", bgcolor: SIDEBAR_BG, color: SIDEBAR_FG }}>
       <Box
         sx={{
           height: APPBAR_HEIGHT,
@@ -150,45 +137,19 @@ export default function VendorShellLayout({
             color: "white",
           })}
         >
-          <StorefrontIcon fontSize="small" />
+          <LocalShippingIcon fontSize="small" />
         </Box>
         <Box sx={{ minWidth: 0 }}>
-          <Typography
-            sx={{
-              color: "white",
-              fontWeight: 800,
-              lineHeight: 1.1,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 0.75,
-            }}
-            noWrap
-          >
-            <PetsIcon sx={{ fontSize: 16, transform: "rotate(-15deg)" }} />
+          <Typography sx={{ color: "white", fontWeight: 800, lineHeight: 1.1 }} noWrap>
             {tCommon("appName")}
           </Typography>
-          <Typography
-            variant="caption"
-            sx={{ color: "rgba(255,255,255,0.5)", letterSpacing: 0.5 }}
-          >
-            {t("vendorPanel")}
+          <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.5)", letterSpacing: 0.5 }}>
+            {t("panel")}
           </Typography>
         </Box>
       </Box>
 
       <Box sx={{ px: 2, py: 2, flex: 1, overflowY: "auto" }}>
-        <Typography
-          variant="caption"
-          sx={{
-            color: "rgba(255,255,255,0.4)",
-            fontWeight: 700,
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            px: 1.5,
-          }}
-        >
-          {t("vendorPanel")}
-        </Typography>
         <List sx={{ mt: 0.5 }} disablePadding>
           {links.map((link) => {
             const active = isActive(link.href, link.exact);
@@ -209,19 +170,10 @@ export default function VendorShellLayout({
                     },
                   })}
                 >
-                  <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>
-                    {link.icon}
-                  </ListItemIcon>
+                  <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>{link.icon}</ListItemIcon>
                   <ListItemText
                     primary={link.label}
-                    slotProps={{
-                      primary: {
-                        sx: {
-                          fontWeight: active ? 700 : 500,
-                          fontSize: "0.9rem",
-                        },
-                      },
-                    }}
+                    slotProps={{ primary: { sx: { fontWeight: active ? 700 : 500, fontSize: "0.9rem" } } }}
                   />
                 </ListItemButton>
               </ListItem>
@@ -235,34 +187,19 @@ export default function VendorShellLayout({
         <ListItemButton
           component={Link}
           href={`/${locale}`}
-          sx={{
-            borderRadius: 2,
-            color: SIDEBAR_FG,
-            "&:hover": { bgcolor: SIDEBAR_HOVER, color: "white" },
-          }}
+          sx={{ borderRadius: 2, color: SIDEBAR_FG, "&:hover": { bgcolor: SIDEBAR_HOVER, color: "white" } }}
         >
           <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>
             <OpenInNewIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText
-            primary={t("visitSite")}
-            slotProps={{ primary: { sx: { fontSize: "0.85rem" } } }}
-          />
+          <ListItemText primary={t("visitSite")} slotProps={{ primary: { sx: { fontSize: "0.85rem" } } }} />
         </ListItemButton>
       </Box>
     </Box>
   );
 
-  const isRtl = locale === "ar";
-
   return (
-    <Box
-      sx={{
-        display: "flex",
-        minHeight: "100vh",
-        bgcolor: "#F4F6FA",
-      }}
-    >
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#F4F6FA" }}>
       <Box
         sx={{
           display: { xs: "none", md: "block" },
@@ -280,104 +217,52 @@ export default function VendorShellLayout({
 
       <Drawer
         variant="temporary"
-        anchor={isRtl ? "right" : "left"}
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
         ModalProps={{ keepMounted: true }}
-        sx={{
-          display: { xs: "block", md: "none" },
-          "& .MuiDrawer-paper": {
-            width: DRAWER_WIDTH,
-            boxSizing: "border-box",
-            border: "none",
-          },
-        }}
+        slotProps={{ paper: { sx: { width: DRAWER_WIDTH } } }}
+        sx={{ display: { xs: "block", md: "none" } }}
       >
         {sidebarContent}
       </Drawer>
 
-      <Box
-        sx={{
-          flex: 1,
-          minWidth: 0,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
+      <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
         <AppBar
           position="sticky"
-          color="inherit"
           elevation={0}
           sx={{
             bgcolor: "white",
+            color: "text.primary",
             borderBottom: "1px solid",
             borderColor: "divider",
           }}
         >
-          <Toolbar sx={{ height: APPBAR_HEIGHT, gap: 1 }}>
-            <IconButton
-              onClick={() => setMobileOpen(true)}
-              edge="start"
-              sx={{ display: { md: "none" } }}
-            >
+          <Toolbar sx={{ minHeight: APPBAR_HEIGHT, gap: 1 }}>
+            <IconButton sx={{ display: { xs: "inline-flex", md: "none" } }} onClick={() => setMobileOpen(true)}>
               <MenuIcon />
             </IconButton>
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: 700, color: "text.primary" }}
-            >
+            <Typography sx={{ fontWeight: 800, fontSize: "1rem", flex: 1 }} noWrap>
               {currentPage?.label ?? t("dashboard")}
             </Typography>
-            <Box sx={{ flex: 1 }} />
-            <Tooltip title={user.name}>
+            <Tooltip title={user.email}>
               <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}>
-                <Avatar
-                  sx={{
-                    width: 36,
-                    height: 36,
-                    bgcolor: "primary.main",
-                    color: "white",
-                    fontWeight: 700,
-                  }}
-                >
-                  {user.name?.[0]?.toUpperCase()}
+                <Avatar sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: "0.9rem" }}>
+                  {user.name?.[0] ?? "D"}
                 </Avatar>
               </IconButton>
             </Tooltip>
-            <Menu
-              anchorEl={menuAnchor}
-              open={!!menuAnchor}
-              onClose={() => setMenuAnchor(null)}
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              transformOrigin={{ vertical: "top", horizontal: "right" }}
-              slotProps={{ paper: { sx: { minWidth: 220, mt: 1, borderRadius: 2 } } }}
-            >
-              <Box sx={{ px: 2, py: 1.5 }}>
-                <Typography sx={{ fontWeight: 700 }}>{user.name}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {user.email}
-                </Typography>
-              </Box>
-              <Divider />
-              <MenuItem component={Link} href={`/${locale}`}>
-                <ListItemIcon>
-                  <OpenInNewIcon fontSize="small" />
-                </ListItemIcon>
-                {t("visitSite")}
-              </MenuItem>
+            <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={() => setMenuAnchor(null)}>
               <MenuItem onClick={handleLogout}>
                 <ListItemIcon>
                   <LogoutIcon fontSize="small" />
                 </ListItemIcon>
-                {tCommon("logout")}
+                <ListItemText>{tCommon("logout")}</ListItemText>
               </MenuItem>
             </Menu>
           </Toolbar>
         </AppBar>
 
-        <Box component="main" sx={{ flex: 1, p: { xs: 2, md: 4 }, maxWidth: "100%" }}>
-          {children}
-        </Box>
+        <Box sx={{ p: { xs: 2, md: 3 }, flex: 1 }}>{children}</Box>
       </Box>
     </Box>
   );

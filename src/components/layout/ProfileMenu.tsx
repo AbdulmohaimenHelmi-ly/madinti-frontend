@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
@@ -122,7 +123,15 @@ export default function ProfileMenu() {
             {t("vendorDashboard")}
           </MenuItem>
         )}
-        {(user.is_admin || user.is_vendor) && <Divider />}
+        {user.is_delivery && (
+          <MenuItem component={Link} href={`${p}/delivery`} onClick={close}>
+            <ListItemIcon>
+              <LocalShippingIcon fontSize="small" color="primary" />
+            </ListItemIcon>
+            {t("deliveryDashboard")}
+          </MenuItem>
+        )}
+        {(user.is_admin || user.is_vendor || user.is_delivery) && <Divider />}
 
         {/* Customer-facing options — available to every logged-in user, including admin/vendor. */}
         <MenuItem component={Link} href={`${p}/profile`} onClick={close}>
@@ -150,7 +159,7 @@ export default function ProfileMenu() {
           {t("myFavorites")}
         </MenuItem>
 
-        {!user.is_vendor && !user.is_admin && (
+        {!user.is_vendor && !user.is_admin && !user.is_delivery && (
           <MenuItem
             component={Link}
             href={`${p}/become-vendor`}

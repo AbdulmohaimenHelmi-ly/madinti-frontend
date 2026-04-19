@@ -4,9 +4,10 @@ export interface User {
   email: string;
   phone: string | null;
   avatar: string | null;
-  role: "customer" | "vendor" | "admin";
+  role: "customer" | "vendor" | "admin" | "delivery";
   is_admin: boolean;
   is_vendor: boolean;
+  is_delivery?: boolean;
   is_active: boolean;
   locale: string;
   created_at?: string;

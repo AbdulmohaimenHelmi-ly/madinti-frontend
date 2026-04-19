@@ -34,6 +34,7 @@ import LoginIcon from "@mui/icons-material/Login";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import AddBusinessIcon from "@mui/icons-material/AddBusiness";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PetsIcon from "@mui/icons-material/Pets";
 import Navbar from "./Navbar";
@@ -61,10 +62,11 @@ export default function Header() {
   const logout = useAuthStore((s) => s.logout);
   const itemCount = useCartStore((s) => s.itemCount);
 
-  // The admin/vendor areas have their own full-screen dashboard chrome.
+  // The admin/vendor/delivery areas have their own full-screen dashboard chrome.
   if (
     pathname?.startsWith(`/${locale}/admin`) ||
-    pathname?.startsWith(`/${locale}/vendor`)
+    pathname?.startsWith(`/${locale}/vendor`) ||
+    pathname?.startsWith(`/${locale}/delivery`)
   ) {
     return null;
   }
@@ -154,7 +156,7 @@ export default function Header() {
               </Badge>
             </IconButton>
 
-            {isAuthenticated && !user?.is_admin && !user?.is_vendor && (
+            {isAuthenticated && !user?.is_admin && !user?.is_vendor && !user?.is_delivery && (
               <Button
                 component={Link}
                 href={`/${locale}/become-vendor`}
@@ -302,6 +304,21 @@ export default function Header() {
                     </ListItemButton>
                   </ListItem>
                 )}
+                {user?.is_delivery && (
+                  <ListItem disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                      component={Link}
+                      href={`/${locale}/delivery`}
+                      onClick={() => setDrawerOpen(false)}
+                      sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
+                        <LocalShippingIcon fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText primary={t("deliveryDashboard")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
+                    </ListItemButton>
+                  </ListItem>
+                )}
                 <ListItem disablePadding sx={{ mb: 0.5 }}>
                   <ListItemButton
                     component={Link}
@@ -315,7 +332,7 @@ export default function Header() {
                     <ListItemText primary={t("myProfile")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
                   </ListItemButton>
                 </ListItem>
-                {!user?.is_vendor && !user?.is_admin && (
+                {!user?.is_vendor && !user?.is_admin && !user?.is_delivery && (
                   <ListItem disablePadding sx={{ mb: 0.5 }}>
                     <ListItemButton
                       component={Link}

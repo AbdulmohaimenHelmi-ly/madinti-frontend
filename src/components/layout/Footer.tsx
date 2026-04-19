@@ -29,7 +29,8 @@ export default function Footer() {
 
   if (
     pathname?.startsWith(`/${locale}/admin`) ||
-    pathname?.startsWith(`/${locale}/vendor`)
+    pathname?.startsWith(`/${locale}/vendor`) ||
+    pathname?.startsWith(`/${locale}/delivery`)
   ) {
     return null;
   }

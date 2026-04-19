@@ -22,7 +22,11 @@ export default function LoginPage() {
     setError("");
     try {
       await login(email, password);
-      router.push(`/${locale}`);
+      const u = useAuthStore.getState().user;
+      if (u?.is_admin) router.push(`/${locale}/admin`);
+      else if (u?.is_delivery) router.push(`/${locale}/delivery`);
+      else if (u?.is_vendor) router.push(`/${locale}/vendor`);
+      else router.push(`/${locale}`);
     } catch { setError(t("common.error")); }
   };
   return (
