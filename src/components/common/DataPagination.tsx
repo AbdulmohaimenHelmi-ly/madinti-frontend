@@ -31,10 +31,13 @@ export default function DataPagination({
   return (
     <Stack
       direction={{ xs: "column", sm: "row" }}
-      alignItems="center"
-      justifyContent="space-between"
       spacing={1.5}
-      sx={{ mt: 2, px: 1 }}
+      sx={{
+        mt: 2,
+        px: 1,
+        alignItems: "center",
+        justifyContent: "space-between",
+      }}
     >
       <Typography variant="body2" color="text.secondary">
         {tCommon("showingRange", { from, to, total })}

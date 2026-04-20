@@ -191,7 +191,7 @@ export default function AdminBrandsPage() {
       />
 
       <Paper sx={{ p: 2, mb: 2, borderRadius: 3 }}>
-        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center", flexWrap: "wrap" }}>
           <TextField
             label={tCommon("search")}
             value={search}
@@ -254,7 +254,7 @@ export default function AdminBrandsPage() {
                 </TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("featured")}</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
-                <TableCell align="end" sx={{ fontWeight: 700 }}>
+                <TableCell sx={{ fontWeight: 700 }}>
                   {t("actions")}
                 </TableCell>
               </TableRow>
@@ -308,11 +308,11 @@ export default function AdminBrandsPage() {
                       sx={{ fontWeight: 600 }}
                     />
                   </TableCell>
-                  <TableCell align="end">
+                  <TableCell>
                     <Stack
                       direction="row"
                       spacing={1}
-                      justifyContent="flex-end"
+                      sx={{ justifyContent: "flex-start" }}
                     >
                       <Button
                         size="small"

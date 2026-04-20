@@ -183,7 +183,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             src={
               selectedVariant?.image ||
               product.images?.[selectedImage]?.image ||
-              "/placeholder-product.png"
+              "/placeholder-product.svg"
             }
             alt={name}
             sx={{

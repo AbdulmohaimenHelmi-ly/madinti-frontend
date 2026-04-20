@@ -156,7 +156,7 @@ export default function AdminVendorApplicationsPage() {
                 <TableCell sx={{ fontWeight: 700 }}>{t("email")}</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("city")}</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>
+                <TableCell sx={{ fontWeight: 700 }}>
                   {t("actions")}
                 </TableCell>
               </TableRow>
@@ -178,11 +178,11 @@ export default function AdminVendorApplicationsPage() {
                       sx={{ fontWeight: 600 }}
                     />
                   </TableCell>
-                  <TableCell align="right">
+                  <TableCell>
                     <Stack
                       direction="row"
                       spacing={1}
-                      justifyContent="flex-end"
+                      sx={{ justifyContent: "flex-start" }}
                     >
                       <Button
                         size="small"

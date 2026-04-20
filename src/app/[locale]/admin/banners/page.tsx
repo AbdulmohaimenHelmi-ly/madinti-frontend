@@ -206,7 +206,7 @@ export default function AdminBannersPage() {
           borderColor: "divider",
         }}
       >
-        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center", flexWrap: "wrap" }}>
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <InputLabel>{tContent("contentType")}</InputLabel>
             <Select
@@ -240,9 +240,11 @@ export default function AdminBannersPage() {
           >
             <Stack
               direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={2}
+              sx={{
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2,
+              }}
             >
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -280,7 +282,7 @@ export default function AdminBannersPage() {
               <Stack
                 direction="row"
                 spacing={2}
-                flexWrap="wrap"
+                sx={{ flexWrap: "wrap" }}
                 useFlexGap
               >
                 {list.map((b) => (
@@ -359,7 +361,7 @@ export default function AdminBannersPage() {
                       >
                         {b.link || "—"}
                       </Typography>
-                      <Stack direction="row" spacing={1} mt={1}>
+                      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                         <IconButton
                           size="small"
                           onClick={() => openEdit(b)}
@@ -500,7 +502,7 @@ export default function AdminBannersPage() {
               helperText={t("linkHint")}
             />
 
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
               <TextField
                 label={t("sortOrder")}
                 type="number"

@@ -153,6 +153,7 @@ export interface Product {
   total_reviews: number;
   has_variants: boolean;
   content_type?: ContentType;
+  image?: string | null;
   images: ProductImage[];
   options?: ProductOption[];
   variants?: ProductVariant[];

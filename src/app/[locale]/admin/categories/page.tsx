@@ -232,7 +232,7 @@ export default function AdminCategoriesPage() {
                   {tContent("contentType")}
                 </TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
-                <TableCell align="end" sx={{ fontWeight: 700 }}>
+                <TableCell sx={{ fontWeight: 700 }}>
                   {t("actions")}
                 </TableCell>
               </TableRow>
@@ -261,11 +261,11 @@ export default function AdminCategoriesPage() {
                       sx={{ fontWeight: 600 }}
                     />
                   </TableCell>
-                  <TableCell align="end">
+                  <TableCell>
                     <Stack
                       direction="row"
                       spacing={1}
-                      justifyContent="flex-end"
+                      sx={{ justifyContent: "flex-start" }}
                     >
                       <Button
                         size="small"

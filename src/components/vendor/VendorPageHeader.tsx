@@ -16,6 +16,7 @@ export interface VendorPageHeaderProps {
     icon?: React.ReactNode;
     onClick?: () => void;
     href?: string;
+    disabled?: boolean;
   };
 }
 
@@ -36,7 +37,7 @@ export default function VendorPageHeader({
         sx={{ mb: 1, "& a": { color: "text.secondary", textDecoration: "none" } }}
       >
         <Link href={`/${locale}/vendor`}>
-          <Stack direction="row" spacing={0.5} alignItems="center">
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
             <HomeIcon sx={{ fontSize: 16 }} />
             <Typography variant="body2">{t("vendorPanel")}</Typography>
           </Stack>
@@ -48,8 +49,10 @@ export default function VendorPageHeader({
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        justifyContent="space-between"
+        sx={{
+          alignItems: { xs: "flex-start", sm: "center" },
+          justifyContent: "space-between",
+        }}
       >
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
@@ -68,6 +71,7 @@ export default function VendorPageHeader({
               href={action.href}
               variant="contained"
               startIcon={action.icon}
+              disabled={action.disabled}
               sx={{ borderRadius: 2, px: 2.5, py: 1, flexShrink: 0 }}
             >
               {action.label}
@@ -77,6 +81,7 @@ export default function VendorPageHeader({
               variant="contained"
               onClick={action.onClick}
               startIcon={action.icon}
+              disabled={action.disabled}
               sx={{ borderRadius: 2, px: 2.5, py: 1, flexShrink: 0 }}
             >
               {action.label}

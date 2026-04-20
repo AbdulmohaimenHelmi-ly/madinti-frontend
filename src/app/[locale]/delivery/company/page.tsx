@@ -5,20 +5,18 @@ import { useTranslations } from "next-intl";
 import {
   Alert,
   Box,
-  Button,
   Card,
   CardContent,
   CircularProgress,
   Grid,
-  Stack,
   Switch,
   TextField,
-  Typography,
   FormControlLabel,
 } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 
 import { deliveryApi, type DeliveryCompany } from "@/lib/api/delivery";
+import DeliveryPageHeader from "@/components/delivery/DeliveryPageHeader";
 
 export default function DeliveryCompanyPage() {
   const t = useTranslations("delivery");
@@ -79,12 +77,16 @@ export default function DeliveryCompanyPage() {
 
   return (
     <Box>
-      <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
-        {t("company")}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        {t("companySubtitle")}
-      </Typography>
+      <DeliveryPageHeader
+        title={t("company")}
+        subtitle={t("companySubtitle")}
+        action={{
+          label: saving ? t("saving") : t("save"),
+          icon: <SaveIcon />,
+          onClick: onSave,
+          disabled: saving,
+        }}
+      />
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
@@ -166,17 +168,6 @@ export default function DeliveryCompanyPage() {
               />
             </Grid>
           </Grid>
-
-          <Stack direction="row" justifyContent="flex-end" sx={{ mt: 3 }}>
-            <Button
-              variant="contained"
-              startIcon={<SaveIcon />}
-              onClick={onSave}
-              disabled={saving}
-            >
-              {saving ? t("saving") : t("save")}
-            </Button>
-          </Stack>
         </CardContent>
       </Card>
     </Box>

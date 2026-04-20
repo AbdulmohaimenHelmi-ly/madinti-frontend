@@ -41,7 +41,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const imageSrc =
     primaryImage?.image ||
     (product as unknown as { image?: string }).image ||
-    "/placeholder-product.png";
+    "/placeholder-product.svg";
 
   const hasDiscount = comparePrice !== null && comparePrice > price;
   const discountPercent = hasDiscount

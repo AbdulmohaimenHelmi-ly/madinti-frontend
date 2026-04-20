@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,7 +8,6 @@ import {
   Alert,
   Box,
   Button,
-  Divider,
   FormControlLabel,
   Grid,
   InputAdornment,
@@ -22,13 +21,12 @@ import {
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SaveIcon from "@mui/icons-material/Save";
 
-import { adminApi } from "@/lib/api/admin";
-import type { Brand, Category, ContentType, Vendor } from "@/lib/types";
-import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import { vendorApi } from "@/lib/api/vendor";
+import type { Brand, Category, ContentType } from "@/lib/types";
+import VendorPageHeader from "@/components/vendor/VendorPageHeader";
 import { useAudienceOptions } from "@/components/common/AudienceChip";
 
 interface CreateForm {
-  vendor_id: number | "";
   category_id: number | "";
   brand_id: number | "";
   name: string;
@@ -46,25 +44,21 @@ interface CreateForm {
   has_variants: boolean;
 }
 
-export default function AdminCreateProductPage() {
+export default function VendorCreateProductPage() {
   const router = useRouter();
   const locale = useLocale();
-  const t = useTranslations("admin");
+  const t = useTranslations("vendor");
+  const tAdmin = useTranslations("admin");
   const tCommon = useTranslations("common");
-  const uiLocale = useLocale();
   const audienceOptions = useAudienceOptions(false);
 
-  const [vendors, setVendors] = useState<Vendor[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [bootstrapping, setBootstrapping] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [imageFiles, setImageFiles] = useState<File[]>([]);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const [form, setForm] = useState<CreateForm>({
-    vendor_id: "",
     category_id: "",
     brand_id: "",
     name: "",
@@ -84,14 +78,9 @@ export default function AdminCreateProductPage() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([
-      adminApi.getVendors({ per_page: 200 }),
-      adminApi.getCategories(),
-      adminApi.getBrands(),
-    ])
-      .then(([v, c, b]) => {
+    Promise.all([vendorApi.listCategories(), vendorApi.listBrands()])
+      .then(([c, b]) => {
         if (!active) return;
-        setVendors(v.data.data);
         setCategories(c.data.data);
         setBrands(b.data.data);
       })
@@ -102,64 +91,42 @@ export default function AdminCreateProductPage() {
     };
   }, [t]);
 
-  useEffect(() => {
-    return () => {
-      imagePreviews.forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, [imagePreviews]);
-
   const labelOf = (it: { name: string; name_en: string | null }) =>
-    uiLocale === "en" && it.name_en ? it.name_en : it.name;
-
-  const vendorLabel = (v: Vendor) =>
-    uiLocale === "en" && v.store_name_en ? v.store_name_en : v.store_name;
-
-  const handleImagesChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []);
-    imagePreviews.forEach((url) => URL.revokeObjectURL(url));
-    setImageFiles(files);
-    setImagePreviews(files.map((file) => URL.createObjectURL(file)));
-  };
+    locale === "en" && it.name_en ? it.name_en : it.name;
 
   const fieldDisabled = bootstrapping || saving;
 
   const handleSave = async () => {
     setError("");
-    if (!form.vendor_id) {
-      setError(t("vendorRequired"));
-      return;
-    }
     if (!form.category_id) {
-      setError(t("nameRequired"));
+      setError(tAdmin("nameRequired"));
       return;
     }
     if (!form.name.trim()) {
-      setError(t("nameRequired"));
+      setError(tAdmin("nameRequired"));
       return;
     }
     setSaving(true);
     try {
-      const payload = new FormData();
-      payload.append("vendor_id", String(Number(form.vendor_id)));
-      payload.append("category_id", String(Number(form.category_id)));
-      if (form.brand_id !== "") payload.append("brand_id", String(Number(form.brand_id)));
-      payload.append("name", form.name.trim());
-      if (form.name_en.trim()) payload.append("name_en", form.name_en.trim());
-      if (form.description) payload.append("description", form.description);
-      if (form.description_en) payload.append("description_en", form.description_en);
-      payload.append("price", String(form.has_variants ? 0 : Number(form.price) || 0));
-      if (form.compare_price !== "") payload.append("compare_price", String(Number(form.compare_price)));
-      if (form.cost !== "") payload.append("cost", String(Number(form.cost)));
-      if (form.sku) payload.append("sku", form.sku);
-      payload.append("quantity", String(form.has_variants ? 0 : Number(form.quantity) || 0));
-      payload.append("content_type", form.content_type);
-      payload.append("is_active", form.is_active ? "1" : "0");
-      payload.append("is_featured", form.is_featured ? "1" : "0");
-      payload.append("has_variants", form.has_variants ? "1" : "0");
-      imageFiles.forEach((file) => payload.append("images[]", file));
-
-      const created = await adminApi.createProduct(payload);
-      router.push(`/${locale}/admin/products/${created.data.data.id}/edit`);
+      const created = await vendorApi.createProduct({
+        category_id: Number(form.category_id),
+        brand_id: form.brand_id === "" ? null : Number(form.brand_id),
+        name: form.name.trim(),
+        name_en: form.name_en.trim() || null,
+        description: form.description || null,
+        description_en: form.description_en || null,
+        price: form.has_variants ? 0 : Number(form.price) || 0,
+        compare_price:
+          form.compare_price === "" ? null : Number(form.compare_price),
+        cost: form.cost === "" ? null : Number(form.cost),
+        sku: form.sku || null,
+        quantity: form.has_variants ? 0 : Number(form.quantity) || 0,
+        content_type: form.content_type,
+        is_active: form.is_active,
+        is_featured: form.is_featured,
+        has_variants: form.has_variants,
+      });
+      router.push(`/${locale}/vendor/products/${created.data.data.id}/edit`);
     } catch {
       setError(t("actionError"));
       setSaving(false);
@@ -168,25 +135,23 @@ export default function AdminCreateProductPage() {
 
   return (
     <Box>
-      <AdminPageHeader
+      <Button
+        component={Link}
+        href={`/${locale}/vendor/products`}
+        startIcon={
+          <ArrowBackIcon
+            sx={{ transform: locale === "ar" ? "scaleX(-1)" : "none" }}
+          />
+        }
+        sx={{ mb: 2 }}
+      >
+        {t("backToProducts")}
+      </Button>
+
+      <VendorPageHeader
         title={t("addProduct")}
         subtitle={t("addProductSubtitle")}
       />
-
-      <Box sx={{ mb: 2 }}>
-        <Button
-          component={Link}
-          href={`/${locale}/admin/products`}
-          startIcon={
-            <ArrowBackIcon
-              sx={{ transform: uiLocale === "ar" ? "scaleX(-1)" : "none" }}
-            />
-          }
-          size="small"
-        >
-          {tCommon("back")}
-        </Button>
-      </Box>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
@@ -195,35 +160,24 @@ export default function AdminCreateProductPage() {
       )}
 
       <Stack spacing={3}>
-        <Paper sx={{ p: 3 }}>
+        <Paper
+          sx={{
+            p: 3,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+          }}
+        >
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-            {t("basicInfo")}
+            {tAdmin("basicInfo")}
           </Typography>
 
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
-                select
                 fullWidth
-                label={t("selectVendor")}
-                value={form.vendor_id}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, vendor_id: Number(e.target.value) || "" }))
-                }
-                required
-                disabled={fieldDisabled}
-              >
-                {vendors.map((vendor) => (
-                  <MenuItem key={vendor.id} value={vendor.id}>
-                    {vendorLabel(vendor)}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                label={t("nameAr")}
+                size="small"
+                label={tAdmin("nameAr")}
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 required
@@ -233,9 +187,12 @@ export default function AdminCreateProductPage() {
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
-                label={t("nameEn")}
+                size="small"
+                label={tAdmin("nameEn")}
                 value={form.name_en}
-                onChange={(e) => setForm((f) => ({ ...f, name_en: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, name_en: e.target.value }))
+                }
                 disabled={fieldDisabled}
               />
             </Grid>
@@ -243,6 +200,7 @@ export default function AdminCreateProductPage() {
               <TextField
                 select
                 fullWidth
+                size="small"
                 label={t("category")}
                 value={form.category_id}
                 onChange={(e) =>
@@ -262,7 +220,8 @@ export default function AdminCreateProductPage() {
               <TextField
                 select
                 fullWidth
-                label={t("brand")}
+                size="small"
+                label={tAdmin("brand")}
                 value={form.brand_id}
                 onChange={(e) =>
                   setForm((f) => ({
@@ -272,7 +231,7 @@ export default function AdminCreateProductPage() {
                 }
                 disabled={fieldDisabled}
               >
-                <MenuItem value="">{tCommon("none")}</MenuItem>
+                <MenuItem value="">{t("none")}</MenuItem>
                 {brands.map((brand) => (
                   <MenuItem key={brand.id} value={brand.id}>
                     {labelOf(brand)}
@@ -284,7 +243,8 @@ export default function AdminCreateProductPage() {
               <TextField
                 select
                 fullWidth
-                label={t("audience")}
+                size="small"
+                label={tAdmin("audience")}
                 value={form.content_type}
                 onChange={(e) =>
                   setForm((f) => ({
@@ -304,20 +264,24 @@ export default function AdminCreateProductPage() {
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
+                size="small"
                 multiline
                 minRows={2}
-                label={t("descriptionAr")}
+                label={tAdmin("descriptionAr")}
                 value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, description: e.target.value }))
+                }
                 disabled={fieldDisabled}
               />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
+                size="small"
                 multiline
                 minRows={2}
-                label={t("descriptionEn")}
+                label={tAdmin("descriptionEn")}
                 value={form.description_en}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, description_en: e.target.value }))
@@ -353,56 +317,29 @@ export default function AdminCreateProductPage() {
                 label={t("featured")}
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
-              <Divider sx={{ my: 1.5 }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-                {t("images")}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {t("imagesReplaceHint")}
-              </Typography>
-              <Stack spacing={1.5}>
-                <Button component="label" variant="outlined" sx={{ alignSelf: "flex-start" }} disabled={fieldDisabled}>
-                  {t("uploadImages")}
-                  <input hidden multiple accept="image/*" type="file" onChange={handleImagesChange} />
-                </Button>
-                <Typography variant="body2" color="text.secondary">
-                  {imageFiles.length
-                    ? `${t("selectedImages")}: ${imageFiles.length}`
-                    : t("noImagesSelected")}
-                </Typography>
-                {imagePreviews.length > 0 && (
-                  <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: "wrap" }}>
-                    {imagePreviews.map((src, index) => (
-                      <Box
-                        key={src}
-                        component="img"
-                        src={src}
-                        alt={`preview-${index + 1}`}
-                        sx={{
-                          width: 84,
-                          height: 84,
-                          objectFit: "cover",
-                          borderRadius: 2,
-                          border: "1px solid",
-                          borderColor: "divider",
-                        }}
-                      />
-                    ))}
-                  </Stack>
-                )}
-              </Stack>
-            </Grid>
           </Grid>
         </Paper>
 
-        <Paper sx={{ p: 3 }}>
+        <Paper
+          sx={{
+            p: 3,
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+          }}
+        >
           <Stack
             direction="row"
-            sx={{ mb: 2, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}
+            sx={{
+              mb: 2,
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 1,
+            }}
           >
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {t("pricingStock")}
+              {tAdmin("pricingStock")}
             </Typography>
             <FormControlLabel
               control={
@@ -414,23 +351,26 @@ export default function AdminCreateProductPage() {
                   disabled={fieldDisabled}
                 />
               }
-              label={t("hasVariants")}
+              label={tAdmin("hasVariants")}
             />
           </Stack>
 
           {form.has_variants ? (
             <Alert severity="info" sx={{ borderRadius: 2 }}>
-              {t("createVariantsAfterSave")}
+              {tAdmin("createVariantsAfterSave")}
             </Alert>
           ) : (
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
+                  size="small"
                   type="number"
                   label={tCommon("price")}
                   value={form.price}
-                  onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, price: e.target.value }))
+                  }
                   disabled={fieldDisabled}
                   slotProps={{
                     input: {
@@ -446,8 +386,9 @@ export default function AdminCreateProductPage() {
               <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
+                  size="small"
                   type="number"
-                  label={t("comparePrice")}
+                  label={tAdmin("comparePrice")}
                   value={form.compare_price}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, compare_price: e.target.value }))
@@ -458,17 +399,21 @@ export default function AdminCreateProductPage() {
               <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
+                  size="small"
                   type="number"
                   label={tCommon("quantity")}
                   value={form.quantity}
-                  onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, quantity: e.target.value }))
+                  }
                   disabled={fieldDisabled}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
-                  label={t("sku")}
+                  size="small"
+                  label={tAdmin("sku")}
                   value={form.sku}
                   onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
                   disabled={fieldDisabled}
@@ -484,7 +429,7 @@ export default function AdminCreateProductPage() {
               disabled={fieldDisabled}
               startIcon={<SaveIcon />}
             >
-              {t("saveProduct")}
+              {tCommon("save")}
             </Button>
           </Box>
         </Paper>

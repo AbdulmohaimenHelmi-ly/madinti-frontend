@@ -73,7 +73,7 @@ export interface UpdateUserPayload {
   name?: string;
   email?: string;
   phone?: string | null;
-  role?: "customer" | "vendor" | "admin";
+  role?: "customer" | "vendor" | "admin" | "delivery";
   is_active?: boolean;
 }
 
@@ -153,9 +153,9 @@ export const adminApi = {
     apiClient.get<PaginatedResponse<Product>>("/products", {
       params: { include_inactive: 1, ...params },
     }),
-  createProduct: (data: ProductPayload & { vendor_id: number }) =>
+  createProduct: (data: (ProductPayload & { vendor_id: number }) | FormData) =>
     apiClient.post<ApiResponse<Product>>("/admin/products", data),
-  updateProduct: (id: number, data: ProductPayload) =>
+  updateProduct: (id: number, data: ProductPayload | FormData) =>
     apiClient.put<ApiResponse<Product>>(`/admin/products/${id}`, data),
   deleteProduct: (id: number) =>
     apiClient.delete<ApiResponse<null>>(`/admin/products/${id}`),

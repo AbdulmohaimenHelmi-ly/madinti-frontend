@@ -208,7 +208,7 @@ export default function AdminCitiesPage() {
                   {tCities("areasCount")}
                 </TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>
+                <TableCell sx={{ fontWeight: 700 }}>
                   {t("actions")}
                 </TableCell>
               </TableRow>
@@ -243,11 +243,11 @@ export default function AdminCitiesPage() {
                         onChange={() => handleToggleCity(c)}
                       />
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell>
                       <Stack
                         direction="row"
                         spacing={0.5}
-                        justifyContent="flex-end"
+                        sx={{ justifyContent: "flex-start" }}
                       >
                         <IconButton
                           size="small"
@@ -281,9 +281,11 @@ export default function AdminCitiesPage() {
                         <Box sx={{ p: 2 }}>
                           <Stack
                             direction="row"
-                            justifyContent="space-between"
-                            alignItems="center"
-                            sx={{ mb: 1 }}
+                            sx={{
+                              mb: 1,
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
                           >
                             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                               {tCities("areas")}
@@ -312,9 +314,9 @@ export default function AdminCitiesPage() {
                                 <Stack
                                   key={a.id}
                                   direction="row"
-                                  alignItems="center"
                                   spacing={1}
                                   sx={{
+                                    alignItems: "center",
                                     p: 1,
                                     bgcolor: "white",
                                     borderRadius: 1,

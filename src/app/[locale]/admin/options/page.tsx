@@ -221,7 +221,7 @@ export default function AdminOptionsPage({
                   <TableCell>Name (AR)</TableCell>
                   <TableCell>Name (EN)</TableCell>
                   <TableCell>Values</TableCell>
-                  <TableCell align="right" />
+                  <TableCell />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -254,7 +254,7 @@ export default function AdminOptionsPage({
                         ))}
                       </Box>
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell>
                       <Tooltip title="Edit">
                         <IconButton size="small" onClick={() => openEdit(opt)}>
                           <EditIcon fontSize="small" />

@@ -229,6 +229,7 @@ export default function AdminUsersPage() {
               { value: "customer", label: t("roles.customer") },
               { value: "vendor", label: t("roles.vendor") },
               { value: "admin", label: t("roles.admin") },
+              { value: "delivery", label: t("roles.delivery") },
             ],
           },
           {
@@ -273,7 +274,7 @@ export default function AdminUsersPage() {
                 <TableCell sx={{ fontWeight: 700 }}>{t("role")}</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("joinedAt")}</TableCell>
-                <TableCell align="end" sx={{ fontWeight: 700 }}>
+                <TableCell sx={{ fontWeight: 700 }}>
                   {t("actions")}
                 </TableCell>
               </TableRow>
@@ -301,12 +302,14 @@ export default function AdminUsersPage() {
                     />
                   </TableCell>
                   <TableCell>{formatDate(u.created_at)}</TableCell>
-                  <TableCell align="end">
+                  <TableCell>
                     <Stack
                       direction="row"
                       spacing={1}
-                      justifyContent="flex-end"
-                      flexWrap="wrap"
+                      sx={{
+                        justifyContent: "flex-start",
+                        flexWrap: "wrap",
+                      }}
                       useFlexGap
                     >
                       <Button
@@ -418,6 +421,7 @@ export default function AdminUsersPage() {
               <MenuItem value="customer">{t("roles.customer")}</MenuItem>
               <MenuItem value="vendor">{t("roles.vendor")}</MenuItem>
               <MenuItem value="admin">{t("roles.admin")}</MenuItem>
+                  <MenuItem value="delivery">{t("roles.delivery")}</MenuItem>
             </TextField>
             <FormControlLabel
               control={

@@ -4,12 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   Alert,
-  Autocomplete,
   Box,
   Button,
-  Card,
-  CardContent,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
   IconButton,
   MenuItem,
@@ -30,9 +31,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 
 import { deliveryApi, type DeliveryPrice } from "@/lib/api/delivery";
 import { citiesApi, type City, type Area } from "@/lib/api/cities";
+import DeliveryPageHeader from "@/components/delivery/DeliveryPageHeader";
 
 export default function DeliveryPricesPage() {
   const t = useTranslations("delivery");
+  const tCommon = useTranslations("common");
   const locale = useLocale();
   const isAr = locale === "ar";
 
@@ -41,7 +44,9 @@ export default function DeliveryPricesPage() {
   const [areas, setAreas] = useState<Area[]>([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
-  const [error, setError] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [pageError, setPageError] = useState("");
+  const [formError, setFormError] = useState("");
 
   // Form state
   const [cityId, setCityId] = useState<number | "">("");
@@ -55,7 +60,7 @@ export default function DeliveryPricesPage() {
         setPrices(p.data.data);
         setCities(c.data.data);
       })
-      .catch(() => setError(t("loadError")))
+      .catch(() => setPageError(t("loadError")))
       .finally(() => setLoading(false));
   }, [t]);
 
@@ -72,10 +77,28 @@ export default function DeliveryPricesPage() {
   const cityName = (c?: City | { name: string; name_en?: string | null } | null) =>
     !c ? "-" : isAr ? c.name : (c.name_en || c.name);
 
+  const resetForm = () => {
+    setCityId("");
+    setAreaId("");
+    setPrice("");
+    setFormError("");
+  };
+
+  const openDialog = () => {
+    resetForm();
+    setDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    if (adding) return;
+    setDialogOpen(false);
+    setFormError("");
+  };
+
   const onAdd = async () => {
     if (!cityId || !price || Number(price) < 0) return;
     setAdding(true);
-    setError("");
+    setFormError("");
     try {
       const res = await deliveryApi.addPrice({
         city_id: Number(cityId),
@@ -83,12 +106,11 @@ export default function DeliveryPricesPage() {
         price: Number(price),
       });
       setPrices((rows) => [res.data.data, ...rows]);
-      setCityId("");
-      setAreaId("");
-      setPrice("");
+      resetForm();
+      setDialogOpen(false);
     } catch (err: unknown) {
       const e = err as { response?: { data?: { message?: string } } };
-      setError(e?.response?.data?.message || t("saveError"));
+      setFormError(e?.response?.data?.message || t("saveError"));
     } finally {
       setAdding(false);
     }
@@ -117,78 +139,17 @@ export default function DeliveryPricesPage() {
 
   return (
     <Box>
-      <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
-        {t("prices")}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        {t("pricesSubtitle")}
-      </Typography>
+      <DeliveryPageHeader
+        title={t("prices")}
+        subtitle={t("pricesSubtitle")}
+        action={{
+          label: t("addPrice"),
+          icon: <AddIcon />,
+          onClick: openDialog,
+        }}
+      />
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-      {/* Add new price */}
-      <Card sx={{ borderRadius: 3, mb: 3 }}>
-        <CardContent>
-          <Typography sx={{ fontWeight: 700, mb: 2 }}>{t("addPrice")}</Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                select
-                label={t("city")}
-                value={cityId}
-                onChange={(e) => setCityId(e.target.value === "" ? "" : Number(e.target.value))}
-                fullWidth
-              >
-                <MenuItem value="">{t("selectCity")}</MenuItem>
-                {cities.map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
-                    {cityName(c)}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                select
-                label={t("area")}
-                value={areaId}
-                onChange={(e) => setAreaId(e.target.value === "" ? "" : Number(e.target.value))}
-                disabled={!cityId}
-                helperText={t("areaHelp")}
-                fullWidth
-              >
-                <MenuItem value="">{t("anyArea")}</MenuItem>
-                {areas.map((a) => (
-                  <MenuItem key={a.id} value={a.id}>
-                    {cityName(a)}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid size={{ xs: 12, md: 3 }}>
-              <TextField
-                label={t("price")}
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                fullWidth
-              />
-            </Grid>
-            <Grid size={{ xs: 12, md: 1 }}>
-              <Button
-                variant="contained"
-                onClick={onAdd}
-                disabled={adding || !cityId || price === ""}
-                fullWidth
-                sx={{ height: "100%", minHeight: 56 }}
-                startIcon={<AddIcon />}
-              >
-                {t("add")}
-              </Button>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+      {pageError && <Alert severity="error" sx={{ mb: 2 }}>{pageError}</Alert>}
 
       {/* Table of prices */}
       <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
@@ -204,7 +165,7 @@ export default function DeliveryPricesPage() {
                   <TableCell sx={{ fontWeight: 700 }}>{t("city")}</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>{t("area")}</TableCell>
                   <TableCell sx={{ fontWeight: 700 }} align="right">{t("price")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="right" />
+                  <TableCell sx={{ fontWeight: 700 }} />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -228,7 +189,7 @@ export default function DeliveryPricesPage() {
                     <TableCell align="right" sx={{ fontWeight: 700 }}>
                       {Number(p.price).toFixed(2)}
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell>
                       <Tooltip title={t("delete")}>
                         <IconButton color="error" onClick={() => onDelete(p.id)} size="small">
                           <DeleteIcon fontSize="small" />
@@ -242,6 +203,73 @@ export default function DeliveryPricesPage() {
           </TableContainer>
         )}
       </Paper>
+
+      <Dialog
+        open={dialogOpen}
+        onClose={closeDialog}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>{t("addPrice")}</DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            {formError && <Alert severity="error">{formError}</Alert>}
+
+            <TextField
+              select
+              label={t("city")}
+              value={cityId}
+              onChange={(e) => setCityId(e.target.value === "" ? "" : Number(e.target.value))}
+              fullWidth
+            >
+              <MenuItem value="">{t("selectCity")}</MenuItem>
+              {cities.map((c) => (
+                <MenuItem key={c.id} value={c.id}>
+                  {cityName(c)}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              label={t("area")}
+              value={areaId}
+              onChange={(e) => setAreaId(e.target.value === "" ? "" : Number(e.target.value))}
+              disabled={!cityId}
+              helperText={t("areaHelp")}
+              fullWidth
+            >
+              <MenuItem value="">{t("anyArea")}</MenuItem>
+              {areas.map((a) => (
+                <MenuItem key={a.id} value={a.id}>
+                  {cityName(a)}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              label={t("price")}
+              type="number"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              fullWidth
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={closeDialog} disabled={adding}>
+            {tCommon("cancel")}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={onAdd}
+            disabled={adding || !cityId || price === ""}
+            startIcon={<AddIcon />}
+          >
+            {t("add")}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

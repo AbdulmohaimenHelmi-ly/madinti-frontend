@@ -54,7 +54,7 @@ export default function CartItem({ item }: CartItemProps) {
           >
             <Box
               component="img"
-              src={primaryImage?.image || "/placeholder-product.png"}
+              src={primaryImage?.image || "/placeholder-product.svg"}
               alt={productName}
               sx={{
                 width: "100%",

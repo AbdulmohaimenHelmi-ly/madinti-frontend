@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, Box, Card, CardContent, Grid, Typography } from "@mui/material";
+import { Alert, Box, Card, CardContent, Chip, Grid, Stack, Typography } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import CategoryIcon from "@mui/icons-material/Category";
@@ -109,6 +109,8 @@ export default function AdminDashboardPage() {
               <Card
                 sx={{
                   borderRadius: 3,
+                  border: "1px solid",
+                  borderColor: "divider",
                   transition: "transform 0.2s ease, box-shadow 0.2s ease",
                   "&:hover": {
                     transform: "translateY(-2px)",
@@ -116,14 +118,35 @@ export default function AdminDashboardPage() {
                   },
                 }}
               >
-                <CardContent>
-                  <Box
+                <CardContent sx={{ p: 3 }}>
+                  <Stack
                     sx={{
                       display: "flex",
-                      alignItems: "center",
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
                       gap: 2,
                     }}
                   >
+                    <Box>
+                      <Typography color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>
+                        {s.label}
+                      </Typography>
+                      <Chip
+                        label={s.value}
+                        color="success"
+                        variant="outlined"
+                        sx={{
+                          height: 36,
+                          borderRadius: "999px",
+                          fontWeight: 800,
+                          fontSize: "1rem",
+                          "& .MuiChip-label": {
+                            px: 1.75,
+                          },
+                        }}
+                      />
+                    </Box>
                     <Box
                       sx={{
                         width: 52,
@@ -134,22 +157,12 @@ export default function AdminDashboardPage() {
                         justifyContent: "center",
                         bgcolor: `${s.color}18`,
                         color: s.color,
+                        flexShrink: 0,
                       }}
                     >
                       {s.icon}
                     </Box>
-                    <Box>
-                      <Typography
-                        variant="h4"
-                        sx={{ fontWeight: 800, lineHeight: 1 }}
-                      >
-                        {s.value}
-                      </Typography>
-                      <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-                        {s.label}
-                      </Typography>
-                    </Box>
-                  </Box>
+                  </Stack>
                 </CardContent>
               </Card>
             </Grid>

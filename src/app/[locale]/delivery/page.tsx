@@ -18,6 +18,7 @@ import StorefrontIcon from "@mui/icons-material/Storefront";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 
 import { deliveryApi, type DeliveryDashboardPayload } from "@/lib/api/delivery";
+import DeliveryPageHeader from "@/components/delivery/DeliveryPageHeader";
 
 export default function DeliveryDashboardPage() {
   const t = useTranslations("delivery");
@@ -71,12 +72,7 @@ export default function DeliveryDashboardPage() {
 
   return (
     <Box>
-      <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
-        {t("dashboard")}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        {t("dashboardSubtitle")}
-      </Typography>
+      <DeliveryPageHeader title={t("dashboard")} subtitle={t("dashboardSubtitle")} />
 
       {error && (
         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
@@ -86,7 +82,7 @@ export default function DeliveryDashboardPage() {
 
       {data?.company && (
         <Paper sx={{ p: 3, mb: 3, borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
             <Box
               sx={(theme) => ({
                 width: 56,
@@ -122,7 +118,7 @@ export default function DeliveryDashboardPage() {
             <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
               <CardContent>
                 {typeof s === "object" ? (
-                  <Stack direction="row" spacing={2} alignItems="center">
+                  <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                     <Box
                       sx={{
                         width: 48,

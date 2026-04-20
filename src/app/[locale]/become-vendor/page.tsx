@@ -146,7 +146,7 @@ export default function BecomeVendorPage() {
 
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
+      <Stack direction="row" spacing={2} sx={{ mb: 3, alignItems: "center" }}>
         <Box
           sx={(theme) => ({
             width: 48,
@@ -175,8 +175,10 @@ export default function BecomeVendorPage() {
             <Stack
               direction="row"
               spacing={2}
-              alignItems="center"
-              justifyContent="space-between"
+              sx={{
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
               <Box>
                 <Typography variant="overline" color="text.secondary">

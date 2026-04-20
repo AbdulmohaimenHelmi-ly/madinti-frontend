@@ -22,7 +22,7 @@ export default function CategoriesMegaMenu() {
   const tHome = useTranslations("home");
   const locale = useLocale();
   const pathname = usePathname();
-  const btnRef = useRef<HTMLButtonElement | null>(null);
+  const btnRef = useRef<HTMLAnchorElement | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [open, setOpen] = useState(false);
   const [tree, setTree] = useState<Category[]>([]);

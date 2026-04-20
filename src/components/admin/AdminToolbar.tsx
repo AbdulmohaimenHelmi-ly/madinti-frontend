@@ -56,8 +56,10 @@ export default function AdminToolbar({
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
-        alignItems={{ xs: "stretch", sm: "center" }}
-        flexWrap="wrap"
+        sx={{
+          alignItems: { xs: "stretch", sm: "center" },
+          flexWrap: "wrap",
+        }}
         useFlexGap
       >
         {onSearchChange !== undefined && (

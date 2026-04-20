@@ -117,6 +117,16 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const shippingAddressLabel = (order: Order) => {
+    if (typeof order.shipping_address === "string") {
+      return `${order.shipping_address}${order.shipping_city ? ", " + order.shipping_city : ""}`;
+    }
+
+    const address = order.shipping_address?.address ?? "";
+    const city = order.shipping_address?.city ?? "";
+    return `${address}${city ? ", " + city : ""}`;
+  };
+
   return (
     <Box>
       <AdminPageHeader title={t("orders")} subtitle={t("ordersSubtitle")} />
@@ -163,7 +173,7 @@ export default function AdminOrdersPage() {
                     {tCommon("total")}
                   </TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>{tOrder("date")}</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 700 }}>
+                  <TableCell sx={{ fontWeight: 700 }}>
                     {t("actions")}
                   </TableCell>
                 </TableRow>
@@ -196,11 +206,11 @@ export default function AdminOrdersPage() {
                           locale === "ar" ? "ar-LY" : "en-US"
                         )}
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell>
                         <Stack
                           direction="row"
                           spacing={1}
-                          justifyContent="flex-end"
+                          sx={{ justifyContent: "flex-start" }}
                         >
                           <Button
                             size="small"
@@ -272,9 +282,7 @@ export default function AdminOrdersPage() {
                     }}
                   >
                     <span>{tOrder("shippingAddress")}</span>
-                    <span>
-                      {viewOrder.shipping_address}, {viewOrder.shipping_city}
-                    </span>
+                    <span>{shippingAddressLabel(viewOrder)}</span>
                   </Box>
                   <Box
                     sx={{

@@ -49,8 +49,10 @@ export default function ImpersonationBanner() {
           <Stack
             direction={{ xs: "column", sm: "row" }}
             spacing={1.5}
-            alignItems={{ xs: "stretch", sm: "center" }}
-            justifyContent="space-between"
+            sx={{
+              alignItems: { xs: "stretch", sm: "center" },
+              justifyContent: "space-between",
+            }}
           >
             <Box sx={{ fontWeight: 600 }}>
               {t("impersonatingAs", { name: user.name })}

@@ -190,7 +190,7 @@ export function VendorGridSkeleton({ count = 6 }: GridSkeletonProps) {
               borderColor: "divider",
             }}
           >
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
               <Skeleton variant="circular" width={56} height={56} />
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Skeleton width="70%" />
@@ -222,7 +222,7 @@ export function CartSkeleton() {
               borderColor: "divider",
             }}
           >
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
               <Skeleton
                 variant="rectangular"
                 width={96}
@@ -279,7 +279,7 @@ export function StatCardsSkeleton({ count = 4 }: GridSkeletonProps) {
               borderColor: "divider",
             }}
           >
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
               <Skeleton variant="rounded" width={52} height={52} />
               <Box sx={{ flex: 1 }}>
                 <Skeleton width="60%" height={32} />
@@ -325,7 +325,7 @@ export function TableRowsSkeleton({ rows = 6, columns = 4 }: TableSkeletonProps)
             borderColor: "divider",
           }}
         >
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
             <Skeleton variant="rounded" width={44} height={44} />
             {Array.from({ length: columns - 1 }).map((_, c) => (
               <Skeleton key={c} width={`${80 / columns}%`} />

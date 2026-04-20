@@ -299,7 +299,7 @@ export default function AdminVendorsPage() {
                 <TableCell sx={{ fontWeight: 700 }}>{t("phone")}</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>{t("joinedAt")}</TableCell>
-                <TableCell align="end" sx={{ fontWeight: 700 }}>
+                <TableCell sx={{ fontWeight: 700 }}>
                   {t("actions")}
                 </TableCell>
               </TableRow>
@@ -323,12 +323,14 @@ export default function AdminVendorsPage() {
                     />
                   </TableCell>
                   <TableCell>{formatDate(v.created_at)}</TableCell>
-                  <TableCell align="end">
+                  <TableCell>
                     <Stack
                       direction="row"
                       spacing={1}
-                      justifyContent="flex-end"
-                      flexWrap="wrap"
+                      sx={{
+                        justifyContent: "flex-start",
+                        flexWrap: "wrap",
+                      }}
                       useFlexGap
                     >
                       <Button

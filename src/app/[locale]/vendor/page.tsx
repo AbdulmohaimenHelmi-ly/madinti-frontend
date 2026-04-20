@@ -120,7 +120,7 @@ export default function VendorDashboardPage() {
                 borderColor: "divider",
               }}
             >
-              <Stack direction="row" spacing={2} alignItems="center">
+              <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
                 <Box
                   sx={(theme) => ({
                     width: 56,

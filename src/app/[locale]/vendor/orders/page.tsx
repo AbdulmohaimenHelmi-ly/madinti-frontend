@@ -145,7 +145,7 @@ export default function VendorOrdersPage() {
           borderColor: "divider",
         }}
       >
-        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center", flexWrap: "wrap" }}>
           <FormControl size="small" sx={{ minWidth: 220 }}>
             <InputLabel>{t("orderStatus")}</InputLabel>
             <Select
@@ -196,7 +196,7 @@ export default function VendorOrdersPage() {
                   <TableCell>{o.items?.length ?? 0}</TableCell>
                   <TableCell>{currency(o.total)}</TableCell>
                   <TableCell>
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
                       <Chip
                         size="small"
                         label={statusLabel(o.status)}

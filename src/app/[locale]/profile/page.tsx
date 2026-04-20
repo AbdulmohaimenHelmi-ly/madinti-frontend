@@ -92,7 +92,7 @@ export default function ProfilePage() {
 
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
             {user.is_admin && <Chip color="primary" label={tCommon("adminPanel")} />}
             {user.is_vendor && <Chip color="secondary" label={tCommon("vendorDashboard")} />}
             {!user.is_admin && !user.is_vendor && (

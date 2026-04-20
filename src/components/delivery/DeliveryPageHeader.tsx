@@ -1,13 +1,13 @@
 "use client";
 
-import { Box, Button, Stack, Typography, Breadcrumbs } from "@mui/material";
+import { Box, Breadcrumbs, Button, Stack, Typography } from "@mui/material";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import HomeIcon from "@mui/icons-material/Home";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
-export interface AdminPageHeaderProps {
+export interface DeliveryPageHeaderProps {
   title: string;
   subtitle?: string;
   breadcrumb?: string;
@@ -20,14 +20,14 @@ export interface AdminPageHeaderProps {
   };
 }
 
-export default function AdminPageHeader({
+export default function DeliveryPageHeader({
   title,
   subtitle,
   breadcrumb,
   action,
-}: AdminPageHeaderProps) {
+}: DeliveryPageHeaderProps) {
   const locale = useLocale();
-  const t = useTranslations("admin");
+  const t = useTranslations("delivery");
   const Chevron = locale === "ar" ? ChevronLeftIcon : ChevronRightIcon;
 
   return (
@@ -36,16 +36,17 @@ export default function AdminPageHeader({
         separator={<Chevron fontSize="small" />}
         sx={{ mb: 1, "& a": { color: "text.secondary", textDecoration: "none" } }}
       >
-        <Link href={`/${locale}/admin`}>
+        <Link href={`/${locale}/delivery`}>
           <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
             <HomeIcon sx={{ fontSize: 16 }} />
-            <Typography variant="body2">{t("adminPanel")}</Typography>
+            <Typography variant="body2">{t("panel")}</Typography>
           </Stack>
         </Link>
         <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
           {breadcrumb ?? title}
         </Typography>
       </Breadcrumbs>
+
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
@@ -64,6 +65,7 @@ export default function AdminPageHeader({
             </Typography>
           )}
         </Box>
+
         {action &&
           (action.href ? (
             <Button
