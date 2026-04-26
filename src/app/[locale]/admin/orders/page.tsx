@@ -12,6 +12,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   MenuItem,
   Paper,
   Snackbar,
@@ -23,7 +24,9 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
 } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
 import { adminApi } from "@/lib/api/admin";
@@ -158,86 +161,86 @@ export default function AdminOrdersPage() {
         <EmptyState message={tOrder("noOrders")} />
       ) : (
         <>
-        <Paper sx={{ overflow: "hidden", borderRadius: 3 }}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>
-                    {tOrder("orderNumber")}
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>{t("name")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>{t("storeName")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>{tOrder("status")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>
-                    {tCommon("total")}
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>{tOrder("date")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>
-                    {t("actions")}
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {orders.map((o) => {
-                  const rich = o as Order & {
-                    user?: { id: number; name: string; email: string };
-                    vendor?: { id: number; store_name: string } | null;
-                  };
-                  return (
-                    <TableRow key={o.id} hover>
-                      <TableCell sx={{ fontWeight: 600 }}>
-                        #{o.order_number}
-                      </TableCell>
-                      <TableCell>{rich.user?.name ?? "—"}</TableCell>
-                      <TableCell>{rich.vendor?.store_name ?? "—"}</TableCell>
-                      <TableCell>
-                        <Chip
-                          size="small"
-                          color={statusColor[o.status as Status]}
-                          label={tOrder(`statuses.${o.status}`)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {Number(o.total).toFixed(2)} {tCommon("currency")}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(o.created_at).toLocaleDateString(
-                          locale === "ar" ? "ar-LY" : "en-US"
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          sx={{ justifyContent: "flex-start" }}
-                        >
-                          <Button
+        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 700 }}>
+                  {tOrder("orderNumber")}
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>{t("name")}</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>{t("storeName")}</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>{tOrder("status")}</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>
+                  {tCommon("total")}
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>{tOrder("date")}</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>
+                  {t("actions")}
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {orders.map((o) => {
+                const rich = o as Order & {
+                  user?: { id: number; name: string; email: string };
+                  vendor?: { id: number; store_name: string } | null;
+                };
+                return (
+                  <TableRow key={o.id} hover>
+                    <TableCell sx={{ fontWeight: 600 }}>
+                      #{o.order_number}
+                    </TableCell>
+                    <TableCell>{rich.user?.name ?? "—"}</TableCell>
+                    <TableCell>{rich.vendor?.store_name ?? "—"}</TableCell>
+                    <TableCell>
+                      <Chip
+                        size="small"
+                        color={statusColor[o.status as Status]}
+                        label={tOrder(`statuses.${o.status}`)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {Number(o.total).toFixed(2)} {tCommon("currency")}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(o.created_at).toLocaleDateString(
+                        locale === "ar" ? "ar-LY" : "en-US"
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Stack
+                        direction="row"
+                        spacing={0.5}
+                        sx={{ justifyContent: "flex-start" }}
+                      >
+                        <Tooltip title={tCommon("view")}>
+                          <IconButton
                             size="small"
-                            variant="outlined"
-                            startIcon={<VisibilityIcon />}
                             component={Link}
                             href={`/${locale}/orders/${o.id}`}
                             target="_blank"
                           >
-                            {tCommon("view")}
-                          </Button>
-                          <Button
+                            <VisibilityIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title={tCommon("edit")}>
+                          <IconButton
                             size="small"
-                            variant="contained"
+                            color="primary"
                             onClick={() => openOrder(o.id)}
                           >
-                            {tCommon("edit")}
-                          </Button>
-                        </Stack>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
         <DataPagination
           page={page}
           lastPage={lastPage}

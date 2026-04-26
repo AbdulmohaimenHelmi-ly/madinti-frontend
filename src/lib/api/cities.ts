@@ -6,6 +6,8 @@ export interface City {
   name: string;
   name_ar?: string;
   name_en: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   is_active: boolean;
   sort_order: number;
   areas?: Area[];
@@ -18,6 +20,8 @@ export interface Area {
   name: string;
   name_ar?: string;
   name_en: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   is_active: boolean;
   sort_order: number;
 }
@@ -25,6 +29,8 @@ export interface Area {
 export interface CityPayload {
   name: string;
   name_en?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   is_active?: boolean;
   sort_order?: number;
 }
@@ -32,6 +38,8 @@ export interface CityPayload {
 export interface AreaPayload {
   name: string;
   name_en?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   is_active?: boolean;
   sort_order?: number;
 }

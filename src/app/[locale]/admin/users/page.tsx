@@ -14,6 +14,7 @@ import {
   DialogContentText,
   DialogTitle,
   FormControlLabel,
+  IconButton,
   MenuItem,
   Paper,
   Snackbar,
@@ -26,6 +27,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import LoginIcon from "@mui/icons-material/Login";
@@ -305,49 +307,55 @@ export default function AdminUsersPage() {
                   <TableCell>
                     <Stack
                       direction="row"
-                      spacing={1}
-                      sx={{
-                        justifyContent: "flex-start",
-                        flexWrap: "wrap",
-                      }}
-                      useFlexGap
+                      spacing={0.5}
+                      sx={{ justifyContent: "flex-start" }}
                     >
-                      <Button
-                        size="small"
-                        startIcon={<EditIcon />}
-                        onClick={() => openEdit(u)}
+                      <Tooltip title={tCommon("edit")}>
+                        <IconButton size="small" onClick={() => openEdit(u)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip
+                        title={u.is_active ? t("deactivate") : t("activate")}
                       >
-                        {tCommon("edit")}
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        disabled={busyId === u.id || u.is_admin}
-                        color={u.is_active ? "warning" : "success"}
-                        startIcon={
-                          u.is_active ? <BlockIcon /> : <CheckCircleIcon />
-                        }
-                        onClick={() => handleToggleActive(u)}
-                      >
-                        {u.is_active ? t("deactivate") : t("activate")}
-                      </Button>
-                      <Button
-                        size="small"
-                        startIcon={<LoginIcon />}
-                        disabled={u.is_admin}
-                        onClick={() => handleImpersonate(u)}
-                      >
-                        {t("loginAs")}
-                      </Button>
-                      <Button
-                        size="small"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                        disabled={u.is_admin}
-                        onClick={() => setToDelete(u)}
-                      >
-                        {tCommon("delete")}
-                      </Button>
+                        <span>
+                          <IconButton
+                            size="small"
+                            disabled={busyId === u.id || u.is_admin}
+                            color={u.is_active ? "warning" : "success"}
+                            onClick={() => handleToggleActive(u)}
+                          >
+                            {u.is_active ? (
+                              <BlockIcon fontSize="small" />
+                            ) : (
+                              <CheckCircleIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                      <Tooltip title={t("loginAs")}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            disabled={u.is_admin}
+                            onClick={() => handleImpersonate(u)}
+                          >
+                            <LoginIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                      <Tooltip title={tCommon("delete")}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            disabled={u.is_admin}
+                            onClick={() => setToDelete(u)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
                     </Stack>
                   </TableCell>
                 </TableRow>

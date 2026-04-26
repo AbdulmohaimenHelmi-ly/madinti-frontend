@@ -38,6 +38,16 @@ export interface DeliveryDashboardPayload {
   };
 }
 
+export interface VendorSelfDeliveryPrice {
+  id: number;
+  vendor_id: number;
+  city_id: number;
+  area_id: number | null;
+  price: number;
+  city?: { id: number; name: string; name_en?: string | null };
+  area?: { id: number; name: string; name_en?: string | null } | null;
+}
+
 export const deliveryApi = {
   // ---------- Public ----------
   list: () =>
@@ -94,6 +104,35 @@ export const deliveryApi = {
       "/vendor/delivery-companies",
       { delivery_company_ids: ids }
     ),
+
+  // ---------- Vendor self-delivery ----------
+  vendorSelfDelivery: () =>
+    apiClient.get<
+      ApiResponse<{
+        enabled: boolean;
+        base_price: number;
+        prices: VendorSelfDeliveryPrice[];
+      }>
+    >("/vendor/self-delivery"),
+
+  vendorUpdateSelfDelivery: (data: { enabled: boolean; base_price: number }) =>
+    apiClient.put<ApiResponse<{ enabled: boolean; base_price: number }>>(
+      "/vendor/self-delivery",
+      data
+    ),
+
+  vendorAddSelfDeliveryPrice: (data: {
+    city_id: number;
+    area_id?: number | null;
+    price: number;
+  }) =>
+    apiClient.post<ApiResponse<VendorSelfDeliveryPrice>>(
+      "/vendor/self-delivery/prices",
+      data
+    ),
+
+  vendorDeleteSelfDeliveryPrice: (id: number) =>
+    apiClient.delete<ApiResponse<null>>(`/vendor/self-delivery/prices/${id}`),
 
   // ---------- Admin ----------
   adminList: () =>

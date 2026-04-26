@@ -11,6 +11,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   Paper,
   Snackbar,
   Stack,
@@ -21,6 +22,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
@@ -181,44 +183,42 @@ export default function AdminVendorApplicationsPage() {
                   <TableCell>
                     <Stack
                       direction="row"
-                      spacing={1}
+                      spacing={0.5}
                       sx={{ justifyContent: "flex-start" }}
                     >
-                      <Button
-                        size="small"
-                        startIcon={<VisibilityIcon />}
-                        onClick={() => setViewApp(a)}
-                      >
-                        {tCommon("view")}
-                      </Button>
+                      <Tooltip title={tCommon("view")}>
+                        <IconButton size="small" onClick={() => setViewApp(a)}>
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                       {a.status === "pending" && (
                         <>
-                          <Button
-                            size="small"
-                            color="success"
-                            variant="contained"
-                            startIcon={<CheckIcon />}
-                            onClick={() => {
-                              setAction("approve");
-                              setActionTarget(a);
-                              setNotes("");
-                            }}
-                          >
-                            {tApp("approve")}
-                          </Button>
-                          <Button
-                            size="small"
-                            color="error"
-                            variant="outlined"
-                            startIcon={<CloseIcon />}
-                            onClick={() => {
-                              setAction("reject");
-                              setActionTarget(a);
-                              setNotes("");
-                            }}
-                          >
-                            {tApp("reject")}
-                          </Button>
+                          <Tooltip title={tApp("approve")}>
+                            <IconButton
+                              size="small"
+                              color="success"
+                              onClick={() => {
+                                setAction("approve");
+                                setActionTarget(a);
+                                setNotes("");
+                              }}
+                            >
+                              <CheckIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={tApp("reject")}>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => {
+                                setAction("reject");
+                                setActionTarget(a);
+                                setNotes("");
+                              }}
+                            >
+                              <CloseIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         </>
                       )}
                     </Stack>

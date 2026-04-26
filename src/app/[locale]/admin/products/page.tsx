@@ -8,6 +8,7 @@ import {
   Box,
   Button,
   Chip,
+  IconButton,
   Paper,
   Stack,
   Table,
@@ -16,6 +17,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Tooltip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
@@ -271,15 +273,15 @@ export default function AdminProductsPage() {
                     </Stack>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      component={Link}
-                      href={`/${locale}/admin/products/${p.id}/edit`}
-                      startIcon={<EditIcon />}
-                    >
-                      {tCommon("edit")}
-                    </Button>
+                    <Tooltip title={tCommon("edit")}>
+                      <IconButton
+                        size="small"
+                        component={Link}
+                        href={`/${locale}/admin/products/${p.id}/edit`}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               ))}

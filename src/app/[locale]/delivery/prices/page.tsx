@@ -152,57 +152,55 @@ export default function DeliveryPricesPage() {
       {pageError && <Alert severity="error" sx={{ mb: 2 }}>{pageError}</Alert>}
 
       {/* Table of prices */}
-      <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ bgcolor: "grey.50" }}>
-                  <TableCell sx={{ fontWeight: 700 }}>{t("city")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>{t("area")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="right">{t("price")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} />
+      {loading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 700 }}>{t("city")}</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>{t("area")}</TableCell>
+                <TableCell sx={{ fontWeight: 700 }} align="right">{t("price")}</TableCell>
+                <TableCell sx={{ fontWeight: 700 }} />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sortedPrices.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} align="center" sx={{ py: 4, color: "text.secondary" }}>
+                    {t("noPrices")}
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {sortedPrices.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center" sx={{ py: 4, color: "text.secondary" }}>
-                      {t("noPrices")}
-                    </TableCell>
-                  </TableRow>
-                )}
-                {sortedPrices.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell>{cityName(p.city)}</TableCell>
-                    <TableCell>
-                      {p.area ? cityName(p.area) : (
-                        <Typography component="span" variant="caption" color="text.secondary">
-                          {t("anyArea")}
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell align="right" sx={{ fontWeight: 700 }}>
-                      {Number(p.price).toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      <Tooltip title={t("delete")}>
-                        <IconButton color="error" onClick={() => onDelete(p.id)} size="small">
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </Paper>
+              )}
+              {sortedPrices.map((p) => (
+                <TableRow key={p.id} hover>
+                  <TableCell>{cityName(p.city)}</TableCell>
+                  <TableCell>
+                    {p.area ? cityName(p.area) : (
+                      <Typography component="span" variant="caption" color="text.secondary">
+                        {t("anyArea")}
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>
+                    {Number(p.price).toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    <Tooltip title={t("delete")}>
+                      <IconButton color="error" onClick={() => onDelete(p.id)} size="small">
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       <Dialog
         open={dialogOpen}

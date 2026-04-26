@@ -217,35 +217,25 @@ export default function VendorProductsPage() {
         </Alert>
       )}
 
-      <Paper
-        sx={{
-          borderRadius: 3,
-          overflow: "hidden",
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        {loading ? (
-          <Box sx={{ p: 2 }}>
-            <TableRowsSkeleton rows={8} />
-          </Box>
-        ) : filteredProducts.length === 0 ? (
-          <EmptyState message={t("noProducts")} />
-        ) : (
-          <>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>{tCommon("product")}</TableCell>
-                    <TableCell>{t("category")}</TableCell>
-                    <TableCell>{tCommon("price")}</TableCell>
-                    <TableCell>{tCommon("stock")}</TableCell>
-                    <TableCell>{t("audience")}</TableCell>
-                    <TableCell>{tCommon("status")}</TableCell>
-                    <TableCell align="right" />
-                  </TableRow>
-                </TableHead>
+      {loading ? (
+        <TableRowsSkeleton rows={8} columns={7} />
+      ) : filteredProducts.length === 0 ? (
+        <EmptyState message={t("noProducts")} />
+      ) : (
+        <>
+          <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700 }}>{tCommon("product")}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{t("category")}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{tCommon("price")}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{tCommon("stock")}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{t("audience")}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{tCommon("status")}</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>{t("actions")}</TableCell>
+                </TableRow>
+              </TableHead>
                 <TableBody>
                   {filteredProducts.map((product) => {
                     const image =
@@ -346,22 +336,21 @@ export default function VendorProductsPage() {
                             )}
                           </Stack>
                         </TableCell>
-                        <TableCell align="right">
+                        <TableCell>
                           <Stack
                             direction="row"
-                            spacing={1}
-                            sx={{ justifyContent: "flex-end", flexWrap: "wrap" }}
-                            useFlexGap
+                            spacing={0.5}
+                            sx={{ justifyContent: "flex-start" }}
                           >
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              component={Link}
-                              href={`/${locale}/vendor/products/${product.id}/edit`}
-                              startIcon={<EditIcon />}
-                            >
-                              {tCommon("edit")}
-                            </Button>
+                            <Tooltip title={tCommon("edit")}>
+                              <IconButton
+                                size="small"
+                                component={Link}
+                                href={`/${locale}/vendor/products/${product.id}/edit`}
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
                             <Tooltip title={tCommon("delete")}>
                               <IconButton
                                 size="small"
@@ -389,7 +378,6 @@ export default function VendorProductsPage() {
             />
           </>
         )}
-      </Paper>
 
       <Dialog
         open={confirmDelete != null}

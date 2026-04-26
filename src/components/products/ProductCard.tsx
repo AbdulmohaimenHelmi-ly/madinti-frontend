@@ -1,12 +1,17 @@
 "use client";
 
-import { Box, IconButton, Typography } from "@mui/material";
+import { useState } from "react";
+import { Box, IconButton, Typography, Snackbar, Alert, CircularProgress } from "@mui/material";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import StarRoundedIcon from "@mui/icons-material/StarRounded";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import type { Product } from "@/lib/types";
+import { useCartStore } from "@/lib/store/cartStore";
+import { useAuthStore } from "@/lib/store/authStore";
 import FavoriteButton from "./FavoriteButton";
+import VariantPickerDialog from "./VariantPickerDialog";
 
 interface ProductCardProps {
   product: Product;
@@ -24,8 +29,49 @@ export default function ProductCard({ product }: ProductCardProps) {
   const t = useTranslations("common");
   const pt = useTranslations("product");
   const locale = useLocale();
+  const router = useRouter();
   const isRtl = locale === "ar";
   const name = locale === "en" && product.name_en ? product.name_en : product.name;
+
+  const addItem = useCartStore((s) => s.addItem);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const [adding, setAdding] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [variantDialogOpen, setVariantDialogOpen] = useState(false);
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      router.push(`/${locale}/login`);
+      return;
+    }
+    // Variant products: open the picker so the user chooses options inline.
+    if (product.has_variants) {
+      setVariantDialogOpen(true);
+      return;
+    }
+    setAdding(true);
+    try {
+      await addItem(product.id, 1, null);
+      setToast({ msg: pt("addedToCart"), type: "success" });
+    } catch (err) {
+      const e2 = err as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
+      const msg =
+        e2.response?.data?.errors?.quantity?.[0] ||
+        e2.response?.data?.errors?.variant_id?.[0] ||
+        e2.response?.data?.message ||
+        t("error");
+      setToast({ msg, type: "error" });
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleVariantConfirm = async (variantId: number) => {
+    await addItem(product.id, 1, variantId);
+    setToast({ msg: pt("addedToCart"), type: "success" });
+  };
 
   // Laravel serialises `decimal:x` casts as strings, so coerce every numeric
   // field defensively before doing math or calling `.toFixed()` on it.
@@ -326,6 +372,8 @@ export default function ProductCard({ product }: ProductCardProps) {
               className="product-card-cart"
               aria-label={t("addToCart")}
               size="small"
+              onClick={handleAddToCart}
+              disabled={adding}
               sx={{
                 flexShrink: 0,
                 width: 30,
@@ -339,11 +387,34 @@ export default function ProductCard({ product }: ProductCardProps) {
                 "& svg": { transform: isRtl ? "scaleX(-1)" : "none" },
               }}
             >
-              <ShoppingCartOutlinedIcon sx={{ fontSize: 16 }} />
+              {adding ? (
+                <CircularProgress size={14} />
+              ) : (
+                <ShoppingCartOutlinedIcon sx={{ fontSize: 16 }} />
+              )}
             </IconButton>
           )}
         </Box>
       </Box>
+      <Snackbar
+        open={!!toast}
+        autoHideDuration={2500}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        {toast ? (
+          <Alert severity={toast.type} onClose={() => setToast(null)} sx={{ width: "100%" }}>
+            {toast.msg}
+          </Alert>
+        ) : undefined}
+      </Snackbar>
+      <VariantPickerDialog
+        open={variantDialogOpen}
+        productId={product.id}
+        onClose={() => setVariantDialogOpen(false)}
+        onConfirm={handleVariantConfirm}
+        confirmLabel={t("addToCart")}
+      />
     </Box>
   );
 }

@@ -216,6 +216,17 @@ export interface Cart {
   items_count: number;
 }
 
+export interface OrderItemAvailableVariant {
+  id: number;
+  sku: string | null;
+  price: number;
+  quantity: number;
+  image: string | null;
+  is_active: boolean;
+  label: string | null;
+  options: CartItemVariantOption[];
+}
+
 export interface OrderItem {
   id: number;
   order_id: number;
@@ -223,12 +234,15 @@ export interface OrderItem {
   product_variant_id?: number | null;
   vendor_id: number;
   product_name?: string;
+  product_image?: string | null;
+  variant_image?: string | null;
   variant_options?: CartItemVariantOption[] | null;
   variant_label?: string | null;
   quantity: number;
   price: number;
   total: number;
   product?: Product;
+  available_variants?: OrderItemAvailableVariant[];
 }
 
 export interface Order {

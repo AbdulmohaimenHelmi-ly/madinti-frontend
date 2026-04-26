@@ -14,6 +14,7 @@ import {
   DialogContentText,
   DialogTitle,
   FormControlLabel,
+  IconButton,
   Paper,
   Snackbar,
   Stack,
@@ -25,6 +26,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -311,24 +313,23 @@ export default function AdminBrandsPage() {
                   <TableCell>
                     <Stack
                       direction="row"
-                      spacing={1}
+                      spacing={0.5}
                       sx={{ justifyContent: "flex-start" }}
                     >
-                      <Button
-                        size="small"
-                        startIcon={<EditIcon />}
-                        onClick={() => openEdit(b)}
-                      >
-                        {tCommon("edit")}
-                      </Button>
-                      <Button
-                        size="small"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                        onClick={() => setToDelete(b)}
-                      >
-                        {tCommon("delete")}
-                      </Button>
+                      <Tooltip title={tCommon("edit")}>
+                        <IconButton size="small" onClick={() => openEdit(b)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={tCommon("delete")}>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => setToDelete(b)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </Stack>
                   </TableCell>
                 </TableRow>

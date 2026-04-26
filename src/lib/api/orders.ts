@@ -4,9 +4,13 @@ import type { ApiResponse, PaginatedResponse, Order } from "../types";
 export interface CreateOrderData {
   shipping_address: string;
   shipping_city: string;
+  shipping_city_id?: number | null;
+  shipping_area_id?: number | null;
   shipping_phone: string;
   payment_method: string;
   notes?: string;
+  delivery_type?: "company" | "self" | null;
+  delivery_company_id?: number | null;
 }
 
 export const ordersApi = {

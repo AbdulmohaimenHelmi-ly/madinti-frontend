@@ -9,6 +9,7 @@ interface CartState {
   fetchCart: () => Promise<void>;
   addItem: (productId: number, quantity?: number, variantId?: number | null) => Promise<void>;
   updateItem: (itemId: number, quantity: number) => Promise<void>;
+  updateItemVariant: (itemId: number, variantId: number) => Promise<void>;
   removeItem: (itemId: number) => Promise<void>;
   clearCart: () => Promise<void>;
 }
@@ -65,6 +66,22 @@ export const useCartStore = create<CartState>((set) => ({
       });
     } catch {
       set({ isLoading: false });
+    }
+  },
+
+  updateItemVariant: async (itemId, variantId) => {
+    set({ isLoading: true });
+    try {
+      const response = await cartApi.updateItemVariant(itemId, variantId);
+      const cart = response.data.data;
+      set({
+        cart,
+        itemCount: calculateItemCount(cart.items),
+        isLoading: false,
+      });
+    } catch (err) {
+      set({ isLoading: false });
+      throw err;
     }
   },
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -9,13 +10,18 @@ import {
   Paper,
   Chip,
   Button,
+  InputBase,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import TuneIcon from "@mui/icons-material/Tune";
 import { useLocale, useTranslations } from "next-intl";
 import type { CartItem as CartItemType } from "@/lib/types";
 import { useCartStore } from "@/lib/store/cartStore";
+import VariantPickerDialog from "@/components/products/VariantPickerDialog";
 
 interface CartItemProps {
   item: CartItemType;
@@ -23,18 +29,46 @@ interface CartItemProps {
 
 export default function CartItem({ item }: CartItemProps) {
   const t = useTranslations("common");
+  const pt = useTranslations("product");
   const locale = useLocale();
   const updateItem = useCartStore((s) => s.updateItem);
   const removeItem = useCartStore((s) => s.removeItem);
+  const updateItemVariant = useCartStore((s) => s.updateItemVariant);
+  const [variantDialogOpen, setVariantDialogOpen] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  // Local input state lets the user type freely; we sync with the store when
+  // it changes externally (e.g. after the +/- buttons trigger a refresh).
+  const [qtyInput, setQtyInput] = useState<string>(String(item.quantity));
+  useEffect(() => {
+    setQtyInput(String(item.quantity));
+  }, [item.quantity]);
+
+  const commitQty = (raw: string) => {
+    const parsed = parseInt(raw, 10);
+    if (!Number.isFinite(parsed) || parsed < 1) {
+      // Invalid → revert to current quantity.
+      setQtyInput(String(item.quantity));
+      return;
+    }
+    if (parsed === item.quantity) return;
+    updateItem(item.id, parsed);
+  };
 
   const productName =
     item.product && locale === "en" && item.product.name_en
       ? item.product.name_en
       : item.product?.name || "";
 
-  const primaryImage =
-    item.product?.images?.find((img) => img.is_primary) ||
-    item.product?.images?.[0];
+  // The cart endpoint serialises the product via ProductListResource, which
+  // exposes a single `image` URL (already prefixed) rather than an `images`
+  // array. Prefer the variant image first when one is selected.
+  const imageSrc =
+    item.variant?.image ||
+    (item.product as { image?: string | null } | undefined)?.image ||
+    item.product?.images?.find((img) => img.is_primary)?.image ||
+    item.product?.images?.[0]?.image ||
+    "/placeholder-product.svg";
 
   return (
     <Card sx={{ mb: 2, overflow: "visible" }}>
@@ -54,7 +88,7 @@ export default function CartItem({ item }: CartItemProps) {
           >
             <Box
               component="img"
-              src={primaryImage?.image || "/placeholder-product.svg"}
+              src={imageSrc}
               alt={productName}
               sx={{
                 width: "100%",
@@ -73,6 +107,17 @@ export default function CartItem({ item }: CartItemProps) {
               <Chip
                 size="small"
                 variant="outlined"
+                onClick={
+                  item.product?.has_variants
+                    ? () => setVariantDialogOpen(true)
+                    : undefined
+                }
+                deleteIcon={item.product?.has_variants ? <TuneIcon /> : undefined}
+                onDelete={
+                  item.product?.has_variants
+                    ? () => setVariantDialogOpen(true)
+                    : undefined
+                }
                 sx={{ mb: 0.5, height: 22, "& .MuiChip-label": { px: 1, fontSize: "0.72rem" } }}
                 label={
                   <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}>
@@ -133,9 +178,37 @@ export default function CartItem({ item }: CartItemProps) {
             >
               <RemoveIcon fontSize="small" />
             </IconButton>
-            <Typography sx={{ minWidth: 36, textAlign: "center", fontWeight: 700, fontSize: "0.9rem" }}>
-              {item.quantity}
-            </Typography>
+            <InputBase
+              value={qtyInput}
+              onChange={(e) => {
+                // Only allow digits while typing.
+                const next = e.target.value.replace(/[^0-9]/g, "");
+                setQtyInput(next);
+              }}
+              onBlur={() => commitQty(qtyInput)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  commitQty(qtyInput);
+                  (e.target as HTMLInputElement).blur();
+                }
+              }}
+              inputProps={{
+                inputMode: "numeric",
+                pattern: "[0-9]*",
+                "aria-label": t("quantity"),
+                style: { textAlign: "center", padding: 0 },
+              }}
+              sx={{
+                width: 44,
+                "& input": {
+                  textAlign: "center",
+                  fontWeight: 700,
+                  fontSize: "0.9rem",
+                  py: 0.5,
+                },
+              }}
+            />
             <IconButton
               size="small"
               onClick={() => updateItem(item.id, item.quantity + 1)}
@@ -169,6 +242,42 @@ export default function CartItem({ item }: CartItemProps) {
           </Button>
         </Box>
       </CardContent>
+      <VariantPickerDialog
+        open={variantDialogOpen}
+        productId={item.product_id}
+        initialVariantId={item.product_variant_id ?? null}
+        title={pt("selectVariant")}
+        confirmLabel={t("save")}
+        onClose={() => setVariantDialogOpen(false)}
+        onConfirm={async (variantId) => {
+          try {
+            await updateItemVariant(item.id, variantId);
+            setToast({ msg: t("success"), type: "success" });
+          } catch (err) {
+            const e = err as {
+              response?: { data?: { message?: string; errors?: Record<string, string[]> } };
+            };
+            const msg =
+              e?.response?.data?.errors?.product_variant_id?.[0] ||
+              e?.response?.data?.message ||
+              t("error");
+            setToast({ msg, type: "error" });
+            throw err;
+          }
+        }}
+      />
+      <Snackbar
+        open={!!toast}
+        autoHideDuration={2500}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        {toast ? (
+          <Alert severity={toast.type} onClose={() => setToast(null)} sx={{ width: "100%" }}>
+            {toast.msg}
+          </Alert>
+        ) : undefined}
+      </Snackbar>
     </Card>
   );
 }

@@ -12,6 +12,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   MenuItem,
   Paper,
   Snackbar,
@@ -23,6 +24,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -326,40 +328,41 @@ export default function AdminVendorsPage() {
                   <TableCell>
                     <Stack
                       direction="row"
-                      spacing={1}
-                      sx={{
-                        justifyContent: "flex-start",
-                        flexWrap: "wrap",
-                      }}
-                      useFlexGap
+                      spacing={0.5}
+                      sx={{ justifyContent: "flex-start" }}
                     >
-                      <Button
-                        size="small"
-                        startIcon={<EditIcon />}
-                        onClick={() => openEdit(v)}
+                      <Tooltip title={tCommon("edit")}>
+                        <IconButton size="small" onClick={() => openEdit(v)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip
+                        title={v.is_active ? t("deactivate") : t("activate")}
                       >
-                        {tCommon("edit")}
-                      </Button>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        disabled={busyId === v.id}
-                        color={v.is_active ? "warning" : "success"}
-                        startIcon={
-                          v.is_active ? <BlockIcon /> : <CheckCircleIcon />
-                        }
-                        onClick={() => handleToggleActive(v)}
-                      >
-                        {v.is_active ? t("deactivate") : t("activate")}
-                      </Button>
-                      <Button
-                        size="small"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                        onClick={() => setToDelete(v)}
-                      >
-                        {tCommon("delete")}
-                      </Button>
+                        <span>
+                          <IconButton
+                            size="small"
+                            disabled={busyId === v.id}
+                            color={v.is_active ? "warning" : "success"}
+                            onClick={() => handleToggleActive(v)}
+                          >
+                            {v.is_active ? (
+                              <BlockIcon fontSize="small" />
+                            ) : (
+                              <CheckCircleIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                      <Tooltip title={tCommon("delete")}>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => setToDelete(v)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </Stack>
                   </TableCell>
                 </TableRow>

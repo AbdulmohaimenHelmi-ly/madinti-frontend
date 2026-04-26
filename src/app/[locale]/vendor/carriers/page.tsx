@@ -14,7 +14,9 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  FormControlLabel,
   IconButton,
+  MenuItem,
   Paper,
   Stack,
   Switch,
@@ -28,6 +30,9 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
+import DeliveryDiningIcon from "@mui/icons-material/DeliveryDining";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import SaveIcon from "@mui/icons-material/Save";
 import SearchIcon from "@mui/icons-material/Search";
@@ -42,7 +47,12 @@ import PriceCheckIcon from "@mui/icons-material/PriceCheck";
 
 import VendorPageHeader from "@/components/vendor/VendorPageHeader";
 import EmptyState from "@/components/common/EmptyState";
-import { deliveryApi, type DeliveryCompany } from "@/lib/api/delivery";
+import {
+  deliveryApi,
+  type DeliveryCompany,
+  type VendorSelfDeliveryPrice,
+} from "@/lib/api/delivery";
+import { citiesApi, type Area, type City } from "@/lib/api/cities";
 
 export default function VendorCarriersPage() {
   const t = useTranslations("vendor");
@@ -64,11 +74,34 @@ export default function VendorCarriersPage() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState("");
 
+  // ---- Self-delivery state ----
+  const [selfEnabled, setSelfEnabled] = useState(false);
+  const [selfBasePrice, setSelfBasePrice] = useState("0");
+  const [selfPrices, setSelfPrices] = useState<VendorSelfDeliveryPrice[]>([]);
+  const [selfSaving, setSelfSaving] = useState(false);
+  const [cities, setCities] = useState<City[]>([]);
+  const [priceDialogOpen, setPriceDialogOpen] = useState(false);
+  const [newCityId, setNewCityId] = useState<number | "">("");
+  const [newAreaId, setNewAreaId] = useState<number | "">("");
+  const [newAreas, setNewAreas] = useState<Area[]>([]);
+  const [newPrice, setNewPrice] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [priceFormError, setPriceFormError] = useState("");
+
   useEffect(() => {
-    Promise.all([deliveryApi.list(), deliveryApi.vendorTrustedIds()])
-      .then(([list, ids]) => {
+    Promise.all([
+      deliveryApi.list(),
+      deliveryApi.vendorTrustedIds(),
+      deliveryApi.vendorSelfDelivery(),
+      citiesApi.list({ all: true }),
+    ])
+      .then(([list, ids, self, cityList]) => {
         setCompanies(list.data.data);
         setSelected(new Set(ids.data.data.delivery_company_ids));
+        setSelfEnabled(self.data.data.enabled);
+        setSelfBasePrice(String(self.data.data.base_price ?? 0));
+        setSelfPrices(self.data.data.prices ?? []);
+        setCities(cityList.data.data);
       })
       .catch(() => setError(tDel("loadError")))
       .finally(() => setLoading(false));
@@ -137,6 +170,98 @@ export default function VendorCarriersPage() {
 
   const detailsTrusted = details != null && selected.has(details.id);
 
+  // ---- Self-delivery handlers ----
+  const saveSelfDelivery = async (
+    nextEnabled?: boolean,
+    nextBasePrice?: string
+  ) => {
+    setSelfSaving(true);
+    setError("");
+    try {
+      const payload = {
+        enabled: nextEnabled ?? selfEnabled,
+        base_price: Number(nextBasePrice ?? selfBasePrice) || 0,
+      };
+      const res = await deliveryApi.vendorUpdateSelfDelivery(payload);
+      setSelfEnabled(res.data.data.enabled);
+      setSelfBasePrice(String(res.data.data.base_price ?? 0));
+      setSuccess(t("selfDeliverySaved"));
+    } catch {
+      setError(tDel("saveError"));
+    } finally {
+      setSelfSaving(false);
+    }
+  };
+
+  const onToggleSelf = async (checked: boolean) => {
+    setSelfEnabled(checked);
+    await saveSelfDelivery(checked, selfBasePrice);
+  };
+
+  const onBasePriceBlur = async () => {
+    await saveSelfDelivery(selfEnabled, selfBasePrice);
+  };
+
+  const openPriceDialog = () => {
+    setNewCityId("");
+    setNewAreaId("");
+    setNewAreas([]);
+    setNewPrice("");
+    setPriceFormError("");
+    setPriceDialogOpen(true);
+  };
+
+  const onCityChange = async (cityId: number | "") => {
+    setNewCityId(cityId);
+    setNewAreaId("");
+    if (cityId === "") {
+      setNewAreas([]);
+      return;
+    }
+    try {
+      const res = await citiesApi.areasOf(Number(cityId), { all: true });
+      setNewAreas(res.data.data);
+    } catch {
+      setNewAreas([]);
+    }
+  };
+
+  const onAddPrice = async () => {
+    if (newCityId === "" || newPrice === "") {
+      setPriceFormError(t("selectCity"));
+      return;
+    }
+    setAdding(true);
+    setPriceFormError("");
+    try {
+      const res = await deliveryApi.vendorAddSelfDeliveryPrice({
+        city_id: Number(newCityId),
+        area_id: newAreaId === "" ? null : Number(newAreaId),
+        price: Number(newPrice) || 0,
+      });
+      setSelfPrices((prev) => {
+        const filtered = prev.filter((p) => p.id !== res.data.data.id);
+        return [...filtered, res.data.data];
+      });
+      setSuccess(t("priceAdded"));
+      setPriceDialogOpen(false);
+    } catch {
+      setPriceFormError(tDel("saveError"));
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const onDeleteSelfPrice = async (id: number) => {
+    try {
+      await deliveryApi.vendorDeleteSelfDeliveryPrice(id);
+      setSelfPrices((prev) => prev.filter((p) => p.id !== id));
+      setSuccess(t("priceDeleted"));
+    } catch {
+      setError(tDel("saveError"));
+    }
+  };
+
   return (
     <Box>
       <VendorPageHeader
@@ -160,6 +285,180 @@ export default function VendorCarriersPage() {
           {success}
         </Alert>
       )}
+
+      {/* ---------- My own delivery ---------- */}
+      <Paper
+        sx={(theme) => ({
+          p: { xs: 2, sm: 3 },
+          mb: 3,
+          borderRadius: 3,
+          border: "1px solid",
+          borderColor: selfEnabled ? theme.palette.primary.main : "divider",
+          bgcolor: selfEnabled
+            ? `${theme.palette.primary.main}0A`
+            : "background.paper",
+        })}
+      >
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          spacing={2}
+          sx={{ alignItems: { md: "center" }, justifyContent: "space-between" }}
+        >
+          <Stack direction="row" spacing={2} sx={{ alignItems: "center", flex: 1 }}>
+            <Avatar
+              sx={{
+                bgcolor: selfEnabled ? "primary.main" : "grey.300",
+                width: 56,
+                height: 56,
+              }}
+              variant="rounded"
+            >
+              <DeliveryDiningIcon />
+            </Avatar>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{ alignItems: "center", flexWrap: "wrap" }}
+                useFlexGap
+              >
+                <Typography sx={{ fontWeight: 800, fontSize: "1.1rem" }}>
+                  {t("selfDelivery")}
+                </Typography>
+                <Chip
+                  size="small"
+                  color={selfEnabled ? "success" : "default"}
+                  label={
+                    selfEnabled
+                      ? t("selfDeliveryEnabled")
+                      : t("selfDeliveryDisabled")
+                  }
+                  sx={{ fontWeight: 700 }}
+                />
+              </Stack>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                {t("selfDeliveryDescription")}
+              </Typography>
+            </Box>
+          </Stack>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={selfEnabled}
+                onChange={(e) => onToggleSelf(e.target.checked)}
+                disabled={selfSaving}
+                color="primary"
+              />
+            }
+            label=""
+            sx={{ m: 0 }}
+          />
+        </Stack>
+
+        {selfEnabled && (
+          <>
+            <Divider sx={{ my: 2.5 }} />
+
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={2}
+              sx={{ alignItems: { sm: "flex-end" }, mb: 2 }}
+            >
+              <TextField
+                label={t("basePrice")}
+                type="number"
+                size="small"
+                value={selfBasePrice}
+                onChange={(e) => setSelfBasePrice(e.target.value)}
+                onBlur={onBasePriceBlur}
+                helperText={t("basePriceHelp")}
+                sx={{ minWidth: { xs: "100%", sm: 220 } }}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ ml: 1 }}
+                      >
+                        {tCommon("currency")}
+                      </Typography>
+                    ),
+                  },
+                }}
+              />
+              <Box sx={{ flex: 1 }} />
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={openPriceDialog}
+              >
+                {t("addCityPrice")}
+              </Button>
+            </Stack>
+
+            {selfPrices.length === 0 ? (
+              <Alert severity="info" sx={{ borderRadius: 2 }}>
+                {t("noSelfPrices")}
+              </Alert>
+            ) : (
+              <TableContainer
+                component={Paper}
+                variant="outlined"
+                sx={{ borderRadius: 2 }}
+              >
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 700 }}>{t("city")}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }}>{t("area")}</TableCell>
+                      <TableCell sx={{ fontWeight: 700 }} align="right">
+                        {t("price")}
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 700 }} />
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {selfPrices.map((p) => (
+                      <TableRow key={p.id} hover>
+                        <TableCell>{p.city ? nameOf(p.city) : "—"}</TableCell>
+                        <TableCell>
+                          {p.area ? (
+                            nameOf(p.area)
+                          ) : (
+                            <Typography
+                              component="span"
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {t("anyArea")}
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700 }}>
+                          {currency(p.price)} {tCommon("currency")}
+                        </TableCell>
+                        <TableCell align="right">
+                          <Tooltip title={tCommon("delete")}>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => onDeleteSelfPrice(p.id)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
+          </>
+        )}
+      </Paper>
 
       <Paper
         sx={{
@@ -630,6 +929,108 @@ export default function VendorCarriersPage() {
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={closeDetails}>{t("close")}</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add self-delivery price dialog */}
+      <Dialog
+        open={priceDialogOpen}
+        onClose={() => setPriceDialogOpen(false)}
+        fullWidth
+        maxWidth="xs"
+        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800 }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <PriceCheckIcon color="primary" />
+            <span>{t("addCityPrice")}</span>
+          </Stack>
+        </DialogTitle>
+        <DialogContent dividers>
+          {priceFormError && (
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+              {priceFormError}
+            </Alert>
+          )}
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              select
+              label={t("city")}
+              value={newCityId}
+              onChange={(e) =>
+                onCityChange(e.target.value === "" ? "" : Number(e.target.value))
+              }
+              size="small"
+              fullWidth
+            >
+              <MenuItem value="">
+                <em>{t("selectCity")}</em>
+              </MenuItem>
+              {cities.map((c) => (
+                <MenuItem key={c.id} value={c.id}>
+                  {nameOf(c)}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              label={t("area")}
+              value={newAreaId}
+              onChange={(e) =>
+                setNewAreaId(
+                  e.target.value === "" ? "" : Number(e.target.value)
+                )
+              }
+              size="small"
+              fullWidth
+              disabled={newCityId === "" || newAreas.length === 0}
+            >
+              <MenuItem value="">
+                <em>{t("anyArea")}</em>
+              </MenuItem>
+              {newAreas.map((a) => (
+                <MenuItem key={a.id} value={a.id}>
+                  {nameOf(a)}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              label={t("price")}
+              type="number"
+              value={newPrice}
+              onChange={(e) => setNewPrice(e.target.value)}
+              size="small"
+              fullWidth
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ ml: 1 }}
+                    >
+                      {tCommon("currency")}
+                    </Typography>
+                  ),
+                },
+              }}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setPriceDialogOpen(false)}>
+            {tCommon("cancel")}
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={onAddPrice}
+            disabled={adding}
+          >
+            {adding ? tDel("saving") : t("addPrice")}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
