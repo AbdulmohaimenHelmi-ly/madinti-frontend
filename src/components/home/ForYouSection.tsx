@@ -33,11 +33,12 @@ export default function ForYouSection({ contentType }: ForYouSectionProps) {
   const ArrowIcon = isRtl ? ArrowBackIcon : ArrowForwardIcon;
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const requestKey = contentType ?? "__all__";
+  const loading = loadedKey !== requestKey;
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
 
     const params: Record<string, string | number> = { per_page: 12 };
     if (contentType) params.content_type = contentType;
@@ -45,19 +46,22 @@ export default function ForYouSection({ contentType }: ForYouSectionProps) {
     productsApi
       .getForYou(params)
       .then((res) => {
-        if (!cancelled) setProducts(res.data.data ?? []);
+        if (cancelled) return;
+
+        setProducts(res.data.data ?? []);
+        setLoadedKey(requestKey);
       })
       .catch(() => {
-        if (!cancelled) setProducts([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (cancelled) return;
+
+        setProducts([]);
+        setLoadedKey(requestKey);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [contentType]);
+  }, [contentType, requestKey]);
 
   if (!loading && products.length === 0) return null;
 

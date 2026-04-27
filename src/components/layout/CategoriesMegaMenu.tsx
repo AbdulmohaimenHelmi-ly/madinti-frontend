@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
@@ -22,9 +22,9 @@ export default function CategoriesMegaMenu() {
   const tHome = useTranslations("home");
   const locale = useLocale();
   const pathname = usePathname();
-  const btnRef = useRef<HTMLAnchorElement | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [open, setOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [tree, setTree] = useState<Category[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
 
@@ -55,8 +55,9 @@ export default function CategoriesMegaMenu() {
     closeTimer.current = setTimeout(() => setOpen(false), 180);
   };
 
-  const handleOpen = () => {
+  const handleOpen = (event: SyntheticEvent<HTMLElement>) => {
     cancelClose();
+    setAnchorEl(event.currentTarget);
     setOpen(true);
   };
 
@@ -73,7 +74,6 @@ export default function CategoriesMegaMenu() {
       sx={{ position: "relative" }}
     >
       <Button
-        ref={btnRef}
         component={Link}
         href={`/${locale}/categories`}
         size="small"
@@ -104,7 +104,7 @@ export default function CategoriesMegaMenu() {
 
       <Popper
         open={open && tree.length > 0}
-        anchorEl={btnRef.current}
+        anchorEl={anchorEl}
         placement="bottom-start"
         modifiers={[{ name: "offset", options: { offset: [0, 8] } }]}
         sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}

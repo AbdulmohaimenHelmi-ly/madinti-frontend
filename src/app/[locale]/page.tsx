@@ -91,11 +91,13 @@ export default function HomePage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const { apiParam: contentType } = useContentFilter();
+  const requestKey = contentType ?? "__all__";
+  const loading = loadedKey !== requestKey;
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
     const baseParams: Record<string, string | number> = {};
     if (contentType) baseParams.content_type = contentType;
 
@@ -112,14 +114,20 @@ export default function HomePage() {
         .getAll({ is_active: 1, ...baseParams })
         .catch(() => ({ data: { data: [] } })),
     ]).then(([featuredRes, categoriesRes, vendorsRes, brandsRes, bannersRes]) => {
+      if (cancelled) return;
+
       setFeatured(featuredRes.data.data);
       setCategories(categoriesRes.data.data);
       setVendors(vendorsRes.data.data);
       setBrands(brandsRes.data.data);
       setBanners(bannersRes.data.data);
-      setLoading(false);
+      setLoadedKey(requestKey);
     });
-  }, [contentType]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [contentType, requestKey]);
 
   if (loading) return <HomePageSkeleton />;
 

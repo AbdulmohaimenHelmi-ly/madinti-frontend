@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -33,12 +33,12 @@ export default function ProfileMenu() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef<HTMLButtonElement | null>(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const open = Boolean(anchorEl);
 
   if (!user) return null;
 
-  const close = () => setOpen(false);
+  const close = () => setAnchorEl(null);
   const handleLogout = async () => {
     close();
     await logout();
@@ -50,8 +50,9 @@ export default function ProfileMenu() {
   return (
     <>
       <Button
-        ref={anchorRef}
-        onClick={() => setOpen((v) => !v)}
+        onClick={(event) => {
+          setAnchorEl((current) => current ? null : event.currentTarget);
+        }}
         color="inherit"
         endIcon={<KeyboardArrowDownIcon />}
         sx={{
@@ -80,7 +81,7 @@ export default function ProfileMenu() {
       </Button>
 
       <Menu
-        anchorEl={anchorRef.current}
+        anchorEl={anchorEl}
         open={open}
         onClose={close}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}

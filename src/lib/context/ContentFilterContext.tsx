@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useState,
   type ReactNode,
 } from "react";
@@ -26,18 +25,22 @@ const ContentFilterContext = createContext<ContentFilterContextValue | null>(
 );
 
 export function ContentFilterProvider({ children }: { children: ReactNode }) {
-  const [filter, setFilterState] = useState<ContentFilter>("all");
+  const [filter, setFilterState] = useState<ContentFilter>(() => {
+    if (typeof window === "undefined") {
+      return "all";
+    }
 
-  useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = window.localStorage.getItem(STORAGE_KEY);
       if (saved === "male" || saved === "female" || saved === "all") {
-        setFilterState(saved);
+        return saved;
       }
     } catch {
       // ignore storage errors (SSR / privacy)
     }
-  }, []);
+
+    return "all";
+  });
 
   const setFilter = useCallback((value: ContentFilter) => {
     setFilterState(value);

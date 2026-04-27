@@ -16,21 +16,39 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
   const locale = useLocale();
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const requestKey = `${id}:${page}`;
+  const loading = loadedKey !== requestKey;
+
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
+
     Promise.all([
       vendorsApi.getById(id),
       vendorsApi.getProducts(id, { page, per_page: 12 }),
     ]).then(([vRes, pRes]) => {
+      if (cancelled) return;
+
       setVendor(vRes.data.data);
       setProducts(pRes.data.data);
-      if (pRes.data.meta) setTotalPages(pRes.data.meta.last_page);
-    }).catch(() => setError(t("common.error"))).finally(() => setLoading(false));
-  }, [id, page, t]);
+      setTotalPages(pRes.data.meta?.last_page ?? 1);
+      setError(null);
+      setLoadedKey(requestKey);
+    }).catch(() => {
+      if (cancelled) return;
+
+      setError(t("common.error"));
+      setLoadedKey(requestKey);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, page, requestKey, t]);
+
   if (loading)
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>

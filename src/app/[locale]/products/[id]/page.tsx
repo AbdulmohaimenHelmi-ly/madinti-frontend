@@ -33,23 +33,37 @@ export default function ProductDetailPage({
   const locale = useLocale();
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadedProductId, setLoadedProductId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [newRating, setNewRating] = useState<number | null>(5);
   const [newComment, setNewComment] = useState("");
+  const loading = loadedProductId !== id;
 
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
+
     Promise.all([
       productsApi.getById(id),
       reviewsApi.getByProduct(id).catch(() => ({ data: { data: [] } })),
     ])
       .then(([productRes, reviewsRes]) => {
+        if (cancelled) return;
+
         setProduct(productRes.data.data);
         setReviews(reviewsRes.data.data);
+        setError(null);
+        setLoadedProductId(id);
       })
-      .catch(() => setError(t("common.error")))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (cancelled) return;
+
+        setError(t("common.error"));
+        setLoadedProductId(id);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [id, t]);
 
   // Fire-and-forget view tracking for the recommendation engine. Runs on every

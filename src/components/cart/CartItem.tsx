@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Typography,
@@ -27,6 +27,8 @@ interface CartItemProps {
   item: CartItemType;
 }
 
+type QtyInputElement = HTMLInputElement | HTMLTextAreaElement;
+
 export default function CartItem({ item }: CartItemProps) {
   const t = useTranslations("common");
   const pt = useTranslations("product");
@@ -37,21 +39,17 @@ export default function CartItem({ item }: CartItemProps) {
   const [variantDialogOpen, setVariantDialogOpen] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  // Local input state lets the user type freely; we sync with the store when
-  // it changes externally (e.g. after the +/- buttons trigger a refresh).
-  const [qtyInput, setQtyInput] = useState<string>(String(item.quantity));
-  useEffect(() => {
-    setQtyInput(String(item.quantity));
-  }, [item.quantity]);
-
-  const commitQty = (raw: string) => {
-    const parsed = parseInt(raw, 10);
+  const commitQty = (input: QtyInputElement) => {
+    const parsed = parseInt(input.value, 10);
     if (!Number.isFinite(parsed) || parsed < 1) {
-      // Invalid → revert to current quantity.
-      setQtyInput(String(item.quantity));
+      input.value = String(item.quantity);
       return;
     }
-    if (parsed === item.quantity) return;
+    if (parsed === item.quantity) {
+      input.value = String(item.quantity);
+      return;
+    }
+
     updateItem(item.id, parsed);
   };
 
@@ -179,18 +177,17 @@ export default function CartItem({ item }: CartItemProps) {
               <RemoveIcon fontSize="small" />
             </IconButton>
             <InputBase
-              value={qtyInput}
+              key={`${item.id}:${item.quantity}`}
+              defaultValue={String(item.quantity)}
               onChange={(e) => {
-                // Only allow digits while typing.
-                const next = e.target.value.replace(/[^0-9]/g, "");
-                setQtyInput(next);
+                e.currentTarget.value = e.currentTarget.value.replace(/[^0-9]/g, "");
               }}
-              onBlur={() => commitQty(qtyInput)}
+              onBlur={(e) => commitQty(e.currentTarget)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  commitQty(qtyInput);
-                  (e.target as HTMLInputElement).blur();
+                  commitQty(e.currentTarget);
+                  e.currentTarget.blur();
                 }
               }}
               inputProps={{

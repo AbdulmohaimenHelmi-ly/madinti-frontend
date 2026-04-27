@@ -14,20 +14,39 @@ export default function CategoryDetailPage({ params }: { params: Promise<{ id: s
   const locale = useLocale();
   const [category, setCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const requestKey = `${id}:${page}`;
+  const loading = loadedKey !== requestKey;
+
   useEffect(() => {
-    setLoading(true);
+    let cancelled = false;
+
     Promise.all([
       categoriesApi.getById(id),
       categoriesApi.getProducts(id, { page, per_page: 12 }),
     ]).then(([catRes, prodRes]) => {
+      if (cancelled) return;
+
       setCategory(catRes.data.data);
       setProducts(prodRes.data.data);
-      if (prodRes.data.meta) setTotalPages(prodRes.data.meta.last_page);
-    }).catch(() => {}).finally(() => setLoading(false));
-  }, [id, page]);
+      setTotalPages(prodRes.data.meta?.last_page ?? 1);
+      setLoadedKey(requestKey);
+    }).catch(() => {
+      if (cancelled) return;
+
+      setCategory(null);
+      setProducts([]);
+      setTotalPages(1);
+      setLoadedKey(requestKey);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, page, requestKey]);
+
   if (loading)
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
