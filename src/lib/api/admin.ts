@@ -36,6 +36,7 @@ export interface BrandPayload {
   is_active?: boolean;
   is_featured?: boolean;
   content_type?: ContentType;
+  category_ids?: number[];
 }
 
 export interface BannerPayload {

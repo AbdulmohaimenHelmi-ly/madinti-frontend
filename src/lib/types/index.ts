@@ -176,6 +176,8 @@ export interface Brand {
   is_featured: boolean;
   content_type?: ContentType;
   products_count?: number;
+  categories?: Array<Pick<Category, "id" | "name" | "name_en" | "slug">>;
+  category_ids?: number[];
   created_at?: string;
 }
 

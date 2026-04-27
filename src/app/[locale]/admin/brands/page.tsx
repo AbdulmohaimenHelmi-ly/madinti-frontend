@@ -33,9 +33,10 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import MenuItem from "@mui/material/MenuItem";
+import Autocomplete from "@mui/material/Autocomplete";
 
 import { adminApi, type BrandPayload } from "@/lib/api/admin";
-import type { Brand, ContentType } from "@/lib/types";
+import type { Brand, Category, ContentType } from "@/lib/types";
 import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
@@ -51,6 +52,7 @@ interface FormState {
   is_active: boolean;
   is_featured: boolean;
   content_type: ContentType;
+  category_ids: number[];
 }
 
 const emptyForm: FormState = {
@@ -63,7 +65,22 @@ const emptyForm: FormState = {
   is_active: true,
   is_featured: false,
   content_type: "unisex",
+  category_ids: [],
 };
+
+function flattenCategories(
+  nodes: Category[],
+  depth = 0,
+  acc: Array<{ category: Category; depth: number }> = []
+): Array<{ category: Category; depth: number }> {
+  for (const node of nodes) {
+    acc.push({ category: node, depth });
+    if (node.children && node.children.length > 0) {
+      flattenCategories(node.children, depth + 1, acc);
+    }
+  }
+  return acc;
+}
 
 export default function AdminBrandsPage() {
   const t = useTranslations("admin");
@@ -72,12 +89,18 @@ export default function AdminBrandsPage() {
   const uiLocale = useLocale();
 
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [snackbar, setSnackbar] = useState("");
   const [search, setSearch] = useState("");
   const [audience, setAudience] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
   const audienceOptions = useAudienceOptions(true);
+
+  const flatCategories = flattenCategories(categories);
+  const categoryLabel = (c: Category) =>
+    uiLocale === "en" && c.name_en ? c.name_en : c.name;
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Brand | null>(null);
@@ -92,6 +115,7 @@ export default function AdminBrandsPage() {
     try {
       const params: Record<string, string> = {};
       if (search.trim()) params.search = search.trim();
+      if (categoryFilter) params.category_id = categoryFilter;
       const res = await adminApi.getBrands(params);
       setBrands(res.data.data);
     } catch {
@@ -99,11 +123,26 @@ export default function AdminBrandsPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, t]);
+  }, [search, categoryFilter, t]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    adminApi
+      .getCategories()
+      .then((res) => {
+        if (!cancelled) setCategories(res.data.data);
+      })
+      .catch(() => {
+        /* non-fatal */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const openCreate = () => {
     setEditing(null);
@@ -124,6 +163,8 @@ export default function AdminBrandsPage() {
       is_active: b.is_active,
       is_featured: b.is_featured,
       content_type: b.content_type ?? "unisex",
+      category_ids:
+        b.category_ids ?? (b.categories?.map((c) => c.id) ?? []),
     });
     setFormError("");
     setDialogOpen(true);
@@ -147,6 +188,7 @@ export default function AdminBrandsPage() {
         is_active: form.is_active,
         is_featured: form.is_featured,
         content_type: form.content_type,
+        category_ids: form.category_ids,
       };
       if (editing) {
         await adminApi.updateBrand(editing.id, payload);
@@ -215,6 +257,22 @@ export default function AdminBrandsPage() {
               </MenuItem>
             ))}
           </TextField>
+          <TextField
+            select
+            label={t("category")}
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            size="small"
+            sx={{ minWidth: 220 }}
+          >
+            <MenuItem value="">{tCommon("all")}</MenuItem>
+            {flatCategories.map(({ category, depth }) => (
+              <MenuItem key={category.id} value={String(category.id)}>
+                {"\u00A0\u00A0".repeat(depth)}
+                {categoryLabel(category)}
+              </MenuItem>
+            ))}
+          </TextField>
         </Stack>
       </Paper>
 
@@ -248,6 +306,7 @@ export default function AdminBrandsPage() {
                 <TableCell sx={{ fontWeight: 700 }}>
                   {t("productsCount")}
                 </TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>{t("categories")}</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>
                   {t("sortOrder")}
                 </TableCell>
@@ -286,6 +345,22 @@ export default function AdminBrandsPage() {
                     </Typography>
                   </TableCell>
                   <TableCell>{b.products_count ?? 0}</TableCell>
+                  <TableCell>
+                    {b.categories && b.categories.length > 0 ? (
+                      <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", gap: 0.5 }}>
+                        {b.categories.map((c) => (
+                          <Chip
+                            key={c.id}
+                            size="small"
+                            variant="outlined"
+                            label={uiLocale === "en" && c.name_en ? c.name_en : c.name}
+                          />
+                        ))}
+                      </Stack>
+                    ) : (
+                      "\u2014"
+                    )}
+                  </TableCell>
                   <TableCell>{b.sort_order}</TableCell>
                   <TableCell>
                     <AudienceChip value={b.content_type} />
@@ -456,6 +531,35 @@ export default function AdminBrandsPage() {
               <MenuItem value="female">{tContent("female")}</MenuItem>
               <MenuItem value="male">{tContent("male")}</MenuItem>
             </TextField>
+            <Autocomplete
+              multiple
+              size="small"
+              options={flatCategories}
+              value={flatCategories.filter(({ category }) =>
+                form.category_ids.includes(category.id)
+              )}
+              onChange={(_, value) =>
+                setForm((f) => ({
+                  ...f,
+                  category_ids: value.map((v) => v.category.id),
+                }))
+              }
+              isOptionEqualToValue={(opt, val) => opt.category.id === val.category.id}
+              getOptionLabel={({ category }) => categoryLabel(category)}
+              renderOption={(props, { category, depth }) => (
+                <li {...props} key={category.id}>
+                  {"\u00A0\u00A0".repeat(depth)}
+                  {categoryLabel(category)}
+                </li>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={t("categories")}
+                  placeholder={t("selectCategories")}
+                />
+              )}
+            />
             <Stack direction="row" spacing={3}>
               <FormControlLabel
                 control={
