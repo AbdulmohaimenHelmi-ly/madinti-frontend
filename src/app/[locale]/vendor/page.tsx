@@ -2,16 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Alert,
-  Box,
-  Card,
-  CardContent,
-  Grid,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Grid } from "@mui/material";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
@@ -19,7 +10,9 @@ import StarIcon from "@mui/icons-material/Star";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 
 import { StatCardsSkeleton } from "@/components/common/Skeletons";
-import VendorPageHeader from "@/components/vendor/VendorPageHeader";
+import StatCard from "@/components/common/StatCard";
+import DashboardHero from "@/components/common/DashboardHero";
+import SectionTitle from "@/components/common/SectionTitle";
 import { vendorApi, type VendorDashboardPayload } from "@/lib/api/vendor";
 
 interface Stat {
@@ -95,9 +88,11 @@ export default function VendorDashboardPage() {
 
   return (
     <Box>
-      <VendorPageHeader
+      <DashboardHero
+        eyebrow={data?.vendor?.store_name ?? t("dashboard")}
         title={t("dashboard")}
         subtitle={t("dashboardSubtitle")}
+        icon={<StorefrontIcon />}
       />
 
       {error && (
@@ -106,98 +101,23 @@ export default function VendorDashboardPage() {
         </Alert>
       )}
 
+      <SectionTitle title={t("keyMetrics")} subtitle={t("atAGlance")} />
+
       {loading ? (
         <StatCardsSkeleton count={4} />
       ) : (
-        <>
-          {data?.vendor && (
-            <Paper
-              sx={{
-                p: 3,
-                mb: 3,
-                borderRadius: 3,
-                border: "1px solid",
-                borderColor: "divider",
-              }}
-            >
-              <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-                <Box
-                  sx={(theme) => ({
-                    width: 56,
-                    height: 56,
-                    borderRadius: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                    color: "white",
-                  })}
-                >
-                  <StorefrontIcon />
-                </Box>
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    {t("storeInfo")}
-                  </Typography>
-                  <Typography
-                    variant="h6"
-                    sx={{ fontWeight: 800, lineHeight: 1.2 }}
-                    noWrap
-                  >
-                    {data.vendor.store_name}
-                  </Typography>
-                </Box>
-              </Stack>
-            </Paper>
-          )}
-
-          <Grid container spacing={3}>
-            {stats.map((s) => (
-              <Grid key={s.key} size={{ xs: 12, sm: 6, md: 3 }}>
-                <Card
-                  sx={{
-                    borderRadius: 3,
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    "&:hover": {
-                      transform: "translateY(-2px)",
-                      boxShadow: 4,
-                    },
-                  }}
-                >
-                  <CardContent>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <Box
-                        sx={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: 2,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          bgcolor: `${s.color}18`,
-                          color: s.color,
-                        }}
-                      >
-                        {s.icon}
-                      </Box>
-                      <Box>
-                        <Typography
-                          variant="h4"
-                          sx={{ fontWeight: 800, lineHeight: 1 }}
-                        >
-                          {s.value}
-                        </Typography>
-                        <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-                          {s.label}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </>
+        <Grid container spacing={2.5}>
+          {stats.map((s) => (
+            <Grid key={s.key} size={{ xs: 12, sm: 6, md: 3 }}>
+              <StatCard
+                label={s.label}
+                value={s.value}
+                icon={s.icon}
+                color={s.color}
+              />
+            </Grid>
+          ))}
+        </Grid>
       )}
     </Box>
   );

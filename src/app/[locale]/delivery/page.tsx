@@ -2,16 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import {
-  Alert,
-  Box,
-  Card,
-  CardContent,
-  Grid,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Grid } from "@mui/material";
 import LocationCityIcon from "@mui/icons-material/LocationCity";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import StorefrontIcon from "@mui/icons-material/Storefront";
@@ -22,7 +13,10 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 
 import { deliveryApi, type DeliveryDashboardPayload } from "@/lib/api/delivery";
-import DeliveryPageHeader from "@/components/delivery/DeliveryPageHeader";
+import StatCard from "@/components/common/StatCard";
+import DashboardHero from "@/components/common/DashboardHero";
+import SectionTitle from "@/components/common/SectionTitle";
+import { StatCardsSkeleton } from "@/components/common/Skeletons";
 
 export default function DeliveryDashboardPage() {
   const t = useTranslations("delivery");
@@ -104,7 +98,12 @@ export default function DeliveryDashboardPage() {
 
   return (
     <Box>
-      <DeliveryPageHeader title={t("dashboard")} subtitle={t("dashboardSubtitle")} />
+      <DashboardHero
+        eyebrow={data?.company?.name ?? t("dashboard")}
+        title={t("dashboard")}
+        subtitle={t("dashboardSubtitle")}
+        icon={<LocalShippingIcon />}
+      />
 
       {error && (
         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
@@ -112,75 +111,26 @@ export default function DeliveryDashboardPage() {
         </Alert>
       )}
 
-      {data?.company && (
-        <Paper sx={{ p: 3, mb: 3, borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-          <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-            <Box
-              sx={(theme) => ({
-                width: 56,
-                height: 56,
-                borderRadius: 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                color: "white",
-              })}
-            >
-              <LocalShippingIcon />
-            </Box>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant="caption" color="text.secondary">
-                {t("companyName")}
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.2 }} noWrap>
-                {data.company.name}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {t("basePrice")}: {Number(data.company.base_price).toFixed(2)}
-              </Typography>
-            </Box>
-          </Stack>
-        </Paper>
-      )}
+      <SectionTitle title={t("keyMetrics")} subtitle={t("atAGlance")} />
 
-      <Grid container spacing={3}>
-        {(loading ? [1, 2, 3] : stats).map((s, i) => (
-          <Grid key={typeof s === "object" ? s.key : i} size={{ xs: 12, sm: 6, md: 4 }}>
-            <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-              <CardContent>
-                {typeof s === "object" ? (
-                  <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-                    <Box
-                      sx={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 2,
-                        bgcolor: `${s.color}1a`,
-                        color: s.color,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {s.icon}
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">
-                        {s.label}
-                      </Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                        {s.value}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                ) : (
-                  <Box sx={{ height: 64 }} />
-                )}
-              </CardContent>
-            </Card>
+      <Grid container spacing={2.5}>
+        {loading
+          ? null
+          : stats.map((s) => (
+              <Grid key={s.key} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+                <StatCard
+                  label={s.label}
+                  value={s.value}
+                  icon={s.icon}
+                  color={s.color}
+                />
+              </Grid>
+            ))}
+        {loading && (
+          <Grid size={12}>
+            <StatCardsSkeleton count={6} />
           </Grid>
-        ))}
+        )}
       </Grid>
     </Box>
   );

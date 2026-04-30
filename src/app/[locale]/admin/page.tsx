@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Alert, Box, Card, CardContent, Chip, Grid, Stack, Typography } from "@mui/material";
+import { Alert, Box, Grid } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import CategoryIcon from "@mui/icons-material/Category";
 import InventoryIcon from "@mui/icons-material/Inventory";
+import DashboardIcon from "@mui/icons-material/Dashboard";
 
 import { adminApi } from "@/lib/api/admin";
 import { productsApi } from "@/lib/api/products";
 import { StatCardsSkeleton } from "@/components/common/Skeletons";
-import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import StatCard from "@/components/common/StatCard";
+import DashboardHero from "@/components/common/DashboardHero";
+import SectionTitle from "@/components/common/SectionTitle";
 
 interface Stat {
   key: string;
@@ -89,9 +92,11 @@ export default function AdminDashboardPage() {
 
   return (
     <Box>
-      <AdminPageHeader
+      <DashboardHero
+        eyebrow={t("adminPanel")}
         title={t("dashboard")}
         subtitle={t("dashboardSubtitle")}
+        icon={<DashboardIcon />}
       />
 
       {error && (
@@ -100,71 +105,20 @@ export default function AdminDashboardPage() {
         </Alert>
       )}
 
+      <SectionTitle title={t("keyMetrics")} subtitle={t("atAGlance")} />
+
       {loading ? (
         <StatCardsSkeleton count={4} />
       ) : (
-        <Grid container spacing={3}>
+        <Grid container spacing={2.5}>
           {stats.map((s) => (
             <Grid key={s.key} size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card
-                sx={{
-                  borderRadius: 3,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                  "&:hover": {
-                    transform: "translateY(-2px)",
-                    boxShadow: 4,
-                  },
-                }}
-              >
-                <CardContent sx={{ p: 3 }}>
-                  <Stack
-                    sx={{
-                      display: "flex",
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      gap: 2,
-                    }}
-                  >
-                    <Box>
-                      <Typography color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>
-                        {s.label}
-                      </Typography>
-                      <Chip
-                        label={s.value}
-                        color="success"
-                        variant="outlined"
-                        sx={{
-                          height: 36,
-                          borderRadius: "999px",
-                          fontWeight: 800,
-                          fontSize: "1rem",
-                          "& .MuiChip-label": {
-                            px: 1.75,
-                          },
-                        }}
-                      />
-                    </Box>
-                    <Box
-                      sx={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: 2,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        bgcolor: `${s.color}18`,
-                        color: s.color,
-                        flexShrink: 0,
-                      }}
-                    >
-                      {s.icon}
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
+              <StatCard
+                label={s.label}
+                value={s.value}
+                icon={s.icon}
+                color={s.color}
+              />
             </Grid>
           ))}
         </Grid>
