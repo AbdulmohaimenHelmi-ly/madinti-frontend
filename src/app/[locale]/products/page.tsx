@@ -223,7 +223,14 @@ export default function ProductsPage() {
     <Container maxWidth="xl" sx={{ py: { xs: 3, md: 5 } }}>
       {/* Page heading */}
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 800,
+            mb: 1,
+            fontSize: { xs: "1.4rem", sm: "1.75rem", md: "2.125rem" },
+          }}
+        >
           {t("common.products")}
         </Typography>
         <Box

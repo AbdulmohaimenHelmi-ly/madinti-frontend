@@ -44,11 +44,20 @@ function SectionHeader({
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        mb: 4,
+        gap: 1,
+        mb: { xs: 2.5, md: 4 },
       }}
     >
-      <Box>
-        <Typography variant="h4" sx={{ fontWeight: 800, color: "text.primary" }}>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 800,
+            color: "text.primary",
+            fontSize: { xs: "1.25rem", sm: "1.5rem", md: "2rem" },
+            lineHeight: 1.2,
+          }}
+        >
           {title}
         </Typography>
         <Box
@@ -65,10 +74,13 @@ function SectionHeader({
         component={Link}
         href={linkHref}
         endIcon={<ArrowIcon />}
+        size="small"
         sx={{
           borderRadius: 100,
-          px: 2.5,
+          px: { xs: 1.5, md: 2.5 },
           fontWeight: 600,
+          fontSize: { xs: "0.78rem", md: "0.875rem" },
+          flexShrink: 0,
           color: "primary.main",
           "&:hover": { bgcolor: "primary.main", color: "white" },
           transition: "all 0.2s ease",
@@ -184,7 +196,7 @@ export default function HomePage() {
 
       {/* Featured Products */}
       {featured.length > 0 && (
-        <Box sx={{ mb: 10, px: { xs: 1, md: 5 } }}>
+        <Box sx={{ mb: { xs: 5, md: 10 }, px: { xs: 1, md: 5 } }}>
           <SectionHeader
             title={t("home.featuredProducts")}
             linkText={t("common.viewAll")}
@@ -200,7 +212,7 @@ export default function HomePage() {
 
       {/* Top Vendors */}
       {vendors.length > 0 && (
-        <Box sx={{ mb: 10, px: { xs: 1, md: 5 } }}>
+        <Box sx={{ mb: { xs: 5, md: 10 }, px: { xs: 1, md: 5 } }}>
           <SectionHeader
             title={t("home.topVendors")}
             linkText={t("common.viewAll")}

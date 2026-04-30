@@ -58,9 +58,16 @@ export default function CartPage() {
 
   if (isLoading && carts.length === 0) {
     return (
-      <Container maxWidth="lg" sx={{ py: 5 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 800,
+              mb: 1,
+              fontSize: { xs: "1.6rem", sm: "2rem", md: "3rem" },
+            }}
+          >
             {t("cart.title")}
           </Typography>
         </Box>
@@ -89,10 +96,10 @@ export default function CartPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 5 }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
       <Box
         sx={{
-          mb: 4,
+          mb: { xs: 3, md: 4 },
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "space-between",
@@ -101,7 +108,14 @@ export default function CartPage() {
         }}
       >
         <Box>
-          <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 800,
+              mb: 1,
+              fontSize: { xs: "1.6rem", sm: "2rem", md: "3rem" },
+            }}
+          >
             {t("cart.title")}
           </Typography>
           <Typography color="text.secondary">

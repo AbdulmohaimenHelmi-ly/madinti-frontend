@@ -229,22 +229,31 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       </Grid>
 
       <Grid size={{ xs: 12, md: 6 }}>
-        <Typography variant="h3" gutterBottom sx={{ fontWeight: 800, lineHeight: 1.2 }}>
+        <Typography
+          variant="h3"
+          gutterBottom
+          sx={{
+            fontWeight: 800,
+            lineHeight: 1.2,
+            fontSize: { xs: "1.4rem", sm: "1.8rem", md: "3rem" },
+          }}
+        >
           {name}
         </Typography>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3 }}>
-          <Rating value={Number(product.rating) || 0} readOnly precision={0.5} size="large" />
-          <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 500 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 3, flexWrap: "wrap" }}>
+          <Rating value={Number(product.rating) || 0} readOnly precision={0.5} size="medium" />
+          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
             ({product.total_reviews} {t("product.reviews")})
           </Typography>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "baseline", gap: 2, mb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "baseline", gap: { xs: 1, sm: 2 }, mb: 2, flexWrap: "wrap" }}>
           <Typography
             variant="h3"
             sx={(theme) => ({
               fontWeight: 800,
+              fontSize: { xs: "1.5rem", sm: "2rem", md: "3rem" },
               background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
@@ -257,7 +266,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               <Typography
                 variant="h6"
                 color="text.disabled"
-                sx={{ textDecoration: "line-through" }}
+                sx={{ textDecoration: "line-through", fontSize: { xs: "0.95rem", md: "1.25rem" } }}
               >
                 {comparePrice!.toFixed(2)} {t("common.currency")}
               </Typography>
