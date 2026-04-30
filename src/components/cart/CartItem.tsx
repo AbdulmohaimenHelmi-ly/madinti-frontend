@@ -69,26 +69,12 @@ export default function CartItem({ item }: CartItemProps) {
 
   return (
     <Box>
-      <Box
-        sx={{
-          py: 1.5,
-          display: "grid",
-          gridTemplateColumns: { xs: "72px 1fr", sm: "auto 1fr auto" },
-          gridTemplateAreas: {
-            xs: `"image info" "actions actions"`,
-            sm: `"image info actions"`,
-          },
-          columnGap: { xs: 1.5, sm: 2 },
-          rowGap: { xs: 1.5, sm: 0 },
-          alignItems: "center",
-        }}
-      >
+      <Box sx={{ py: 1.5, display: "flex", gap: 2, alignItems: "center", flexWrap: { xs: "wrap", sm: "nowrap" } }}>
           <Paper
             elevation={0}
             sx={{
-              gridArea: "image",
-              width: { xs: 72, sm: 90 },
-              height: { xs: 72, sm: 90 },
+              width: 90,
+              height: 90,
               borderRadius: 2.5,
               overflow: "hidden",
               flexShrink: 0,
@@ -109,19 +95,8 @@ export default function CartItem({ item }: CartItemProps) {
             />
           </Paper>
 
-          <Box sx={{ gridArea: "info", flexGrow: 1, minWidth: 0 }}>
-            <Typography
-              variant="body1"
-              sx={{
-                fontWeight: 700,
-                mb: 0.5,
-                fontSize: { xs: "0.9rem", sm: "1rem" },
-                display: "-webkit-box",
-                overflow: "hidden",
-                WebkitBoxOrient: "vertical",
-                WebkitLineClamp: 2,
-              }}
-            >
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Typography variant="body1" sx={{ fontWeight: 700, mb: 0.5 }} noWrap>
               {productName}
             </Typography>
             {item.variant && (item.variant.label || item.variant.options?.length) && (
@@ -173,16 +148,6 @@ export default function CartItem({ item }: CartItemProps) {
             </Typography>
           </Box>
 
-          <Box
-            sx={{
-              gridArea: "actions",
-              display: "flex",
-              alignItems: "center",
-              gap: { xs: 1, sm: 2 },
-              justifyContent: { xs: "space-between", sm: "flex-end" },
-              width: "100%",
-            }}
-          >
           <Paper
             elevation={0}
             sx={{
@@ -249,17 +214,7 @@ export default function CartItem({ item }: CartItemProps) {
             </IconButton>
           </Paper>
 
-          <Typography
-            variant="body1"
-            sx={{
-              minWidth: { xs: "auto", sm: 80 },
-              textAlign: "end",
-              fontWeight: 800,
-              flexShrink: 0,
-              fontSize: { xs: "0.95rem", sm: "1rem" },
-              color: "primary.main",
-            }}
-          >
+          <Typography variant="body1" sx={{ minWidth: 80, textAlign: "end", fontWeight: 800, flexShrink: 0 }}>
             {(Number(item.price) * item.quantity).toFixed(2)} {t("currency")}
           </Typography>
 
@@ -275,17 +230,11 @@ export default function CartItem({ item }: CartItemProps) {
               fontWeight: 700,
               textTransform: "none",
               borderWidth: 1.5,
-              minWidth: { xs: 40, sm: "auto" },
-              px: { xs: 1, sm: 2 },
-              "& .MuiButton-startIcon": { mr: { xs: 0, sm: 1 } },
               "&:hover": { bgcolor: "error.main", color: "white", borderColor: "error.main" },
             }}
           >
-            <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-              {t("remove")}
-            </Box>
+            {t("remove")}
           </Button>
-          </Box>
       </Box>
       <Divider sx={{ "&:last-of-type": { display: "none" } }} />
       <VariantPickerDialog

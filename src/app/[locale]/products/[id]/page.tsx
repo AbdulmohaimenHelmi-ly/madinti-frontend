@@ -94,10 +94,10 @@ export default function ProductDetailPage({
   if (error || !product) return <ErrorMessage message={error || undefined} />;
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
+    <Container maxWidth="lg" sx={{ py: 5 }}>
       <ProductDetails product={product} />
 
-      <Box sx={{ mt: { xs: 5, md: 8 } }}>
+      <Box sx={{ mt: 8 }}>
         <Box sx={{ mb: 4 }}>
           <Typography variant="h5" sx={{ fontWeight: 800 }}>
             {t("product.reviews")} ({reviews.length})
