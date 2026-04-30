@@ -18,6 +18,11 @@ export interface VendorDashboardPayload {
   total_orders: number;
   total_sales: number;
   rating: number;
+  charts?: {
+    orders_daily: Array<{ date: string; orders: number; revenue: number }>;
+    status_breakdown: Array<{ status: string; count: number }>;
+    top_products: Array<{ product_id: number; name: string; quantity: number; revenue: number }>;
+  };
 }
 
 // `vendor_id` is inferred from the authenticated vendor on the backend; the

@@ -44,6 +44,11 @@ export interface DeliveryDashboardPayload {
     orders_in_transit: number;
     orders_delivered: number;
   };
+  charts?: {
+    orders_daily: Array<{ date: string; orders: number; revenue: number }>;
+    status_breakdown: Array<{ status: string; count: number }>;
+    top_vendors: Array<{ vendor_id: number; name: string; count: number }>;
+  };
 }
 
 export interface VendorSelfDeliveryPrice {

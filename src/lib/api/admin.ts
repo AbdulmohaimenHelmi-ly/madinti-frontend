@@ -78,7 +78,27 @@ export interface UpdateUserPayload {
   is_active?: boolean;
 }
 
+export interface AdminDashboardPayload {
+  totals: {
+    users: number;
+    vendors: number;
+    products: number;
+    orders: number;
+    revenue: number;
+  };
+  charts: {
+    orders_daily: Array<{ date: string; orders: number; revenue: number }>;
+    users_daily: Array<{ date: string; users: number }>;
+    status_breakdown: Array<{ status: string; count: number }>;
+    top_vendors: Array<{ vendor_id: number; name: string; orders: number; revenue: number }>;
+  };
+}
+
 export const adminApi = {
+  // Dashboard
+  getDashboard: () =>
+    apiClient.get<ApiResponse<AdminDashboardPayload>>("/admin/dashboard"),
+
   // Users
   getUsers: (params?: Record<string, string | number>) =>
     apiClient.get<PaginatedResponse<User>>("/admin/users", { params }),

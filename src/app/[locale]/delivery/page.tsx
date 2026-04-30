@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { Alert, Box, Grid } from "@mui/material";
+import { LineChart } from "@mui/x-charts/LineChart";
+import { PieChart } from "@mui/x-charts/PieChart";
+import { BarChart } from "@mui/x-charts/BarChart";
 import LocationCityIcon from "@mui/icons-material/LocationCity";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import StorefrontIcon from "@mui/icons-material/Storefront";
@@ -16,10 +19,22 @@ import { deliveryApi, type DeliveryDashboardPayload } from "@/lib/api/delivery";
 import StatCard from "@/components/common/StatCard";
 import DashboardHero from "@/components/common/DashboardHero";
 import SectionTitle from "@/components/common/SectionTitle";
+import ChartCard from "@/components/common/ChartCard";
 import { StatCardsSkeleton } from "@/components/common/Skeletons";
+
+const STATUS_COLORS: Record<string, string> = {
+  pending: "#ed6c02",
+  processing: "#0288d1",
+  shipped: "#1976d2",
+  delivered: "#2e7d32",
+  cancelled: "#d32f2f",
+  refunded: "#9c27b0",
+};
 
 export default function DeliveryDashboardPage() {
   const t = useTranslations("delivery");
+  const tStatus = useTranslations("orders.statuses");
+  const locale = useLocale();
   const [data, setData] = useState<DeliveryDashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -96,6 +111,37 @@ export default function DeliveryDashboardPage() {
       ]
     : [];
 
+  const dateLabel = useMemo(() => {
+    const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-LY" : "en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    return (iso: string) => {
+      const d = new Date(iso);
+      return Number.isNaN(d.getTime()) ? iso : fmt.format(d);
+    };
+  }, [locale]);
+
+  const chartDates = useMemo(
+    () => data?.charts?.orders_daily.map((p) => dateLabel(p.date)) ?? [],
+    [data, dateLabel]
+  );
+  const chartOrders = useMemo(
+    () => data?.charts?.orders_daily.map((p) => p.orders) ?? [],
+    [data]
+  );
+  const statusPieData = useMemo(
+    () =>
+      data?.charts?.status_breakdown.map((s, i) => ({
+        id: i,
+        value: s.count,
+        label: tStatus(s.status),
+        color: STATUS_COLORS[s.status] ?? "#90a4ae",
+      })) ?? [],
+    [data, tStatus]
+  );
+  const topVendorsData = data?.charts?.top_vendors ?? [];
+
   return (
     <Box>
       <DashboardHero
@@ -132,6 +178,95 @@ export default function DeliveryDashboardPage() {
           </Grid>
         )}
       </Grid>
+
+      {!loading && data?.charts && (
+        <Box sx={{ mt: 4 }}>
+          <SectionTitle
+            title={t("analytics")}
+            subtitle={t("analyticsSubtitle")}
+          />
+          <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, md: 8 }}>
+              <ChartCard title={t("ordersTrend")} height={280}>
+                <LineChart
+                  margin={{ left: 50, right: 16, top: 16, bottom: 30 }}
+                  xAxis={[
+                    {
+                      data: chartDates,
+                      scaleType: "point",
+                      tickLabelStyle: { fontSize: 11 },
+                    },
+                  ]}
+                  series={[
+                    {
+                      data: chartOrders,
+                      label: t("ordersTrend"),
+                      color: "#1976d2",
+                      area: true,
+                      curve: "monotoneX",
+                      showMark: false,
+                    },
+                  ]}
+                  grid={{ horizontal: true }}
+                  hideLegend
+                />
+              </ChartCard>
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <ChartCard title={t("statusBreakdown")} height={280}>
+                <PieChart
+                  margin={{ left: 8, right: 8, top: 8, bottom: 8 }}
+                  series={[
+                    {
+                      innerRadius: 50,
+                      paddingAngle: 2,
+                      cornerRadius: 4,
+                      data: statusPieData,
+                      arcLabel: (item) =>
+                        item.value > 0 ? `${item.value}` : "",
+                      arcLabelMinAngle: 25,
+                    },
+                  ]}
+                  hideLegend={false}
+                  slotProps={{
+                    legend: {
+                      direction: "horizontal",
+                      position: { vertical: "bottom", horizontal: "center" },
+                      sx: { fontSize: 11 },
+                    },
+                  }}
+                />
+              </ChartCard>
+            </Grid>
+            {topVendorsData.length > 0 && (
+              <Grid size={12}>
+                <ChartCard title={t("topVendorsChart")} height={280}>
+                  <BarChart
+                    margin={{ left: 50, right: 16, top: 16, bottom: 50 }}
+                    xAxis={[
+                      {
+                        data: topVendorsData.map((v) => v.name),
+                        scaleType: "band",
+                        tickLabelStyle: { fontSize: 11 },
+                      },
+                    ]}
+                    series={[
+                      {
+                        data: topVendorsData.map((v) => v.count),
+                        label: t("ordersTotal"),
+                        color: "#9c27b0",
+                      },
+                    ]}
+                    grid={{ horizontal: true }}
+                    hideLegend
+                    borderRadius={6}
+                  />
+                </ChartCard>
+              </Grid>
+            )}
+          </Grid>
+        </Box>
+      )}
     </Box>
   );
 }
