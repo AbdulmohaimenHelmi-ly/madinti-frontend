@@ -38,7 +38,7 @@ interface Stat {
 
 export default function VendorDashboardPage() {
   const t = useTranslations("vendor");
-  const tStatus = useTranslations("orders.statuses");
+  const tStatus = useTranslations("order.statuses");
   const locale = useLocale();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -130,6 +130,20 @@ export default function VendorDashboardPage() {
     [data, tStatus]
   );
   const topProducts = data?.charts?.top_products ?? [];
+  const ordersByWeekday = data?.charts?.orders_by_weekday ?? [];
+  const revenueByStatus = data?.charts?.revenue_by_status ?? [];
+  const chartOrders = useMemo(
+    () => data?.charts?.orders_daily.map((p) => p.orders) ?? [],
+    [data]
+  );
+  const weekdayLabels = useMemo(() => {
+    const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-LY" : "en-US", {
+      weekday: "short",
+    });
+    return Array.from({ length: 7 }, (_, i) =>
+      fmt.format(new Date(2024, 0, 7 + i))
+    );
+  }, [locale]);
 
   return (
     <Box>
@@ -250,6 +264,80 @@ export default function VendorDashboardPage() {
                 </ChartCard>
               </Grid>
             )}
+            <Grid size={{ xs: 12, md: 8 }}>
+              <ChartCard title={t("ordersTrend")} height={260}>
+                <LineChart
+                  margin={{ left: 50, right: 16, top: 16, bottom: 30 }}
+                  xAxis={[
+                    {
+                      data: chartDates,
+                      scaleType: "point",
+                      tickLabelStyle: { fontSize: 11 },
+                    },
+                  ]}
+                  series={[
+                    {
+                      data: chartOrders,
+                      label: t("totalOrders"),
+                      color: "#1976d2",
+                      curve: "monotoneX",
+                      showMark: false,
+                    },
+                  ]}
+                  grid={{ horizontal: true }}
+                  hideLegend
+                />
+              </ChartCard>
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <ChartCard title={t("weekdayDistribution")} height={260}>
+                <BarChart
+                  margin={{ left: 40, right: 16, top: 16, bottom: 30 }}
+                  xAxis={[
+                    {
+                      data: weekdayLabels,
+                      scaleType: "band",
+                      tickLabelStyle: { fontSize: 10 },
+                    },
+                  ]}
+                  series={[
+                    {
+                      data: ordersByWeekday.map((d) => d.count),
+                      label: t("totalOrders"),
+                      color: "#0288d1",
+                    },
+                  ]}
+                  grid={{ horizontal: true }}
+                  hideLegend
+                  borderRadius={4}
+                />
+              </ChartCard>
+            </Grid>
+            <Grid size={12}>
+              <ChartCard title={t("revenueByStatus")} height={260}>
+                <BarChart
+                  margin={{ left: 70, right: 16, top: 16, bottom: 40 }}
+                  xAxis={[
+                    {
+                      data: revenueByStatus.map((s) => tStatus(s.status)),
+                      scaleType: "band",
+                      tickLabelStyle: { fontSize: 11 },
+                    },
+                  ]}
+                  series={[
+                    {
+                      data: revenueByStatus.map((s) => s.revenue),
+                      label: t("totalSales"),
+                      color: "#2e7d32",
+                      valueFormatter: (v) => (v == null ? "" : currency(v)),
+                    },
+                  ]}
+                  grid={{ horizontal: true }}
+                  hideLegend
+                  borderRadius={6}
+                />
+              </ChartCard>
+            </Grid>
           </Grid>
         </Box>
       )}

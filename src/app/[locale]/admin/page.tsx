@@ -31,7 +31,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function AdminDashboardPage() {
   const t = useTranslations("admin");
-  const tStatus = useTranslations("orders.statuses");
+  const tStatus = useTranslations("order.statuses");
   const locale = useLocale();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -138,6 +138,19 @@ export default function AdminDashboardPage() {
     [data, tStatus]
   );
   const topVendors = data?.charts.top_vendors ?? [];
+  const topCategories = data?.charts.top_categories ?? [];
+  const revenueByStatus = data?.charts.revenue_by_status ?? [];
+  const ordersByWeekday = data?.charts.orders_by_weekday ?? [];
+
+  const weekdayLabels = useMemo(() => {
+    const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-LY" : "en-US", {
+      weekday: "short",
+    });
+    // DAYOFWEEK: 1=Sunday..7=Saturday. 2024-01-07 is Sunday.
+    return Array.from({ length: 7 }, (_, i) =>
+      fmt.format(new Date(2024, 0, 7 + i))
+    );
+  }, [locale]);
 
   return (
     <Box>
@@ -306,6 +319,101 @@ export default function AdminDashboardPage() {
                     borderRadius={6}
                   />
                 )}
+              </ChartCard>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <ChartCard title={t("topCategoriesChart")} height={260}>
+                {topCategories.length === 0 ? (
+                  <Box
+                    sx={{
+                      height: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "text.secondary",
+                      fontSize: 13,
+                    }}
+                  >
+                    —
+                  </Box>
+                ) : (
+                  <BarChart
+                    layout="horizontal"
+                    margin={{ left: 120, right: 16, top: 16, bottom: 30 }}
+                    yAxis={[
+                      {
+                        data: topCategories.map((c) => c.name),
+                        scaleType: "band",
+                        tickLabelStyle: { fontSize: 11 },
+                      },
+                    ]}
+                    series={[
+                      {
+                        data: topCategories.map((c) => c.products),
+                        label: t("products"),
+                        color: "#0F172A",
+                      },
+                    ]}
+                    grid={{ vertical: true }}
+                    hideLegend
+                    borderRadius={6}
+                  />
+                )}
+              </ChartCard>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <ChartCard title={t("weekdayDistribution")} height={260}>
+                <BarChart
+                  margin={{ left: 50, right: 16, top: 16, bottom: 30 }}
+                  xAxis={[
+                    {
+                      data: weekdayLabels,
+                      scaleType: "band",
+                      tickLabelStyle: { fontSize: 11 },
+                    },
+                  ]}
+                  series={[
+                    {
+                      data: ordersByWeekday.map((d) => d.count),
+                      label: t("orders"),
+                      color: "#1976d2",
+                    },
+                  ]}
+                  grid={{ horizontal: true }}
+                  hideLegend
+                  borderRadius={6}
+                />
+              </ChartCard>
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <ChartCard title={t("revenueByStatus")} height={260}>
+                <PieChart
+                  margin={{ left: 8, right: 8, top: 8, bottom: 8 }}
+                  series={[
+                    {
+                      innerRadius: 50,
+                      paddingAngle: 2,
+                      cornerRadius: 4,
+                      data: revenueByStatus.map((s, i) => ({
+                        id: i,
+                        value: Math.round(s.revenue),
+                        label: tStatus(s.status),
+                        color: STATUS_COLORS[s.status] ?? "#90a4ae",
+                      })),
+                      arcLabel: (item) =>
+                        item.value > 0 ? currency(item.value) : "",
+                      arcLabelMinAngle: 30,
+                    },
+                  ]}
+                  hideLegend={false}
+                  slotProps={{
+                    legend: {
+                      direction: "horizontal",
+                      position: { vertical: "bottom", horizontal: "center" },
+                      sx: { fontSize: 11 },
+                    },
+                  }}
+                />
               </ChartCard>
             </Grid>
           </Grid>

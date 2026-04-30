@@ -48,6 +48,8 @@ export interface DeliveryDashboardPayload {
     orders_daily: Array<{ date: string; orders: number; revenue: number }>;
     status_breakdown: Array<{ status: string; count: number }>;
     top_vendors: Array<{ vendor_id: number; name: string; count: number }>;
+    orders_by_weekday: Array<{ dow: number; count: number }>;
+    revenue_by_status: Array<{ status: string; revenue: number }>;
   };
 }
 

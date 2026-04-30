@@ -33,7 +33,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function DeliveryDashboardPage() {
   const t = useTranslations("delivery");
-  const tStatus = useTranslations("orders.statuses");
+  const tStatus = useTranslations("order.statuses");
   const locale = useLocale();
   const [data, setData] = useState<DeliveryDashboardPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -141,6 +141,24 @@ export default function DeliveryDashboardPage() {
     [data, tStatus]
   );
   const topVendorsData = data?.charts?.top_vendors ?? [];
+  const ordersByWeekday = data?.charts?.orders_by_weekday ?? [];
+  const revenueByStatus = data?.charts?.revenue_by_status ?? [];
+  const chartRevenue = useMemo(
+    () => data?.charts?.orders_daily.map((p) => p.revenue) ?? [],
+    [data]
+  );
+  const weekdayLabels = useMemo(() => {
+    const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-LY" : "en-US", {
+      weekday: "short",
+    });
+    return Array.from({ length: 7 }, (_, i) =>
+      fmt.format(new Date(2024, 0, 7 + i))
+    );
+  }, [locale]);
+  const currency = (n: number) =>
+    new Intl.NumberFormat(locale === "ar" ? "ar-LY" : "en-US", {
+      maximumFractionDigits: 2,
+    }).format(n || 0);
 
   return (
     <Box>
@@ -264,6 +282,81 @@ export default function DeliveryDashboardPage() {
                 </ChartCard>
               </Grid>
             )}
+            <Grid size={{ xs: 12, md: 8 }}>
+              <ChartCard title={t("revenueTrend")} height={260}>
+                <LineChart
+                  margin={{ left: 60, right: 16, top: 16, bottom: 30 }}
+                  xAxis={[
+                    {
+                      data: chartDates,
+                      scaleType: "point",
+                      tickLabelStyle: { fontSize: 11 },
+                    },
+                  ]}
+                  series={[
+                    {
+                      data: chartRevenue,
+                      label: t("revenueTrend"),
+                      color: "#2e7d32",
+                      area: true,
+                      curve: "monotoneX",
+                      showMark: false,
+                    },
+                  ]}
+                  grid={{ horizontal: true }}
+                  hideLegend
+                />
+              </ChartCard>
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <ChartCard title={t("weekdayDistribution")} height={260}>
+                <BarChart
+                  margin={{ left: 40, right: 16, top: 16, bottom: 30 }}
+                  xAxis={[
+                    {
+                      data: weekdayLabels,
+                      scaleType: "band",
+                      tickLabelStyle: { fontSize: 10 },
+                    },
+                  ]}
+                  series={[
+                    {
+                      data: ordersByWeekday.map((d) => d.count),
+                      label: t("ordersTotal"),
+                      color: "#0288d1",
+                    },
+                  ]}
+                  grid={{ horizontal: true }}
+                  hideLegend
+                  borderRadius={4}
+                />
+              </ChartCard>
+            </Grid>
+            <Grid size={12}>
+              <ChartCard title={t("revenueByStatus")} height={260}>
+                <BarChart
+                  margin={{ left: 70, right: 16, top: 16, bottom: 40 }}
+                  xAxis={[
+                    {
+                      data: revenueByStatus.map((s) => tStatus(s.status)),
+                      scaleType: "band",
+                      tickLabelStyle: { fontSize: 11 },
+                    },
+                  ]}
+                  series={[
+                    {
+                      data: revenueByStatus.map((s) => s.revenue),
+                      label: t("revenueTrend"),
+                      color: "#ed6c02",
+                      valueFormatter: (v) => (v == null ? "" : currency(v)),
+                    },
+                  ]}
+                  grid={{ horizontal: true }}
+                  hideLegend
+                  borderRadius={6}
+                />
+              </ChartCard>
+            </Grid>
           </Grid>
         </Box>
       )}
