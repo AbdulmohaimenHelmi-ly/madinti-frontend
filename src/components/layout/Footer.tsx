@@ -46,6 +46,7 @@ export default function Footer() {
   return (
     <Box
       component="footer"
+      className="app-footer-desktop"
       style={{
         background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 40%, ${theme.palette.primary.main} 100%)`,
       }}

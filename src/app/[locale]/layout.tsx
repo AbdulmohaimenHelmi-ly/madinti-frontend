@@ -7,6 +7,7 @@ import AuthInitializer from "@/components/providers/AuthInitializer";
 import ImpersonationBanner from "@/components/layout/ImpersonationBanner";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { ContentFilterProvider } from "@/lib/context/ContentFilterContext";
 
 export function generateStaticParams() {
@@ -59,8 +60,14 @@ export default async function LocaleLayout({
               <AuthInitializer />
               <ImpersonationBanner />
               <Header />
-              <main style={{ minHeight: "80vh" }}>{children}</main>
+              <main
+                style={{ minHeight: "80vh" }}
+                className="app-main-content"
+              >
+                {children}
+              </main>
               <Footer />
+              <MobileBottomNav />
             </ThemeRegistry>
           </ContentFilterProvider>
         </NextIntlClientProvider>

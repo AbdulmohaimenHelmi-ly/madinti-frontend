@@ -57,3 +57,23 @@ img {
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/*
+ * Mobile-app-like layout on phone resolutions.
+ *
+ * On phones (< 900px ~ MUI 'md' breakpoint) the website mounts a fixed
+ * bottom navigation bar (see MobileBottomNav.tsx) and hides the desktop
+ * footer so the page ends in the bottom nav, the same way the Flutter
+ * mobile app does. We add bottom padding to the main content so it
+ * isn't covered by the fixed bar (plus iOS home-indicator safe area).
+ */
+@media (max-width: 899.95px) {
+  .app-main-content {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  .app-footer-desktop {
+    display: none !important;
+  }
+}
+

@@ -137,6 +137,9 @@ export default function Header() {
               sx={{
                 color: "white",
                 position: "relative",
+                // Cart lives in the mobile bottom nav on phones — hide here
+                // to avoid a duplicate entry point.
+                display: { xs: "none", md: "inline-flex" },
                 "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
               }}
             >
