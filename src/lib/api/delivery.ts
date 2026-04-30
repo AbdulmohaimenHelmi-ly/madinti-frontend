@@ -4,9 +4,13 @@ import type { ApiResponse, PaginatedResponse } from "../types";
 export interface DeliveryPrice {
   id: number;
   delivery_company_id: number;
+  from_city_id: number | null;
+  from_area_id: number | null;
   city_id: number;
   area_id: number | null;
   price: number;
+  from_city?: { id: number; name: string; name_en?: string | null } | null;
+  from_area?: { id: number; name: string; name_en?: string | null } | null;
   city?: { id: number; name: string; name_en?: string | null };
   area?: { id: number; name: string; name_en?: string | null } | null;
 }
@@ -58,11 +62,18 @@ export const deliveryApi = {
 
   quote: (
     id: number | string,
-    params: { city_id: number; area_id?: number | null }
+    params: {
+      city_id: number;
+      area_id?: number | null;
+      from_city_id?: number | null;
+      from_area_id?: number | null;
+    }
   ) =>
     apiClient.get<
       ApiResponse<{
         delivery_company_id: number;
+        from_city_id: number | null;
+        from_area_id: number | null;
         city_id: number;
         area_id: number | null;
         price: number;
@@ -82,12 +93,23 @@ export const deliveryApi = {
   prices: () =>
     apiClient.get<ApiResponse<DeliveryPrice[]>>("/delivery/prices"),
 
-  addPrice: (data: { city_id: number; area_id?: number | null; price: number }) =>
-    apiClient.post<ApiResponse<DeliveryPrice>>("/delivery/prices", data),
+  addPrice: (data: {
+    from_city_id?: number | null;
+    from_area_id?: number | null;
+    city_id: number;
+    area_id?: number | null;
+    price: number;
+  }) => apiClient.post<ApiResponse<DeliveryPrice>>("/delivery/prices", data),
 
   updatePrice: (
     id: number,
-    data: Partial<{ city_id: number; area_id: number | null; price: number }>
+    data: Partial<{
+      from_city_id: number | null;
+      from_area_id: number | null;
+      city_id: number;
+      area_id: number | null;
+      price: number;
+    }>
   ) => apiClient.put<ApiResponse<DeliveryPrice>>(`/delivery/prices/${id}`, data),
 
   deletePrice: (id: number) =>
