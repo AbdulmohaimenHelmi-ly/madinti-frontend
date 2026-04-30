@@ -33,6 +33,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { deliveryApi, type DeliveryPrice } from "@/lib/api/delivery";
 import { citiesApi, type City, type Area } from "@/lib/api/cities";
 import DeliveryPageHeader from "@/components/delivery/DeliveryPageHeader";
+import AdminToolbar from "@/components/admin/AdminToolbar";
 
 export default function DeliveryPricesPage() {
   const t = useTranslations("delivery");
@@ -49,6 +50,11 @@ export default function DeliveryPricesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pageError, setPageError] = useState("");
   const [formError, setFormError] = useState("");
+
+  // Filter state
+  const [search, setSearch] = useState("");
+  const [filterFromCity, setFilterFromCity] = useState<string>("");
+  const [filterToCity, setFilterToCity] = useState<string>("");
 
   // Form state
   const [fromCityId, setFromCityId] = useState<number | "">("");
@@ -153,17 +159,42 @@ export default function DeliveryPricesPage() {
   };
 
   const sortedPrices = useMemo(
-    () =>
-      [...prices].sort((a, b) => {
-        const fa = cityName(a.from_city);
-        const fb = cityName(b.from_city);
-        if (fa !== fb) return fa.localeCompare(fb);
-        const ca = cityName(a.city);
-        const cb = cityName(b.city);
-        return ca.localeCompare(cb);
-      }),
+    () => {
+      const q = search.trim().toLowerCase();
+      return [...prices]
+        .filter((p) => {
+          if (filterFromCity === "__any__") {
+            if (p.from_city) return false;
+          } else if (filterFromCity) {
+            if (!p.from_city || String(p.from_city.id) !== filterFromCity)
+              return false;
+          }
+          if (filterToCity && (!p.city || String(p.city.id) !== filterToCity))
+            return false;
+          if (q) {
+            const haystack = [
+              p.from_city ? cityName(p.from_city) : "",
+              p.from_area ? cityName(p.from_area) : "",
+              p.city ? cityName(p.city) : "",
+              p.area ? cityName(p.area) : "",
+            ]
+              .join(" ")
+              .toLowerCase();
+            if (!haystack.includes(q)) return false;
+          }
+          return true;
+        })
+        .sort((a, b) => {
+          const fa = cityName(a.from_city);
+          const fb = cityName(b.from_city);
+          if (fa !== fb) return fa.localeCompare(fb);
+          const ca = cityName(a.city);
+          const cb = cityName(b.city);
+          return ca.localeCompare(cb);
+        });
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [prices, isAr]
+    [prices, isAr, search, filterFromCity, filterToCity]
   );
 
   return (
@@ -183,6 +214,43 @@ export default function DeliveryPricesPage() {
           {pageError}
         </Alert>
       )}
+
+      <AdminToolbar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={t("searchPricesPlaceholder")}
+        selects={[
+          {
+            key: "from",
+            label: t("fromCity"),
+            value: filterFromCity,
+            onChange: setFilterFromCity,
+            width: 200,
+            options: [
+              { value: "", label: t("filterAll") },
+              { value: "__any__", label: t("anyOrigin") },
+              ...cities.map((c) => ({
+                value: String(c.id),
+                label: cityName(c),
+              })),
+            ],
+          },
+          {
+            key: "to",
+            label: t("city"),
+            value: filterToCity,
+            onChange: setFilterToCity,
+            width: 200,
+            options: [
+              { value: "", label: t("filterAll") },
+              ...cities.map((c) => ({
+                value: String(c.id),
+                label: cityName(c),
+              })),
+            ],
+          },
+        ]}
+      />
 
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>

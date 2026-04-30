@@ -244,6 +244,7 @@
     "applyFilters": "تطبيق",
     "searchOrderNumber": "بحث برقم الطلب",
     "searchOrderNumberPlaceholder": "مثال: 1042",
+    "searchPricesPlaceholder": "ابحث بالمدينة أو المنطقة",
     "filterCity": "المدينة",
     "fromDate": "من",
     "toDate": "إلى",

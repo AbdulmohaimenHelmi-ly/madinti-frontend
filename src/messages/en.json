@@ -244,6 +244,7 @@
     "applyFilters": "Apply",
     "searchOrderNumber": "Search order #",
     "searchOrderNumberPlaceholder": "e.g. 1042",
+    "searchPricesPlaceholder": "Search by city or area",
     "filterCity": "City",
     "fromDate": "From",
     "toDate": "To",
