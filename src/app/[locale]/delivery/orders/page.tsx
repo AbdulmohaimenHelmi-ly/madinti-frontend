@@ -8,25 +8,18 @@ import {
   Box,
   Button,
   Chip,
-  Divider,
-  IconButton,
   Paper,
-  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
-import FilterAltIcon from "@mui/icons-material/FilterAlt";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
-import SearchIcon from "@mui/icons-material/Search";
 
 import DeliveryPageHeader from "@/components/delivery/DeliveryPageHeader";
+import AdminToolbar from "@/components/admin/AdminToolbar";
 import { TableRowsSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import DataPagination from "@/components/common/DataPagination";
@@ -69,22 +62,19 @@ export default function DeliveryOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Active filters (sent to API)
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [search, setSearch] = useState("");
-  const [city, setCity] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-
-  // Draft inputs (only push to active filters on Apply / Enter)
-  const [searchInput, setSearchInput] = useState("");
-  const [cityInput, setCityInput] = useState("");
-  const [fromDateInput, setFromDateInput] = useState("");
-  const [toDateInput, setToDateInput] = useState("");
 
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [total, setTotal] = useState(0);
+
+  // Reset to page 1 whenever any filter changes.
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, search, fromDate, toDate]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -95,7 +85,6 @@ export default function DeliveryOrdersPage() {
         per_page: 15,
         ...(statusFilter ? { status: statusFilter } : {}),
         ...(search ? { search } : {}),
-        ...(city ? { city } : {}),
         ...(fromDate ? { from_date: fromDate } : {}),
         ...(toDate ? { to_date: toDate } : {}),
       });
@@ -107,7 +96,7 @@ export default function DeliveryOrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter, search, city, fromDate, toDate, t]);
+  }, [page, statusFilter, search, fromDate, toDate, t]);
 
   useEffect(() => {
     load();
@@ -137,193 +126,52 @@ export default function DeliveryOrdersPage() {
     [t]
   );
 
-  const statusChips: Array<{ value: string; label: string }> = [
-    { value: "", label: t("filterAll") },
-    { value: "pending", label: statusLabel.pending },
-    { value: "processing", label: statusLabel.processing },
-    { value: "shipped", label: statusLabel.shipped },
-    { value: "delivered", label: statusLabel.delivered },
-    { value: "cancelled", label: statusLabel.cancelled },
-  ];
-
-  const applyFilters = () => {
-    setSearch(searchInput.trim());
-    setCity(cityInput.trim());
-    setFromDate(fromDateInput);
-    setToDate(toDateInput);
-    setPage(1);
-  };
-
-  const resetFilters = () => {
-    setStatusFilter("");
-    setSearch("");
-    setCity("");
-    setFromDate("");
-    setToDate("");
-    setSearchInput("");
-    setCityInput("");
-    setFromDateInput("");
-    setToDateInput("");
-    setPage(1);
-  };
-
-  const activeFiltersCount =
-    (statusFilter ? 1 : 0) +
-    (search ? 1 : 0) +
-    (city ? 1 : 0) +
-    (fromDate ? 1 : 0) +
-    (toDate ? 1 : 0);
-
   return (
     <Box>
       <DeliveryPageHeader title={t("orders")} subtitle={t("ordersSubtitle")} />
 
+      <AdminToolbar
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={t("searchOrderNumberPlaceholder")}
+        selects={[
+          {
+            key: "status",
+            label: t("status"),
+            value: statusFilter,
+            onChange: setStatusFilter,
+            options: [
+              { value: "", label: t("filterAll") },
+              { value: "pending", label: statusLabel.pending },
+              { value: "processing", label: statusLabel.processing },
+              { value: "shipped", label: statusLabel.shipped },
+              { value: "delivered", label: statusLabel.delivered },
+              { value: "cancelled", label: statusLabel.cancelled },
+              { value: "refunded", label: statusLabel.refunded },
+            ],
+          },
+        ]}
+        dateFrom={fromDate}
+        dateTo={toDate}
+        onDateFromChange={setFromDate}
+        onDateToChange={setToDate}
+        dateFromLabel={t("fromDate")}
+        dateToLabel={t("toDate")}
+      />
+
       {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError("")}>
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
           {error}
         </Alert>
       )}
 
-      <Paper
-        sx={{
-          p: 2.5,
-          mb: 3,
-          borderRadius: 3,
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{ alignItems: "center", mb: 2 }}
-        >
-          <FilterAltIcon fontSize="small" color="action" />
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            {t("filters")}
-          </Typography>
-          {activeFiltersCount > 0 && (
-            <Chip
-              size="small"
-              label={activeFiltersCount}
-              color="primary"
-              sx={{ height: 20, fontWeight: 700 }}
-            />
-          )}
-          <Box sx={{ flex: 1 }} />
-          {activeFiltersCount > 0 && (
-            <Tooltip title={t("clearFilters")}>
-              <IconButton size="small" onClick={resetFilters}>
-                <RestartAltIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Stack>
-
-        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
-          {t("status")}
-        </Typography>
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{ flexWrap: "wrap", gap: 1, mb: 2 }}
-        >
-          {statusChips.map((s) => (
-            <Chip
-              key={s.value || "all"}
-              label={s.label}
-              clickable
-              color={statusFilter === s.value ? "primary" : "default"}
-              variant={statusFilter === s.value ? "filled" : "outlined"}
-              onClick={() => {
-                setStatusFilter(s.value);
-                setPage(1);
-              }}
-            />
-          ))}
-        </Stack>
-
-        <Divider sx={{ mb: 2 }} />
-
-        <Stack
-          direction={{ xs: "column", md: "row" }}
-          spacing={1.5}
-          sx={{ alignItems: { xs: "stretch", md: "flex-end" } }}
-        >
-          <TextField
-            size="small"
-            label={t("searchOrderNumber")}
-            placeholder={t("searchOrderNumberPlaceholder")}
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") applyFilters();
-            }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <SearchIcon fontSize="small" sx={{ mr: 1, color: "text.secondary" }} />
-                ),
-              },
-            }}
-            sx={{ flex: 1, minWidth: 200 }}
-          />
-          <TextField
-            size="small"
-            label={t("filterCity")}
-            value={cityInput}
-            onChange={(e) => setCityInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") applyFilters();
-            }}
-            sx={{ flex: 1, minWidth: 160 }}
-          />
-          <TextField
-            size="small"
-            label={t("fromDate")}
-            type="date"
-            value={fromDateInput}
-            onChange={(e) => setFromDateInput(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ minWidth: 160 }}
-          />
-          <TextField
-            size="small"
-            label={t("toDate")}
-            type="date"
-            value={toDateInput}
-            onChange={(e) => setToDateInput(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ minWidth: 160 }}
-          />
-          <Button
-            variant="contained"
-            onClick={applyFilters}
-            sx={{ height: 40, whiteSpace: "nowrap" }}
-          >
-            {t("applyFilters")}
-          </Button>
-        </Stack>
-      </Paper>
-
-      {!loading && (
-        <Stack direction="row" sx={{ mb: 1.5, alignItems: "center", gap: 1 }}>
-          <Typography variant="body2" color="text.secondary">
-            {total} {t("orders").toLowerCase()}
-          </Typography>
-        </Stack>
-      )}
-
       {loading ? (
-        <TableRowsSkeleton rows={8} columns={6} />
+        <TableRowsSkeleton rows={8} columns={7} />
       ) : orders.length === 0 ? (
         <EmptyState message={t("noOrders")} />
       ) : (
         <>
-          <TableContainer
-            component={Paper}
-            sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}
-          >
+          <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
             <Table>
               <TableHead>
                 <TableRow>
@@ -349,11 +197,7 @@ export default function DeliveryOrdersPage() {
                   const cityName = o.shipping_city ?? addr?.city ?? "—";
                   return (
                     <TableRow key={o.id} hover>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          #{o.order_number}
-                        </Typography>
-                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>#{o.order_number}</TableCell>
                       <TableCell>{formatDate(o.created_at)}</TableCell>
                       <TableCell>{o.vendor?.store_name ?? "—"}</TableCell>
                       <TableCell>{customerName}</TableCell>
@@ -389,9 +233,15 @@ export default function DeliveryOrdersPage() {
             perPage={15}
             onChange={setPage}
           />
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 1, display: "block", textAlign: "end" }}
+          >
+            {total} {t("orders")}
+          </Typography>
         </>
       )}
     </Box>
   );
 }
-
