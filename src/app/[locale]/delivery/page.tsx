@@ -16,6 +16,10 @@ import LocationCityIcon from "@mui/icons-material/LocationCity";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ListAltIcon from "@mui/icons-material/ListAlt";
 
 import { deliveryApi, type DeliveryDashboardPayload } from "@/lib/api/delivery";
 import DeliveryPageHeader from "@/components/delivery/DeliveryPageHeader";
@@ -46,6 +50,34 @@ export default function DeliveryDashboardPage() {
 
   const stats = data
     ? [
+        {
+          key: "ordersTotal",
+          label: t("ordersTotal"),
+          value: data.stats.orders_total,
+          icon: <ListAltIcon />,
+          color: "#0F172A",
+        },
+        {
+          key: "ordersPending",
+          label: t("ordersPending"),
+          value: data.stats.orders_pending,
+          icon: <HourglassEmptyIcon />,
+          color: "#ed6c02",
+        },
+        {
+          key: "ordersInTransit",
+          label: t("ordersInTransit"),
+          value: data.stats.orders_in_transit,
+          icon: <LocalShippingOutlinedIcon />,
+          color: "#1976d2",
+        },
+        {
+          key: "ordersDelivered",
+          label: t("ordersDelivered"),
+          value: data.stats.orders_delivered,
+          icon: <CheckCircleIcon />,
+          color: "#2e7d32",
+        },
         {
           key: "prices",
           label: t("pricesCount"),

@@ -1,5 +1,5 @@
 import apiClient from "./client";
-import type { ApiResponse, PaginatedResponse } from "../types";
+import type { ApiResponse, Order, PaginatedResponse } from "../types";
 
 export interface DeliveryPrice {
   id: number;
@@ -39,6 +39,10 @@ export interface DeliveryDashboardPayload {
     prices_count: number;
     cities_covered: number;
     vendors_count: number;
+    orders_total: number;
+    orders_pending: number;
+    orders_in_transit: number;
+    orders_delivered: number;
   };
 }
 
@@ -114,6 +118,16 @@ export const deliveryApi = {
 
   deletePrice: (id: number) =>
     apiClient.delete<ApiResponse<null>>(`/delivery/prices/${id}`),
+
+  // ---------- Orders dispatched to this company ----------
+  orders: (params?: { status?: string; page?: number; per_page?: number; search?: string }) =>
+    apiClient.get<PaginatedResponse<Order>>("/delivery/orders", { params }),
+
+  order: (id: number | string) =>
+    apiClient.get<ApiResponse<Order>>(`/delivery/orders/${id}`),
+
+  updateOrderStatus: (id: number | string, status: string) =>
+    apiClient.put<ApiResponse<Order>>(`/delivery/orders/${id}/status`, { status }),
 
   // ---------- Vendor side ----------
   vendorTrustedIds: () =>

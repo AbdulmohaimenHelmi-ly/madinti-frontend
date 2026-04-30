@@ -27,6 +27,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import BusinessIcon from "@mui/icons-material/Business";
+import ListAltIcon from "@mui/icons-material/ListAlt";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -79,6 +80,7 @@ export default function DeliveryShellLayout({
     () => [
       { label: t("dashboard"), href: `/${locale}/delivery`, icon: <DashboardIcon />, exact: true },
       { label: t("company"), href: `/${locale}/delivery/company`, icon: <BusinessIcon /> },
+      { label: t("orders"), href: `/${locale}/delivery/orders`, icon: <ListAltIcon /> },
       { label: t("prices"), href: `/${locale}/delivery/prices`, icon: <PriceChangeIcon /> },
     ],
     [t, locale]
