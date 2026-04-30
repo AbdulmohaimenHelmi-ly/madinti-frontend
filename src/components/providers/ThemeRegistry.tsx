@@ -2,6 +2,9 @@
 
 import { CacheProvider } from "@emotion/react";
 import { ThemeProvider, CssBaseline } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { ar as arLocale, enUS } from "date-fns/locale";
 import { useLocale } from "next-intl";
 import { useMemo } from "react";
 import createEmotionCache from "@/theme/createEmotionCache";
@@ -29,7 +32,12 @@ export default function ThemeRegistry({
     <CacheProvider value={emotionCache}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        {children}
+        <LocalizationProvider
+          dateAdapter={AdapterDateFns}
+          adapterLocale={locale === "ar" ? arLocale : enUS}
+        >
+          {children}
+        </LocalizationProvider>
       </ThemeProvider>
     </CacheProvider>
   );

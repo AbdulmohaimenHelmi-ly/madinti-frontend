@@ -1,7 +1,24 @@
 "use client";
 
 import { Box, InputAdornment, MenuItem, Stack, TextField } from "@mui/material";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import SearchIcon from "@mui/icons-material/Search";
+
+function parseIsoDate(v?: string): Date | null {
+  if (!v) return null;
+  const [y, m, d] = v.split("-").map((n) => Number(n));
+  if (!y || !m || !d) return null;
+  const dt = new Date(y, m - 1, d);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
+function formatIsoDate(d: Date | null): string {
+  if (!d || Number.isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 export interface AdminToolbarOption {
   value: string;
@@ -98,25 +115,27 @@ export default function AdminToolbar({
           </TextField>
         ))}
         {onDateFromChange !== undefined && (
-          <TextField
-            type="date"
-            size="small"
+          <DatePicker
             label={dateFromLabel}
-            value={dateFrom ?? ""}
-            onChange={(e) => onDateFromChange(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ minWidth: 170 }}
+            value={parseIsoDate(dateFrom)}
+            onChange={(v) => onDateFromChange(formatIsoDate(v))}
+            format="dd/MM/yyyy"
+            slotProps={{
+              textField: { size: "small", sx: { minWidth: 170 } },
+              field: { clearable: true },
+            }}
           />
         )}
         {onDateToChange !== undefined && (
-          <TextField
-            type="date"
-            size="small"
+          <DatePicker
             label={dateToLabel}
-            value={dateTo ?? ""}
-            onChange={(e) => onDateToChange(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ minWidth: 170 }}
+            value={parseIsoDate(dateTo)}
+            onChange={(v) => onDateToChange(formatIsoDate(v))}
+            format="dd/MM/yyyy"
+            slotProps={{
+              textField: { size: "small", sx: { minWidth: 170 } },
+              field: { clearable: true },
+            }}
           />
         )}
       </Stack>
