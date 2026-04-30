@@ -120,7 +120,16 @@ export const deliveryApi = {
     apiClient.delete<ApiResponse<null>>(`/delivery/prices/${id}`),
 
   // ---------- Orders dispatched to this company ----------
-  orders: (params?: { status?: string; page?: number; per_page?: number; search?: string }) =>
+  orders: (params?: {
+    status?: string;
+    page?: number;
+    per_page?: number;
+    search?: string;
+    city?: string;
+    vendor_id?: number;
+    from_date?: string;
+    to_date?: string;
+  }) =>
     apiClient.get<PaginatedResponse<Order>>("/delivery/orders", { params }),
 
   order: (id: number | string) =>
