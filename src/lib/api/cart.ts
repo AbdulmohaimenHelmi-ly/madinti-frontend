@@ -15,11 +15,18 @@ export interface CartDeliveryOption {
 export interface CartDeliveryOptionsResponse {
   vendor_id: number | null;
   options: CartDeliveryOption[];
-  multi_vendor?: boolean;
 }
 
+/**
+ * Carts are scoped per vendor. The list endpoint returns one cart per shop
+ * the user is currently buying from; mutating endpoints return the affected
+ * vendor cart (or null when the cart was emptied and removed).
+ */
 export const cartApi = {
-  get: () => apiClient.get<ApiResponse<Cart>>("/cart"),
+  list: () => apiClient.get<ApiResponse<Cart[]>>("/cart"),
+
+  getForVendor: (vendorId: number) =>
+    apiClient.get<ApiResponse<Cart>>(`/cart/${vendorId}`),
 
   addItem: (productId: number, quantity: number = 1, variantId?: number | null) =>
     apiClient.post<ApiResponse<Cart>>("/cart/items", {
@@ -37,13 +44,20 @@ export const cartApi = {
     }),
 
   removeItem: (itemId: number) =>
-    apiClient.delete<ApiResponse<Cart>>(`/cart/items/${itemId}`),
+    apiClient.delete<ApiResponse<Cart | null>>(`/cart/items/${itemId}`),
 
-  clear: () => apiClient.delete<ApiResponse<null>>("/cart"),
+  clearVendor: (vendorId: number) =>
+    apiClient.delete<ApiResponse<null>>(`/cart/${vendorId}`),
 
-  deliveryOptions: (params: { city_id: number; area_id?: number | null }) =>
+  clearAll: () => apiClient.delete<ApiResponse<null>>("/cart"),
+
+  deliveryOptions: (
+    vendorId: number,
+    params: { city_id: number; area_id?: number | null },
+  ) =>
     apiClient.get<ApiResponse<CartDeliveryOptionsResponse>>(
-      "/cart/delivery-options",
-      { params }
+      `/cart/${vendorId}/delivery-options`,
+      { params },
     ),
 };
+

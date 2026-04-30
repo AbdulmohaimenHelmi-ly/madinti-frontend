@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Alert,
@@ -72,14 +72,35 @@ export default function CheckoutPage() {
   const tCart = useTranslations("cart");
   const locale = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // The vendor whose cart is being checked out. The cart page links here
+  // with `?vendor=ID`; if missing we'll fall back to the first cart below.
+  const vendorParam = searchParams.get("vendor");
+  const requestedVendorId = vendorParam ? Number(vendorParam) : null;
 
   const user = useAuthStore((s) => s.user);
   const isInitialized = useAuthStore((s) => s.isInitialized);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const cart = useCartStore((s) => s.cart);
-  const fetchCart = useCartStore((s) => s.fetchCart);
-  const clearCart = useCartStore((s) => s.clearCart);
+  const carts = useCartStore((s) => s.carts);
+  const fetchCarts = useCartStore((s) => s.fetchCarts);
+  const clearVendorCart = useCartStore((s) => s.clearVendorCart);
   const cartLoading = useCartStore((s) => s.isLoading);
+
+  // Pick the vendor cart to check out. Prefer the requested one; otherwise
+  // fall back to the most recently updated cart so the page is still useful
+  // when a user lands here directly.
+  const cart = useMemo(() => {
+    if (carts.length === 0) return null;
+    if (requestedVendorId != null) {
+      return carts.find((c) => c.vendor_id === requestedVendorId) ?? null;
+    }
+    return carts[0] ?? null;
+  }, [carts, requestedVendorId]);
+  const vendorId = cart?.vendor_id ?? null;
+  const vendorName =
+    (locale === "en" && cart?.vendor?.store_name_en) ||
+    cart?.vendor?.store_name ||
+    "";
 
   const [cities, setCities] = useState<City[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
@@ -118,7 +139,6 @@ export default function CheckoutPage() {
   // Delivery options
   const [deliveryOptions, setDeliveryOptions] = useState<CartDeliveryOption[]>([]);
   const [deliveryLoading, setDeliveryLoading] = useState(false);
-  const [deliveryMultiVendor, setDeliveryMultiVendor] = useState(false);
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string>("");
 
   useEffect(() => {
@@ -128,8 +148,8 @@ export default function CheckoutPage() {
   }, [isInitialized, isAuthenticated, locale, router]);
 
   useEffect(() => {
-    if (isAuthenticated) fetchCart();
-  }, [isAuthenticated, fetchCart]);
+    if (isAuthenticated) fetchCarts();
+  }, [isAuthenticated, fetchCarts]);
 
   useEffect(() => {
     citiesApi.list().then((res) => setCities(res.data.data)).catch(() => undefined);
@@ -178,24 +198,22 @@ export default function CheckoutPage() {
     setPhone(sel.phone);
   }, [selectedAddressId, addresses]);
 
-  // Load delivery options whenever city/area changes
+  // Load delivery options whenever city/area or vendor changes
   useEffect(() => {
-    if (!cityId) {
+    if (!cityId || !vendorId) {
       setDeliveryOptions([]);
       setSelectedDeliveryId("");
-      setDeliveryMultiVendor(false);
       return;
     }
     setDeliveryLoading(true);
     cartApi
-      .deliveryOptions({
+      .deliveryOptions(vendorId, {
         city_id: Number(cityId),
         area_id: areaId === "" ? null : Number(areaId),
       })
       .then((res) => {
         const data = res.data.data;
         setDeliveryOptions(data.options ?? []);
-        setDeliveryMultiVendor(Boolean(data.multi_vendor));
         setSelectedDeliveryId((prev) => {
           if (prev && data.options.some((o) => o.id === prev)) return prev;
           return data.options[0]?.id ?? "";
@@ -206,7 +224,7 @@ export default function CheckoutPage() {
         setSelectedDeliveryId("");
       })
       .finally(() => setDeliveryLoading(false));
-  }, [cityId, areaId]);
+  }, [cityId, areaId, vendorId]);
 
   const selectedDelivery = useMemo(
     () => deliveryOptions.find((o) => o.id === selectedDeliveryId) ?? null,
@@ -587,9 +605,15 @@ export default function CheckoutPage() {
     const area = areas.find((a) => a.id === areaId);
     const shippingCity = area ? `${city?.name}, ${area.name}` : city?.name ?? "";
 
+    if (!vendorId) {
+      setError(tCommon("error"));
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await ordersApi.create({
+        vendor_id: vendorId,
         shipping_address: address,
         shipping_city: shippingCity,
         shipping_city_id: Number(cityId),
@@ -601,7 +625,7 @@ export default function CheckoutPage() {
         delivery_company_id: selectedDelivery?.delivery_company_id ?? null,
       });
       const order = res.data.data;
-      await clearCart();
+      await clearVendorCart(vendorId);
       router.push(`/${locale}/orders/${order.id}`);
     } catch {
       setError(tCommon("error"));
@@ -615,7 +639,11 @@ export default function CheckoutPage() {
         <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
           {t("title")}
         </Typography>
-        <Typography color="text.secondary">{t("subtitle")}</Typography>
+        <Typography color="text.secondary">
+          {vendorName
+            ? t("subtitleVendor", { vendor: vendorName })
+            : t("subtitle")}
+        </Typography>
       </Box>
 
       <Grid container spacing={4} component="form" onSubmit={submit}>
@@ -879,10 +907,6 @@ export default function CheckoutPage() {
                   <Skeleton variant="rounded" height={72} />
                   <Skeleton variant="rounded" height={72} />
                 </Stack>
-              ) : deliveryMultiVendor ? (
-                <Alert severity="warning" sx={{ borderRadius: 2 }}>
-                  {t("multiVendorDelivery")}
-                </Alert>
               ) : deliveryOptions.length === 0 ? (
                 <Alert severity="warning" sx={{ borderRadius: 2 }}>
                   {t("noDeliveryOptions")}

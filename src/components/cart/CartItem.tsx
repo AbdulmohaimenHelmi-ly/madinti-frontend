@@ -5,8 +5,7 @@ import {
   Box,
   Typography,
   IconButton,
-  Card,
-  CardContent,
+  Divider,
   Paper,
   Chip,
   Button,
@@ -69,9 +68,8 @@ export default function CartItem({ item }: CartItemProps) {
     "/placeholder-product.svg";
 
   return (
-    <Card sx={{ mb: 2, overflow: "visible" }}>
-      <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-        <Box sx={{ display: "flex", gap: 2.5, alignItems: "center" }}>
+    <Box>
+      <Box sx={{ py: 1.5, display: "flex", gap: 2, alignItems: "center", flexWrap: { xs: "wrap", sm: "nowrap" } }}>
           <Paper
             elevation={0}
             sx={{
@@ -237,8 +235,8 @@ export default function CartItem({ item }: CartItemProps) {
           >
             {t("remove")}
           </Button>
-        </Box>
-      </CardContent>
+      </Box>
+      <Divider sx={{ "&:last-of-type": { display: "none" } }} />
       <VariantPickerDialog
         open={variantDialogOpen}
         productId={item.product_id}
@@ -275,6 +273,6 @@ export default function CartItem({ item }: CartItemProps) {
           </Alert>
         ) : undefined}
       </Snackbar>
-    </Card>
+    </Box>
   );
 }

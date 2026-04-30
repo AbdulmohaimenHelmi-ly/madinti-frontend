@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, Typography, Divider, Button, Box } from "@mui/material";
+import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import ShoppingCartCheckoutIcon from "@mui/icons-material/ShoppingCartCheckout";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
@@ -10,6 +10,10 @@ interface CartSummaryProps {
   cart: Cart;
 }
 
+/**
+ * Per-vendor cart summary. Each cart turns into one order, so the checkout
+ * button targets that specific vendor's cart via `?vendor=ID`.
+ */
 export default function CartSummary({ cart }: CartSummaryProps) {
   const t = useTranslations("cart");
   const tc = useTranslations("common");
@@ -17,83 +21,79 @@ export default function CartSummary({ cart }: CartSummaryProps) {
 
   const subtotal = cart.items.reduce(
     (sum, item) => sum + item.price * item.quantity,
-    0
+    0,
   );
 
   return (
-    <Card
+    <Box
       sx={(theme) => ({
-        position: "sticky",
-        top: 90,
-        overflow: "visible",
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 4,
-          background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-          borderRadius: "16px 16px 0 0",
-        },
+        mt: 1,
+        p: 2.5,
+        borderRadius: 3,
+        bgcolor: theme.palette.mode === "light" ? "grey.50" : "background.default",
+        border: "1px solid",
+        borderColor: "divider",
       })}
     >
-      <CardContent sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 700 }}>
-          {t("title")}
-        </Typography>
-        <Divider sx={{ mb: 2.5 }} />
-
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-          <Typography color="text.secondary">{t("subtotal")}</Typography>
-          <Typography sx={{ fontWeight: 600 }}>
-            {subtotal.toFixed(2)} {tc("currency")}
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
-          <Typography color="text.secondary">{t("shipping")}</Typography>
-          <Typography sx={{ fontWeight: 500, color: "success.main" }}>
-            0.00 {tc("currency")}
-          </Typography>
-        </Box>
-
-        <Divider sx={{ my: 2.5 }} />
-
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            {t("total")}
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={(theme) => ({
-              fontWeight: 800,
-              background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            })}
-          >
-            {subtotal.toFixed(2)} {tc("currency")}
-          </Typography>
-        </Box>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={2}
+        sx={{
+          alignItems: { xs: "stretch", sm: "center" },
+          justifyContent: "space-between",
+        }}
+      >
+        <Stack spacing={0.75} sx={{ flex: 1 }}>
+          <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between" }}>
+            <Typography color="text.secondary">{t("subtotal")}</Typography>
+            <Typography sx={{ fontWeight: 700 }}>
+              {subtotal.toFixed(2)} {tc("currency")}
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between" }}>
+            <Typography color="text.secondary">{t("shipping")}</Typography>
+            <Typography sx={{ fontWeight: 600, color: "text.secondary" }}>
+              {t("shippingAtCheckout")}
+            </Typography>
+          </Stack>
+          <Divider sx={{ my: 0.5 }} />
+          <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between" }}>
+            <Typography sx={{ fontWeight: 800 }}>{t("total")}</Typography>
+            <Typography
+              sx={(theme) => ({
+                fontWeight: 800,
+                fontSize: "1.1rem",
+                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              })}
+            >
+              {subtotal.toFixed(2)} {tc("currency")}
+            </Typography>
+          </Stack>
+        </Stack>
 
         <Button
           component={Link}
-          href={`/${locale}/checkout`}
+          href={`/${locale}/checkout?vendor=${cart.vendor_id}`}
           variant="contained"
-          fullWidth
           size="large"
           startIcon={<ShoppingCartCheckoutIcon />}
           sx={{
-            py: 1.5,
+            py: 1.4,
+            px: 3,
             borderRadius: 3,
-            fontWeight: 700,
-            fontSize: "1rem",
+            fontWeight: 800,
+            fontSize: "0.95rem",
+            whiteSpace: "nowrap",
+            textTransform: "none",
+            minWidth: { sm: 220 },
           }}
         >
-          {t("checkout")}
+          {t("checkoutThisStore")}
         </Button>
-      </CardContent>
-    </Card>
+      </Stack>
+    </Box>
   );
 }
+

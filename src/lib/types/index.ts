@@ -210,9 +210,19 @@ export interface CartItem {
   product?: Product;
 }
 
+/** Each cart belongs to exactly one shop — a user has one cart per vendor. */
+export interface CartVendor {
+  id: number;
+  store_name: string | null;
+  store_name_en: string | null;
+  slug: string | null;
+  logo: string | null;
+}
+
 export interface Cart {
   id: number;
-  user_id: number;
+  vendor_id: number;
+  vendor: CartVendor | null;
   items: CartItem[];
   total_price: number;
   items_count: number;

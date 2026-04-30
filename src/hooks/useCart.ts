@@ -10,7 +10,7 @@ export function useCart() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      cart.fetchCart();
+      cart.fetchCarts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);

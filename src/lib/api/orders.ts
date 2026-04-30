@@ -2,6 +2,7 @@ import apiClient from "./client";
 import type { ApiResponse, PaginatedResponse, Order } from "../types";
 
 export interface CreateOrderData {
+  vendor_id: number;
   shipping_address: string;
   shipping_city: string;
   shipping_city_id?: number | null;
