@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import devtools, { type DevToolsState } from "@/lib/devtoolsDetect";
 
 export default function DevToolsGuard({ locale }: { locale: string }) {
-  const router = useRouter();
   const redirected = useRef(false);
 
   useEffect(() => {
@@ -15,7 +13,7 @@ export default function DevToolsGuard({ locale }: { locale: string }) {
     function redirect() {
       if (redirected.current) return;
       redirected.current = true;
-      router.replace(target);
+      window.location.replace(target);
     }
 
     function handleDevToolsChange(event: Event) {
@@ -34,7 +32,7 @@ export default function DevToolsGuard({ locale }: { locale: string }) {
     return () => {
       window.removeEventListener("devtoolschange", handleDevToolsChange as EventListener);
     };
-  }, [router, locale]);
+  }, [locale]);
 
   return null;
 }
