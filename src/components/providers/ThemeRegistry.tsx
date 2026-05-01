@@ -1,13 +1,13 @@
 "use client";
 
-import { CacheProvider } from "@emotion/react";
 import { ThemeProvider, CssBaseline } from "@mui/material";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { ar as arLocale, enUS } from "date-fns/locale";
 import { useLocale } from "next-intl";
 import { useMemo } from "react";
-import createEmotionCache from "@/theme/createEmotionCache";
+import rtlPlugin from "stylis-plugin-rtl";
 import { createAppTheme } from "@/theme/theme";
 import { useContentFilter } from "@/lib/context/ContentFilterContext";
 
@@ -19,8 +19,11 @@ export default function ThemeRegistry({
   const locale = useLocale();
   const direction = locale === "ar" ? "rtl" : "ltr";
   const { filter } = useContentFilter();
-  const emotionCache = useMemo(
-    () => createEmotionCache(direction),
+  const cacheOptions = useMemo(
+    () =>
+      direction === "rtl"
+        ? { key: "muirtl", stylisPlugins: [rtlPlugin] }
+        : { key: "mui" },
     [direction]
   );
   const theme = useMemo(
@@ -29,7 +32,7 @@ export default function ThemeRegistry({
   );
 
   return (
-    <CacheProvider value={emotionCache}>
+    <AppRouterCacheProvider options={cacheOptions}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <LocalizationProvider
@@ -39,6 +42,6 @@ export default function ThemeRegistry({
           {children}
         </LocalizationProvider>
       </ThemeProvider>
-    </CacheProvider>
+    </AppRouterCacheProvider>
   );
 }
