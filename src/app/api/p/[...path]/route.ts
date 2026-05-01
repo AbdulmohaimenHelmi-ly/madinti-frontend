@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import { createHmac } from "crypto";
 
 const secret = new TextEncoder().encode(
   process.env.PROXY_JWT_SECRET ||
@@ -9,6 +10,15 @@ const secret = new TextEncoder().encode(
 const BACKEND = (
   process.env.API_INTERNAL_URL ?? "http://127.0.0.1:8000"
 ).replace(/\/$/, "");
+
+const PROXY_SECRET = process.env.INTERNAL_PROXY_SECRET ?? "";
+
+/** Generate an X-Proxy-Sig header value: "{timestamp}.{hmac}" */
+function makeProxySig(): string {
+  const ts = Math.floor(Date.now() / 1000).toString();
+  const sig = createHmac("sha256", PROXY_SECRET).update(ts).digest("hex");
+  return `${ts}.${sig}`;
+}
 
 // Headers we pass through to Laravel (never the cookie — that's internal).
 const PASSTHROUGH_HEADERS = new Set([
@@ -62,6 +72,9 @@ async function handle(
       headers.set(key, value);
     }
   });
+  // Authenticate this server-to-server request so Laravel can verify the
+  // request came from our trusted proxy and not from a direct API caller.
+  headers.set("X-Proxy-Sig", makeProxySig());
 
   // ── 6. Read body (supports JSON, FormData, binary uploads) ───────────────
   const hasBody = !["GET", "HEAD"].includes(req.method);
