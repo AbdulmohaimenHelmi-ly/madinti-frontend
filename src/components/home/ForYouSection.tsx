@@ -66,14 +66,14 @@ export default function ForYouSection({ contentType }: ForYouSectionProps) {
   if (!loading && products.length === 0) return null;
 
   return (
-    <Box sx={{ mb: 10, px: { xs: 1, md: 5 } }}>
+    <Box sx={{ mb: { xs: 5, md: 10 }, px: { xs: 2, md: 5 } }}>
       <Box
         sx={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: { xs: "flex-start", sm: "center" },
+          alignItems: "center",
           gap: 2,
-          mb: 4,
+          mb: 1.5,
         }}
       >
         <Box sx={{ minWidth: 0 }}>
@@ -81,26 +81,25 @@ export default function ForYouSection({ contentType }: ForYouSectionProps) {
             <AutoAwesomeRoundedIcon
               sx={{
                 color: "primary.main",
-                fontSize: 26,
+                fontSize: 22,
               }}
             />
-            <Typography variant="h4" sx={{ fontWeight: 800, color: "text.primary" }}>
+            <Typography sx={{ fontWeight: 800, fontSize: "1.125rem", color: "text.primary", lineHeight: 1.2 }}>
               {t("home.forYou")}
             </Typography>
           </Box>
           <Box
             sx={(theme) => ({
-              width: 48,
-              height: 4,
-              borderRadius: 2,
+              width: 36,
+              height: 3,
+              borderRadius: 1,
               background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-              mt: 1,
+              mt: "6px",
+              mb: "6px",
             })}
           />
           <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mt: 1, fontSize: "0.85rem" }}
+            sx={{ fontSize: "0.75rem", color: "text.secondary", lineHeight: 1.4 }}
           >
             {t("home.forYouSubtitle")}
           </Typography>
@@ -112,10 +111,11 @@ export default function ForYouSection({ contentType }: ForYouSectionProps) {
           endIcon={<ArrowIcon />}
           sx={{
             borderRadius: 100,
-            px: 2.5,
+            px: 1.5,
             fontWeight: 600,
             color: "primary.main",
             whiteSpace: "nowrap",
+            fontSize: "0.875rem",
             "&:hover": { bgcolor: "primary.main", color: "white" },
             transition: "all 0.2s ease",
           }}
