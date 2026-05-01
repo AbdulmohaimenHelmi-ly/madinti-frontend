@@ -15,7 +15,6 @@ type FirebugWindow = Window & {
 
 const DEVTOOLS_THRESHOLD = 170;
 const DEVTOOLS_POLL_INTERVAL_MS = 500;
-const DEVTOOLS_CONSOLE_PROBE_INTERVAL_MS = 1000;
 
 const devtools: {
   isOpen: boolean;
@@ -33,32 +32,10 @@ function emitDevToolsChange(isOpen: boolean, orientation?: DevToolsOrientation) 
   );
 }
 
-function markDevToolsOpen(orientation?: DevToolsOrientation) {
-  if ((!devtools.isOpen || devtools.orientation !== orientation)) {
-    emitDevToolsChange(true, orientation);
-  }
-
-  devtools.isOpen = true;
-  devtools.orientation = orientation;
-}
-
-function createConsoleProbe() {
-  const probe = new Image();
-
-  Object.defineProperty(probe, "id", {
-    configurable: true,
-    get() {
-      markDevToolsOpen(devtools.orientation);
-      return "";
-    },
-  });
-
-  return probe;
-}
-
 function runDetection({ emitEvents = true }: { emitEvents?: boolean } = {}) {
-  const widthThreshold = window.outerWidth - window.innerWidth > DEVTOOLS_THRESHOLD;
-  const heightThreshold = window.outerHeight - window.innerHeight > DEVTOOLS_THRESHOLD;
+  const dpr = window.devicePixelRatio || 1;
+  const widthThreshold = window.outerWidth / dpr - window.innerWidth > DEVTOOLS_THRESHOLD;
+  const heightThreshold = window.outerHeight / dpr - window.innerHeight > DEVTOOLS_THRESHOLD;
   const orientation: DevToolsOrientation = widthThreshold ? "vertical" : "horizontal";
   const firebugInitialized = Boolean(
     (window as FirebugWindow).Firebug?.chrome?.isInitialized,
@@ -83,16 +60,10 @@ function runDetection({ emitEvents = true }: { emitEvents?: boolean } = {}) {
 }
 
 if (typeof window !== "undefined") {
-  const consoleProbe = createConsoleProbe();
-
   runDetection({ emitEvents: false });
   window.setInterval(() => {
     runDetection();
   }, DEVTOOLS_POLL_INTERVAL_MS);
-  window.setInterval(() => {
-    if (devtools.isOpen) return;
-    console.debug(consoleProbe);
-  }, DEVTOOLS_CONSOLE_PROBE_INTERVAL_MS);
 }
 
 export default devtools;
