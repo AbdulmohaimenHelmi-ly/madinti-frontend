@@ -10,15 +10,18 @@ const _secret = new TextEncoder().encode(
     "dev-only-secret-please-set-PROXY_JWT_SECRET-in-production"
 );
 
-async function buildPageToken(): Promise<string> {
-  // One-time signed nonce embedded in the HTML page.
-  // /api/init will verify this before returning the alias map, ensuring
-  // the caller rendered an actual HTML page first.
+async function buildInitUrl(): Promise<string> {
+  // Sign a one-time nonce into a JWT and use it as the URL path.
+  // The /api/[token] route handler validates this JWT.
+  // Every page load produces a completely different URL — there is no
+  // fixed /api/init endpoint for scanners to discover.
   const nonce = crypto.randomUUID();
-  return new SignJWT({ nonce, t: Date.now() })
+  const token = await new SignJWT({ n: nonce })
     .setProtectedHeader({ alg: "HS256" })
-    .setExpirationTime("90s") // must call /api/init within 90 s of page load
+    .setIssuedAt()
+    .setExpirationTime("90s")
     .sign(_secret);
+  return `/api/${token}`;
 }
 import AuthInitializer from "@/components/providers/AuthInitializer";
 import ImpersonationBanner from "@/components/layout/ImpersonationBanner";
@@ -59,14 +62,14 @@ export default async function LocaleLayout({
   }
   const messages = await getMessages();
   const direction = locale === "ar" ? "rtl" : "ltr";
-  const pageToken = await buildPageToken();
+  const initUrl = await buildInitUrl();
 
   return (
     <html lang={locale} dir={direction}>
       <head>
-        {/* Signed page-load nonce — required by /api/init to prove the caller
-            rendered an actual HTML page before requesting the alias map. */}
-        <meta name="x-pt" content={pageToken} />
+        {/* Random one-time init URL — different every page load.
+            The URL itself is a signed JWT; no fixed /api/init exists. */}
+        <meta name="x-i" content={initUrl} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

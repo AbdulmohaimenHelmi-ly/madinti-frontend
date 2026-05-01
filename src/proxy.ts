@@ -5,25 +5,19 @@ import { routing } from "./i18n/routing";
 const intlMiddleware = createMiddleware(routing);
 
 // ─── In-memory rate limiter ───────────────────────────────────────────────────
-// Works for single-instance deployments (VPS / local).
-// Two tiers:
-//   /api/init  — 3 per IP per hour  (each page load gets exactly 1 init call)
-//   /api/p/*   — 80 per IP per minute (normal browsing headroom)
-
-const INIT_WINDOW_MS = 60 * 60_000; // 1 hour
-const INIT_MAX = 3;
-const API_WINDOW_MS = 60_000;       // 1 minute
+// Covers /api/p/* (the proxy calls) — 80 per IP per minute.
+// /api/[token] (the random init endpoint) has its own limiter inside the route.
+const API_WINDOW_MS = 60_000;
 const API_MAX = 80;
 
-const initHits = new Map<string, number[]>();
-const apiHits  = new Map<string, number[]>();
+const apiHits = new Map<string, number[]>();
 
-function isLimited(map: Map<string, number[]>, ip: string, window: number, max: number): boolean {
+function isLimited(ip: string): boolean {
   const now = Date.now();
-  const hits = (map.get(ip) ?? []).filter((t) => now - t < window);
-  if (hits.length >= max) return true;
+  const hits = (apiHits.get(ip) ?? []).filter((t) => now - t < API_WINDOW_MS);
+  if (hits.length >= API_MAX) return true;
   hits.push(now);
-  map.set(ip, hits);
+  apiHits.set(ip, hits);
   return false;
 }
 
@@ -31,22 +25,17 @@ function isLimited(map: Map<string, number[]>, ip: string, window: number, max: 
 export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Apply rate limiting to all proxy and init routes.
-  if (pathname.startsWith("/api/p/") || pathname === "/api/init") {
+  // Rate-limit the proxy routes only.
+  if (pathname.startsWith("/api/p/")) {
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       req.headers.get("x-real-ip") ??
       "unknown";
 
-    const limited =
-      pathname === "/api/init"
-        ? isLimited(initHits, ip, INIT_WINDOW_MS, INIT_MAX)
-        : isLimited(apiHits,  ip, API_WINDOW_MS,  API_MAX);
-
-    if (limited) {
+    if (isLimited(ip)) {
       return new NextResponse("Too Many Requests", {
         status: 429,
-        headers: { "Retry-After": pathname === "/api/init" ? "3600" : "60" },
+        headers: { "Retry-After": "60" },
       });
     }
 
@@ -62,8 +51,7 @@ export const config = {
     // Page routes (next-intl)
     "/",
     "/(ar|en)/:path*",
-    // API proxy routes (rate limiter)
-    "/api/init",
+    // Proxy routes (rate limiter)
     "/api/p/:path*",
   ],
 };
