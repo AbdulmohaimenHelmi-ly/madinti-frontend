@@ -21,6 +21,7 @@ import ProductGrid from "@/components/products/ProductGrid";
 import VendorCard from "@/components/vendors/VendorCard";
 import { HomePageSkeleton } from "@/components/common/Skeletons";
 import HeroMosaic from "@/components/home/HeroMosaic";
+import MobileHeroCarousel from "@/components/home/MobileHeroCarousel";
 import CategoriesCarousel from "@/components/home/CategoriesCarousel";
 import ForYouSection from "@/components/home/ForYouSection";
 import type { Product, Category, Vendor, Brand, Banner } from "@/lib/types";
@@ -211,13 +212,22 @@ export default function HomePage() {
         </Box>
       </Box>
 
-      {/* Mosaic Hero: slider + side tiles */}
+      {/* ── MOBILE: Flutter-style swipeable carousel (xs/sm only) ── */}
       {(categories.length > 0 || banners.length > 0) && (
-        <HeroMosaic
-          categories={categories}
-          brands={brands}
-          banners={banners}
-        />
+        <Box sx={{ display: { xs: "block", md: "none" } }}>
+          <MobileHeroCarousel banners={banners} categories={categories} />
+        </Box>
+      )}
+
+      {/* ── DESKTOP: three-column mosaic with side tiles (md+) ── */}
+      {(categories.length > 0 || banners.length > 0) && (
+        <Box sx={{ display: { xs: "none", md: "block" } }}>
+          <HeroMosaic
+            categories={categories}
+            brands={brands}
+            banners={banners}
+          />
+        </Box>
       )}
 
       {/* Circular categories carousel */}
