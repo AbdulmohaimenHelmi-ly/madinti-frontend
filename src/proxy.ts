@@ -22,7 +22,7 @@ function isRateLimited(ip: string): boolean {
 }
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
-export default function middleware(req: NextRequest) {
+export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Apply rate limiting to all proxy and init routes.
