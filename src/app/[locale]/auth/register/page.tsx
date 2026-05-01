@@ -7,6 +7,7 @@ import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import PetsIcon from "@mui/icons-material/Pets";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
+import AltchaWidget from "@/components/AltchaWidget";
 
 export default function RegisterPage() {
   const t = useTranslations();
@@ -18,11 +19,22 @@ export default function RegisterPage() {
   const [isVendor, setIsVendor] = useState(false);
   const [error, setError] = useState("");
   const [_hp, setHp] = useState(""); // honeypot — must stay empty
+  const [_altcha, setAltcha] = useState(""); // Altcha PoW solution
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, [field]: e.target.value }));
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (_hp) return; // bot filled the hidden field — silently abort
+    if (!_altcha) { setError(t("common.error")); return; }
+    // Verify Altcha PoW server-side before calling auth
+    try {
+      const vRes = await fetch("/api/altcha", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ payload: _altcha }),
+      });
+      if (!vRes.ok) { setError(t("common.error")); return; }
+    } catch { setError(t("common.error")); return; }
     try {
       await register({ ...form, role: isVendor ? "vendor" : "customer" });
       router.push(`/${locale}`);
@@ -111,6 +123,7 @@ export default function RegisterPage() {
                 <TextField label={t("auth.phone")} value={form.phone} onChange={handleChange("phone")} fullWidth />
                 <TextField label={t("auth.password")} type="password" value={form.password} onChange={handleChange("password")} required fullWidth />
                 <TextField label={t("auth.confirmPassword")} type="password" value={form.password_confirmation} onChange={handleChange("password_confirmation")} required fullWidth />
+                <AltchaWidget onSolve={setAltcha} />
                 <FormControlLabel
                   control={
                     <Checkbox

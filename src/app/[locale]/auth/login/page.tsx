@@ -7,6 +7,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import PetsIcon from "@mui/icons-material/Pets";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
+import AltchaWidget from "@/components/AltchaWidget";
 
 export default function LoginPage() {
   const t = useTranslations();
@@ -18,10 +19,21 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [_hp, setHp] = useState(""); // honeypot — must stay empty
+  const [_altcha, setAltcha] = useState(""); // Altcha PoW solution
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (_hp) return; // bot filled the hidden field — silently abort
+    if (!_altcha) { setError(t("common.error")); return; }
+    // Verify Altcha PoW server-side before calling auth
+    try {
+      const vRes = await fetch("/api/altcha", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ payload: _altcha }),
+      });
+      if (!vRes.ok) { setError(t("common.error")); return; }
+    } catch { setError(t("common.error")); return; }
     try {
       await login(email, password);
       const u = useAuthStore.getState().user;
@@ -111,6 +123,7 @@ export default function LoginPage() {
                 />
                 <TextField label={t("auth.email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required fullWidth />
                 <TextField label={t("auth.password")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required fullWidth />
+                <AltchaWidget onSolve={setAltcha} />
                 <Button
                   type="submit"
                   variant="contained"

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
+import { isbot } from "isbot";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -13,14 +14,17 @@ export default function proxy(req: NextRequest) {
   // Raw tools (curl, wget, Python requests, Node axios) do not.
   // Mobile app calls Laravel directly — it never hits this proxy.
   if (pathname.startsWith("/api/p/")) {
-    if (!req.headers.get("sec-fetch-site")) {
+    const ua = req.headers.get("user-agent") ?? "";
+    if (!req.headers.get("sec-fetch-site") || isbot(ua)) {
       return new NextResponse(null, { status: 403 });
     }
     return NextResponse.next();
   }
 
-  // Let other /api/* routes (e.g. /api/[token]) pass through unmodified.
+  // Block known bot UAs from the random init endpoint too.
   if (pathname.startsWith("/api/")) {
+    const ua = req.headers.get("user-agent") ?? "";
+    if (isbot(ua)) return new NextResponse(null, { status: 403 });
     return NextResponse.next();
   }
 
