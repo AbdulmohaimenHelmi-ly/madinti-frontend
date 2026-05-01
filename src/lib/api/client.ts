@@ -10,7 +10,17 @@ let _forwardMap: Record<string, string> | null = null;
 let _initPromise: Promise<void> | null = null;
 
 async function _doInit(): Promise<void> {
-  const res = await fetch("/api/init");
+  // Read the signed page-load nonce the server embedded in the HTML <head>.
+  // Without it, /api/init returns 403 — raw bots that skip the HTML render
+  // cannot obtain the alias map.
+  const pageToken =
+    typeof document !== "undefined"
+      ? (document.querySelector('meta[name="x-pt"]')?.getAttribute("content") ?? "")
+      : "";
+
+  const res = await fetch("/api/init", {
+    headers: pageToken ? { "x-page-token": pageToken } : {},
+  });
   if (!res.ok) throw new Error("proxy init failed");
   const data = await res.json();
   _forwardMap = data.map as Record<string, string>;

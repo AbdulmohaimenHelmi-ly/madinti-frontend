@@ -6,18 +6,24 @@ const intlMiddleware = createMiddleware(routing);
 
 // ─── In-memory rate limiter ───────────────────────────────────────────────────
 // Works for single-instance deployments (VPS / local).
-// Sliding window: MAX_REQUESTS per WINDOW_MS per IP.
-const WINDOW_MS = 60_000; // 1 minute
-const MAX_REQUESTS = 80;  // generous enough for normal app usage
+// Two tiers:
+//   /api/init  — 3 per IP per hour  (each page load gets exactly 1 init call)
+//   /api/p/*   — 80 per IP per minute (normal browsing headroom)
 
-const hitMap = new Map<string, number[]>();
+const INIT_WINDOW_MS = 60 * 60_000; // 1 hour
+const INIT_MAX = 3;
+const API_WINDOW_MS = 60_000;       // 1 minute
+const API_MAX = 80;
 
-function isRateLimited(ip: string): boolean {
+const initHits = new Map<string, number[]>();
+const apiHits  = new Map<string, number[]>();
+
+function isLimited(map: Map<string, number[]>, ip: string, window: number, max: number): boolean {
   const now = Date.now();
-  const hits = (hitMap.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-  if (hits.length >= MAX_REQUESTS) return true;
+  const hits = (map.get(ip) ?? []).filter((t) => now - t < window);
+  if (hits.length >= max) return true;
   hits.push(now);
-  hitMap.set(ip, hits);
+  map.set(ip, hits);
   return false;
 }
 
@@ -32,10 +38,15 @@ export default function proxy(req: NextRequest) {
       req.headers.get("x-real-ip") ??
       "unknown";
 
-    if (isRateLimited(ip)) {
+    const limited =
+      pathname === "/api/init"
+        ? isLimited(initHits, ip, INIT_WINDOW_MS, INIT_MAX)
+        : isLimited(apiHits,  ip, API_WINDOW_MS,  API_MAX);
+
+    if (limited) {
       return new NextResponse("Too Many Requests", {
         status: 429,
-        headers: { "Retry-After": "60" },
+        headers: { "Retry-After": pathname === "/api/init" ? "3600" : "60" },
       });
     }
 

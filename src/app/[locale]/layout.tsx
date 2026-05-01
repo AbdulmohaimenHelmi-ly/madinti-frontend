@@ -1,8 +1,25 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { SignJWT } from "jose";
 import { routing } from "@/i18n/routing";
 import ThemeRegistry from "@/components/providers/ThemeRegistry";
+
+const _secret = new TextEncoder().encode(
+  process.env.PROXY_JWT_SECRET ||
+    "dev-only-secret-please-set-PROXY_JWT_SECRET-in-production"
+);
+
+async function buildPageToken(): Promise<string> {
+  // One-time signed nonce embedded in the HTML page.
+  // /api/init will verify this before returning the alias map, ensuring
+  // the caller rendered an actual HTML page first.
+  const nonce = crypto.randomUUID();
+  return new SignJWT({ nonce, t: Date.now() })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("90s") // must call /api/init within 90 s of page load
+    .sign(_secret);
+}
 import AuthInitializer from "@/components/providers/AuthInitializer";
 import ImpersonationBanner from "@/components/layout/ImpersonationBanner";
 import Header from "@/components/layout/Header";
@@ -42,10 +59,14 @@ export default async function LocaleLayout({
   }
   const messages = await getMessages();
   const direction = locale === "ar" ? "rtl" : "ltr";
+  const pageToken = await buildPageToken();
 
   return (
     <html lang={locale} dir={direction}>
       <head>
+        {/* Signed page-load nonce — required by /api/init to prove the caller
+            rendered an actual HTML page before requesting the alias map. */}
+        <meta name="x-pt" content={pageToken} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
