@@ -42,6 +42,7 @@ export default function MobileHeroCarousel({
   categories,
 }: MobileHeroCarouselProps) {
   const locale = useLocale();
+  const isRtl = locale === "ar";
 
   const bannerTitle = (b: Banner) =>
     (locale === "en" && b.title_en ? b.title_en : b.title) ?? "";
@@ -77,24 +78,23 @@ export default function MobileHeroCarousel({
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const count = slides.length;
 
-  const getScrollLeftForSlide = useCallback((idx: number) => {
-    const el = scrollRef.current;
-    if (!el) return 0;
-
-    const slide = el.children.item(idx) as HTMLElement | null;
-    if (!slide) return 0;
-
-    // Match Flutter's PageView centering instead of estimating with scrollWidth.
-    return slide.offsetLeft - (el.clientWidth - slide.offsetWidth) / 2;
-  }, []);
-
   const scrollToSlide = useCallback(
     (idx: number) => {
       const el = scrollRef.current;
       if (!el || count === 0) return;
-      el.scrollTo({ left: getScrollLeftForSlide(idx), behavior: "smooth" });
+
+      const slide = el.children.item(idx) as HTMLElement | null;
+      if (!slide) return;
+
+      // Let the browser resolve RTL/LTR positioning; this matches Flutter's
+      // PageView movement direction in Arabic without relying on scrollLeft math.
+      slide.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center",
+      });
     },
-    [count, getScrollLeftForSlide]
+    [count]
   );
 
   const startAutoplay = useCallback(() => {
@@ -120,13 +120,15 @@ export default function MobileHeroCarousel({
     const el = scrollRef.current;
     if (!el || count === 0) return;
 
-    const viewportCenter = el.scrollLeft + el.clientWidth / 2;
+    const containerRect = el.getBoundingClientRect();
+    const viewportCenter = containerRect.left + containerRect.width / 2;
     let nearestIdx = 0;
     let nearestDistance = Number.POSITIVE_INFINITY;
 
     Array.from(el.children).forEach((child, idx) => {
       const slide = child as HTMLElement;
-      const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
+      const rect = slide.getBoundingClientRect();
+      const slideCenter = rect.left + rect.width / 2;
       const distance = Math.abs(slideCenter - viewportCenter);
       if (distance < nearestDistance) {
         nearestDistance = distance;
@@ -155,7 +157,7 @@ export default function MobileHeroCarousel({
        */}
       <Box
         ref={scrollRef}
-        dir="ltr"
+        dir={isRtl ? "rtl" : "ltr"}
         onScroll={handleScroll}
         sx={{
           display: "flex",

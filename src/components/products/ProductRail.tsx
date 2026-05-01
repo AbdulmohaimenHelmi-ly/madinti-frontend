@@ -10,6 +10,7 @@
  */
 
 import { Box, Skeleton } from "@mui/material";
+import { useLocale } from "next-intl";
 import type { Product } from "@/lib/types";
 import ProductRailCard from "./ProductRailCard";
 import ProductGrid from "./ProductGrid";
@@ -31,12 +32,15 @@ export default function ProductRail({
   loading = false,
   skeletonCount = 4,
 }: ProductRailProps) {
+  const locale = useLocale();
+  const isRtl = locale === "ar";
+
   return (
     <>
       {/* ── MOBILE: horizontal scroll rail (xs/sm) ── */}
       <Box sx={{ display: { xs: "block", md: "none" } }}>
         <Box
-          dir="ltr"
+          dir={isRtl ? "rtl" : "ltr"}
           sx={{
             display: "flex",
             flexDirection: "row",
