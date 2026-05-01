@@ -82,7 +82,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <ContentFilterProvider>
             <ThemeRegistry>
-              <DevToolsGuard />
+              <DevToolsGuard locale={locale} />
               <AuthInitializer />
               <ImpersonationBanner />
               <Header />

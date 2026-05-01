@@ -1,10 +1,40 @@
-export default function HackerPage() {
+const content = {
+  en: {
+    dir: "ltr" as const,
+    title: "Hey there 👀",
+    heading: "Oh, we caught you!",
+    line1: "Looks like you opened the developer tools.",
+    line2: "Please don't try to dig around —",
+    highlight: "we've got everything locked up tight.",
+    line3: "Close DevTools and come back, we promise the shop is way more fun than the source code.",
+    btn: "Take me back 🛍️",
+  },
+  ar: {
+    dir: "rtl" as const,
+    title: "مرحباً 👀",
+    heading: "وجدناك!",
+    line1: "يبدو أنك فتحت أدوات المطور.",
+    line2: "من فضلك لا تحاول التنقيب هنا —",
+    highlight: "كل شيء مؤمَّن بإحكام.",
+    line3: "أغلق أدوات المطور وتعال، نعدك أن المتجر أمتع بكثير من الكود.",
+    btn: "خذني للخلف 🛍️",
+  },
+};
+
+export default async function HackerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ lang?: string }>;
+}) {
+  const { lang } = await searchParams;
+  const t = lang === "ar" ? content.ar : content.en;
+
   return (
-    <html lang="en">
+    <html lang={lang === "ar" ? "ar" : "en"} dir={t.dir}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Hey there 👀</title>
+        <title>{t.title}</title>
         <style>{`
           * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -119,17 +149,14 @@ export default function HackerPage() {
       <body>
         <div className="card">
           <span className="face">😅</span>
-          <h1>Oh, we caught you!</h1>
+          <h1>{t.heading}</h1>
           <p>
-            Looks like you opened the developer tools.<br />
-            Please don&apos;t try to dig around —{" "}
-            <span className="highlight">we&apos;ve got everything locked up tight.</span>
+            {t.line1}<br />
+            {t.line2}{" "}
+            <span className="highlight">{t.highlight}</span>
           </p>
-          <p>
-            Close DevTools and come back, we promise the shop is
-            way more fun than the source code.
-          </p>
-          <a href="/" className="back-btn">Take me back 🛍️</a>
+          <p>{t.line3}</p>
+          <a href="/" className="back-btn">{t.btn}</a>
         </div>
       </body>
     </html>

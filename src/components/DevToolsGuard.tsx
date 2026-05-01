@@ -15,26 +15,28 @@ function isDevToolsOpen(): boolean {
   );
 }
 
-export default function DevToolsGuard() {
+export default function DevToolsGuard({ locale }: { locale: string }) {
   const router = useRouter();
 
   useEffect(() => {
+    const target = `/hacker?lang=${locale}`;
+
     // Check immediately on mount (handles DevTools already open before page load).
     if (isDevToolsOpen()) {
       _redirected = true;
-      router.replace("/hacker");
+      router.replace(target);
       return;
     }
 
     const interval = setInterval(() => {
       if (!_redirected && isDevToolsOpen()) {
         _redirected = true;
-        router.replace("/hacker");
+        router.replace(target);
       }
     }, 500);
 
     return () => clearInterval(interval);
-  }, [router]);
+  }, [router, locale]);
 
   return null;
 }
