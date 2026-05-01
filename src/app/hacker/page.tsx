@@ -8,8 +8,6 @@ const content = {
     line2: "Nothing to see here —",
     highlight: "everything's locked up tight.",
     line3: "Close DevTools and come back. We promise the shop is way more fun than the source code.",
-    btn: "Take me back 🛍️",
-    btnHint: "Close DevTools first",
   },
   ar: {
     dir: "rtl" as const,
@@ -20,8 +18,6 @@ const content = {
     line2: "لا يوجد ما يستحق المشاهدة هنا —",
     highlight: "كل شيء محمي بشكل كامل.",
     line3: "أغلق الأدوات وعُد إلى المتجر، نعدك أن التسوق أكثر متعةً بكثير.",
-    btn: "العودة إلى المتجر 🛍️",
-    btnHint: "يُرجى إغلاق أدوات المطوّر أولاً",
   },
 };
 
@@ -127,44 +123,6 @@ export default async function HackerPage({
           .highlight {
             color: #38bdf8;
           }
-
-          .back-btn {
-            display: inline-block;
-            margin-top: 32px;
-            padding: 12px 32px;
-            background: rgba(56, 189, 248, 0.12);
-            border: 1px solid rgba(56, 189, 248, 0.35);
-            color: #38bdf8;
-            text-decoration: none;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: inherit;
-            letter-spacing: 0.2px;
-            cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s, transform 0.15s, opacity 0.2s;
-          }
-
-          .back-btn:not(:disabled):hover {
-            background: rgba(56, 189, 248, 0.22);
-            box-shadow: 0 0 24px rgba(56, 189, 248, 0.25);
-            transform: translateY(-2px);
-          }
-
-          .back-btn:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-            border-color: rgba(56, 189, 248, 0.15);
-          }
-
-          .btn-hint {
-            display: block;
-            margin-top: 10px;
-            font-size: 12px;
-            color: rgba(180, 200, 240, 0.4);
-            min-height: 18px;
-            transition: opacity 0.2s;
-          }
         `}</style>
       </head>
       <body>
@@ -177,41 +135,7 @@ export default async function HackerPage({
             <span className="highlight">{t.highlight}</span>
           </p>
           <p>{t.line3}</p>
-          <button id="back-btn" className="back-btn" disabled>{t.btn}</button>
-          <span id="btn-hint" className="btn-hint">{t.btnHint}</span>
         </div>
-        <script dangerouslySetInnerHTML={{ __html: `
-          (function() {
-            var THRESHOLD = 100;
-            var btn = document.getElementById('back-btn');
-            var hint = document.getElementById('btn-hint');
-            var hintText = ${JSON.stringify(t.btnHint)};
-
-            function isOpen() {
-              return (
-                window.outerWidth  - window.innerWidth  > THRESHOLD ||
-                window.outerHeight - window.innerHeight > THRESHOLD
-              );
-            }
-
-            function update() {
-              var open = isOpen();
-              btn.disabled = open;
-              hint.textContent = open ? hintText : '';
-              hint.style.opacity = open ? '1' : '0';
-            }
-
-            btn.addEventListener('click', function() {
-              if (!isOpen()) window.location.href = '/';
-            });
-
-            // React to DevTools open/close immediately via resize event
-            window.addEventListener('resize', update);
-            // Also poll as a fallback
-            setInterval(update, 300);
-            update();
-          })();
-        `}} />
       </body>
     </html>
   );
