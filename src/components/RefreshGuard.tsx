@@ -53,6 +53,18 @@ export default function RefreshGuard({ children }: { children: React.ReactNode }
     if (secs !== null) setSecondsLeft(secs);
   }, []);
 
+  // Back/Forward navigation guard — same counter as refresh.
+  // popstate fires on every browser history navigation (Back/Forward).
+  // We call setSecondsLeft inside the callback, which is the allowed pattern.
+  useEffect(() => {
+    function handlePopState() {
+      const secs = checkAndRecordLoad();
+      if (secs !== null) setSecondsLeft(secs);
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   // Countdown ticker
   useEffect(() => {
     if (secondsLeft === null || secondsLeft <= 0) return;
