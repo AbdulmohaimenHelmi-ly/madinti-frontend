@@ -226,6 +226,9 @@ export default function MobileHeroCarousel({
                 left: 0,
                 right: 0,
                 p: 2.5,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: isRtl ? "flex-end" : "flex-start",
                 // respect locale text direction inside the card
                 direction: locale === "ar" ? "rtl" : "ltr",
               }}
@@ -257,10 +260,12 @@ export default function MobileHeroCarousel({
               )}
               <Typography
                 sx={{
+                  width: "100%",
                   color: "white",
                   fontSize: "1.35rem",
                   fontWeight: 800,
                   lineHeight: 1.2,
+                  textAlign: isRtl ? "right" : "left",
                   textShadow: "0 2px 8px rgba(0,0,0,0.35)",
                   display: "-webkit-box",
                   overflow: "hidden",
