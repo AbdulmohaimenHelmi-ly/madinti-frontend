@@ -163,10 +163,10 @@ export default function HomePage() {
         pt: { xs: 2, md: 3 },
       }}
     >
-      {/* Content audience switch */}
+      {/* Content audience switch — desktop only (mobile uses header icon pill) */}
       <Box
         sx={{
-          display: "flex",
+          display: { xs: "none", md: "flex" },
           justifyContent: "center",
           mb: { xs: 1, md: 1.5 },
         }}
