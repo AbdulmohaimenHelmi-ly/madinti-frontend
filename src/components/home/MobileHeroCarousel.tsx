@@ -220,6 +220,7 @@ export default function MobileHeroCarousel({
 
             {/* Text block — pinned to bottom-start */}
             <Box
+              dir={isRtl ? "rtl" : "ltr"}
               sx={{
                 position: "absolute",
                 bottom: 0,
@@ -228,9 +229,9 @@ export default function MobileHeroCarousel({
                 p: 2.5,
                 display: "flex",
                 flexDirection: "column",
-                alignItems: isRtl ? "flex-end" : "flex-start",
-                // respect locale text direction inside the card
-                direction: locale === "ar" ? "rtl" : "ltr",
+                // flex-start = right in RTL, left in LTR — matches Flutter
+                // crossAxisAlignment: CrossAxisAlignment.start
+                alignItems: "flex-start",
               }}
             >
               {slide.subtitle && (
@@ -265,7 +266,7 @@ export default function MobileHeroCarousel({
                   fontSize: "1.35rem",
                   fontWeight: 800,
                   lineHeight: 1.2,
-                  textAlign: isRtl ? "right" : "left",
+                  textAlign: "start",
                   textShadow: "0 2px 8px rgba(0,0,0,0.35)",
                   display: "-webkit-box",
                   overflow: "hidden",
