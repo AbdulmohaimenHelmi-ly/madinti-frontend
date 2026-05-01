@@ -17,9 +17,11 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [_hp, setHp] = useState(""); // honeypot — must stay empty
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (_hp) return; // bot filled the hidden field — silently abort
     try {
       await login(email, password);
       const u = useAuthStore.getState().user;
@@ -96,6 +98,17 @@ export default function LoginPage() {
               </Typography>
               {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
               <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+                {/* Honeypot — invisible to humans, bots fill it and get silently blocked */}
+                <input
+                  type="text"
+                  name="website"
+                  value={_hp}
+                  onChange={(e) => setHp(e.target.value)}
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  autoComplete="off"
+                  style={{ display: "none" }}
+                />
                 <TextField label={t("auth.email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required fullWidth />
                 <TextField label={t("auth.password")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required fullWidth />
                 <Button

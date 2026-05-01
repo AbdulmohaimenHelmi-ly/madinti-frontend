@@ -8,7 +8,18 @@ const intlMiddleware = createMiddleware(routing);
 export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Let /api/* routes pass through to their handlers.
+  // ── Bot fingerprint check for proxy routes ────────────────────────────────
+  // Real browsers always attach `sec-fetch-site` to every fetch/XHR call.
+  // Raw tools (curl, wget, Python requests, Node axios) do not.
+  // Mobile app calls Laravel directly — it never hits this proxy.
+  if (pathname.startsWith("/api/p/")) {
+    if (!req.headers.get("sec-fetch-site")) {
+      return new NextResponse(null, { status: 403 });
+    }
+    return NextResponse.next();
+  }
+
+  // Let other /api/* routes (e.g. /api/[token]) pass through unmodified.
   if (pathname.startsWith("/api/")) {
     return NextResponse.next();
   }

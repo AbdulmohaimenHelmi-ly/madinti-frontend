@@ -17,10 +17,12 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "", password_confirmation: "", phone: "" });
   const [isVendor, setIsVendor] = useState(false);
   const [error, setError] = useState("");
+  const [_hp, setHp] = useState(""); // honeypot — must stay empty
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, [field]: e.target.value }));
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (_hp) return; // bot filled the hidden field — silently abort
     try {
       await register({ ...form, role: isVendor ? "vendor" : "customer" });
       router.push(`/${locale}`);
@@ -93,6 +95,17 @@ export default function RegisterPage() {
               </Typography>
               {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
               <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {/* Honeypot — invisible to humans, bots fill it and get silently blocked */}
+                <input
+                  type="text"
+                  name="website"
+                  value={_hp}
+                  onChange={(e) => setHp(e.target.value)}
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  autoComplete="off"
+                  style={{ display: "none" }}
+                />
                 <TextField label={t("auth.name")} value={form.name} onChange={handleChange("name")} required fullWidth />
                 <TextField label={t("auth.email")} type="email" value={form.email} onChange={handleChange("email")} required fullWidth />
                 <TextField label={t("auth.phone")} value={form.phone} onChange={handleChange("phone")} fullWidth />
