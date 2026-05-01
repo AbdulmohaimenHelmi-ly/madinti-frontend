@@ -30,6 +30,8 @@ import Footer from "@/components/layout/Footer";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { ContentFilterProvider } from "@/lib/context/ContentFilterContext";
 import DevToolsGuard from "@/components/DevToolsGuard";
+import dynamic from "next/dynamic";
+const RefreshGuard = dynamic(() => import("@/components/RefreshGuard"), { ssr: false });
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -42,7 +44,7 @@ export async function generateMetadata({
 }) {
   const { locale } = await params;
   return {
-    title: locale === "ar" ? "مياو - سوق إلكتروني" : "Meow - Marketplace",
+    title: locale === "ar" ? "ماريا - سوق إلكتروني" : "Maria - Marketplace",
     description:
       locale === "ar"
         ? "أفضل المنتجات من أفضل المتاجر"
@@ -83,6 +85,7 @@ export default async function LocaleLayout({
           <ContentFilterProvider>
             <ThemeRegistry>
               <DevToolsGuard locale={locale} />
+              <RefreshGuard />
               <AuthInitializer />
               <ImpersonationBanner />
               <Header />

@@ -8,7 +8,7 @@
     "contentTypeHint": "Who is this for? Unisex appears for everyone."
   },
   "common": {
-    "appName": "Meow",
+    "appName": "Maria",
     "home": "Home",
     "product": "Product",
     "products": "Products",
@@ -744,5 +744,10 @@
       "cash_on_delivery": "Cash on delivery",
       "bank_transfer": "Bank transfer"
     }
+  },
+  "refreshGuard": {
+    "heading": "Whoa, slow down! 🐢",
+    "body": "You've refreshed a few too many times. Give the server a breather.",
+    "hint": "The page will unlock automatically."
   }
 }
