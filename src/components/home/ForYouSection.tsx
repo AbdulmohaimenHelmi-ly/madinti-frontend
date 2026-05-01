@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Box, Button, Typography, Skeleton } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Link from "next/link";
-import ProductGrid from "@/components/products/ProductGrid";
+import ProductRail from "@/components/products/ProductRail";
 import { productsApi } from "@/lib/api/products";
 import type { Product } from "@/lib/types";
 
@@ -125,31 +125,9 @@ export default function ForYouSection({ contentType }: ForYouSectionProps) {
       </Box>
 
       {loading ? (
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: {
-              xs: "repeat(2, 1fr)",
-              sm: "repeat(3, 1fr)",
-              md: "repeat(4, 1fr)",
-              lg: "repeat(6, 1fr)",
-            },
-            gap: { xs: 1.5, md: 2 },
-          }}
-        >
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Box key={i}>
-              <Skeleton
-                variant="rectangular"
-                sx={{ width: "100%", aspectRatio: "3 / 4", borderRadius: 1 }}
-              />
-              <Skeleton width="80%" sx={{ mt: 1 }} />
-              <Skeleton width="50%" />
-            </Box>
-          ))}
-        </Box>
+        <ProductRail products={[]} loading skeletonCount={6} />
       ) : (
-        <ProductGrid products={products} />
+        <ProductRail products={products} />
       )}
     </Box>
   );

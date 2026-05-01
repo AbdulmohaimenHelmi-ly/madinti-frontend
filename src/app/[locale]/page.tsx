@@ -17,7 +17,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import Link from "next/link";
-import ProductGrid from "@/components/products/ProductGrid";
+import ProductRail from "@/components/products/ProductRail";
 import VendorCard from "@/components/vendors/VendorCard";
 import { HomePageSkeleton } from "@/components/common/Skeletons";
 import HeroMosaic from "@/components/home/HeroMosaic";
@@ -265,7 +265,7 @@ export default function HomePage() {
             linkHref={`/${locale}/products`}
             ArrowIcon={ArrowIcon}
           />
-          <ProductGrid products={featured.slice(0, 8)} />
+          <ProductRail products={featured.slice(0, 8)} />
         </Box>
       )}
 
