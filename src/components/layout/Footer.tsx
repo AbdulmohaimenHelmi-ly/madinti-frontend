@@ -51,6 +51,7 @@ export default function Footer() {
         background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 40%, ${theme.palette.primary.main} 100%)`,
       }}
       sx={(theme) => ({
+        display: { xs: "none", md: "block" },
         color: "white",
         pt: { xs: 6, md: 8 },
         pb: 4,

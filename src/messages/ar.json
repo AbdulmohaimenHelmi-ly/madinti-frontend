@@ -57,7 +57,8 @@
     "showingRange": "عرض {from}–{to} من {total}",
     "remove": "حذف",
     "increase": "زيادة",
-    "decrease": "إنقاص"
+    "decrease": "إنقاص",
+    "searchHint": "ابحث عن منتجات، ماركات..."
   },
   "home": {
     "hero": "مرحباً بك في أجمل",

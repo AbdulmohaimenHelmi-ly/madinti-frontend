@@ -338,10 +338,10 @@ export default function HeroMosaic({
           aspectRatio: { md: HERO_DESKTOP_RATIO },
         }}
       >
-        {/* LEFT COLUMN */}
+        {/* LEFT COLUMN — hidden on mobile, only shown on desktop */}
         <Box
           sx={{
-            display: "grid",
+            display: { xs: "none", md: "grid" },
             gap: { xs: 1.5, md: HERO_DESKTOP_GAP },
             gridTemplateRows: { xs: "unset", md: "repeat(3, minmax(0, 1fr))" },
             order: { xs: 2, md: 1 },
@@ -563,10 +563,10 @@ export default function HeroMosaic({
           )}
         </Box>
 
-        {/* RIGHT COLUMN */}
+        {/* RIGHT COLUMN — hidden on mobile, only shown on desktop */}
         <Box
           sx={{
-            display: "grid",
+            display: { xs: "none", md: "grid" },
             gap: { xs: 1.5, md: HERO_DESKTOP_GAP },
             gridTemplateRows: { xs: "unset", md: "repeat(3, minmax(0, 1fr))" },
             order: { xs: 3, md: 3 },

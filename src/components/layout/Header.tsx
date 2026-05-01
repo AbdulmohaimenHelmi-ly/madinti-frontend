@@ -91,7 +91,7 @@ export default function Header() {
               edge="start"
               onClick={() => setDrawerOpen(true)}
               sx={{
-                display: { md: "none" },
+                display: { xs: "none", sm: "flex", md: "none" },
                 "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
               }}
             >

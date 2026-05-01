@@ -58,6 +58,13 @@ img {
   border-radius: 4px;
 }
 
+/* Mobile: bottom padding so content isn't hidden behind the fixed bottom nav */
+@media (max-width: 899.95px) {
+  .app-main-content {
+    padding-bottom: 72px;
+  }
+}
+
 /*
  * Mobile-app-like layout on phone resolutions.
  *

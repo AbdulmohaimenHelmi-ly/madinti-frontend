@@ -39,96 +39,122 @@ export default function CategoriesCarousel({ categories }: CategoriesCarouselPro
   if (categories.length === 0) return null;
 
   return (
-    <Box sx={{ position: "relative", mb: { xs: 5, md: 8 }, px: { xs: 1, md: 5 }, py: 2 }}>
-      {/* Force LTR on the rail so the translate math is identical regardless
-          of page direction. stylis-plugin-rtl otherwise flips translateX signs
-          and hides the first page. */}
-      <Box sx={{ overflow: "hidden", direction: "ltr" }}>
-        <Box
-          sx={{
-            display: "flex",
-            width: `${pageCount * 100}%`,
-            transform: `translateX(-${(page * 100) / pageCount}%)`,
-            transition: "transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)",
-          }}
-        >
-          {pages.map((chunk, idx) => (
-            <Box
-              key={idx}
-              sx={{
-                flex: `0 0 ${100 / pageCount}%`,
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "repeat(4, 1fr)",
-                  sm: "repeat(6, 1fr)",
-                  md: `repeat(${COLS}, 1fr)`,
-                },
-                gridAutoRows: "auto",
-                rowGap: { xs: 3, md: 4 },
-                columnGap: { xs: 1.5, md: 2 },
-                px: { xs: 0.5, md: 1 },
-                // Restore locale direction inside each page so child content
-                // (text, cards) reads correctly in Arabic.
-                direction: isRtl ? "rtl" : "ltr",
-              }}
-            >
-              {chunk.map((c) => (
-                <Box key={c.id} sx={{ display: "flex", justifyContent: "center" }}>
-                  <CategoryCard category={c} />
-                </Box>
-              ))}
-            </Box>
-          ))}
-        </Box>
+    <>
+      {/* ── MOBILE: horizontal-scroll strip matching Flutter's CategoryChip row ── */}
+      <Box
+        sx={{
+          display: { xs: "flex", md: "none" },
+          overflowX: "auto",
+          gap: 2,
+          px: 2,
+          py: 1,
+          mb: 3,
+          scrollSnapType: "x mandatory",
+          WebkitOverflowScrolling: "touch",
+          scrollbarWidth: "none",
+          "&::-webkit-scrollbar": { display: "none" },
+        }}
+      >
+        {categories.map((c) => (
+          <Box key={c.id} sx={{ flexShrink: 0, scrollSnapAlign: "start" }}>
+            <CategoryCard category={c} />
+          </Box>
+        ))}
       </Box>
 
-      {pageCount > 1 && (
-        <>
-          <IconButton
-            onClick={handlePrev}
-            disabled={!canPrev}
+      {/* ── DESKTOP: paginated grid ─────────────────────────────────────────── */}
+      <Box
+        sx={{
+          display: { xs: "none", md: "block" },
+          position: "relative",
+          mb: 8,
+          px: 5,
+          py: 2,
+        }}
+      >
+        {/* Force LTR on the rail so the translate math is identical regardless
+            of page direction. stylis-plugin-rtl otherwise flips translateX signs
+            and hides the first page. */}
+        <Box sx={{ overflow: "hidden", direction: "ltr" }}>
+          <Box
             sx={{
-              position: "absolute",
-              top: "50%",
-              left: { xs: -4, md: 0 },
-              transform: "translateY(-50%)",
-              bgcolor: "white",
-              color: "text.primary",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
-              opacity: canPrev ? 1 : 0,
-              pointerEvents: canPrev ? "auto" : "none",
-              transition: "opacity 0.2s ease",
-              "&:hover": { bgcolor: "white", boxShadow: "0 6px 20px rgba(0,0,0,0.22)" },
-              display: { xs: "none", sm: "inline-flex" },
-              zIndex: 2,
+              display: "flex",
+              width: `${pageCount * 100}%`,
+              transform: `translateX(-${(page * 100) / pageCount}%)`,
+              transition: "transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
-            <ChevronLeftIcon sx={{ transform: isRtl ? "scaleX(-1)" : "none" }} />
-          </IconButton>
+            {pages.map((chunk, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  flex: `0 0 ${100 / pageCount}%`,
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${COLS}, 1fr)`,
+                  gridAutoRows: "auto",
+                  rowGap: 4,
+                  columnGap: 2,
+                  px: 1,
+                  // Restore locale direction so child content reads correctly in Arabic.
+                  direction: isRtl ? "rtl" : "ltr",
+                }}
+              >
+                {chunk.map((c) => (
+                  <Box key={c.id} sx={{ display: "flex", justifyContent: "center" }}>
+                    <CategoryCard category={c} />
+                  </Box>
+                ))}
+              </Box>
+            ))}
+          </Box>
+        </Box>
 
-          <IconButton
-            onClick={handleNext}
-            disabled={!canNext}
-            sx={{
-              position: "absolute",
-              top: "50%",
-              right: { xs: -4, md: 0 },
-              transform: "translateY(-50%)",
-              bgcolor: "white",
-              color: "text.primary",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
-              opacity: canNext ? 1 : 0,
-              pointerEvents: canNext ? "auto" : "none",
-              transition: "opacity 0.2s ease",
-              "&:hover": { bgcolor: "white", boxShadow: "0 6px 20px rgba(0,0,0,0.22)" },
-              display: { xs: "none", sm: "inline-flex" },
-              zIndex: 2,
-            }}
-          >
-            <ChevronRightIcon sx={{ transform: isRtl ? "scaleX(-1)" : "none" }} />
-          </IconButton>
-        </>
-      )}
-    </Box>
+        {pageCount > 1 && (
+          <>
+            <IconButton
+              onClick={handlePrev}
+              disabled={!canPrev}
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: 0,
+                transform: "translateY(-50%)",
+                bgcolor: "white",
+                color: "text.primary",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+                opacity: canPrev ? 1 : 0,
+                pointerEvents: canPrev ? "auto" : "none",
+                transition: "opacity 0.2s ease",
+                "&:hover": { bgcolor: "white", boxShadow: "0 6px 20px rgba(0,0,0,0.22)" },
+                zIndex: 2,
+              }}
+            >
+              <ChevronLeftIcon sx={{ transform: isRtl ? "scaleX(-1)" : "none" }} />
+            </IconButton>
+
+            <IconButton
+              onClick={handleNext}
+              disabled={!canNext}
+              sx={{
+                position: "absolute",
+                top: "50%",
+                right: 0,
+                transform: "translateY(-50%)",
+                bgcolor: "white",
+                color: "text.primary",
+                boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+                opacity: canNext ? 1 : 0,
+                pointerEvents: canNext ? "auto" : "none",
+                transition: "opacity 0.2s ease",
+                "&:hover": { bgcolor: "white", boxShadow: "0 6px 20px rgba(0,0,0,0.22)" },
+                zIndex: 2,
+              }}
+            >
+              <ChevronRightIcon sx={{ transform: isRtl ? "scaleX(-1)" : "none" }} />
+            </IconButton>
+          </>
+        )}
+      </Box>
+    </>
   );
 }

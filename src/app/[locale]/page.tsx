@@ -2,15 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import { useRouter } from "next/navigation";
 import {
   Container,
   Typography,
   Box,
   Button,
   Grid,
+  InputBase,
+  IconButton,
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import Link from "next/link";
 import ProductGrid from "@/components/products/ProductGrid";
 import VendorCard from "@/components/vendors/VendorCard";
@@ -43,35 +48,44 @@ function SectionHeader({
       sx={{
         display: "flex",
         justifyContent: "space-between",
-        alignItems: "center",
-        mb: 4,
+        alignItems: "flex-start",
+        mb: { xs: 2.5, md: 4 },
       }}
     >
       <Box>
-        <Typography variant="h4" sx={{ fontWeight: 800, color: "text.primary" }}>
+        <Typography
+          sx={{
+            fontWeight: 800,
+            color: "text.primary",
+            fontSize: { xs: "1.1rem", md: "1.5rem" },
+          }}
+        >
           {title}
         </Typography>
         <Box
           sx={(theme) => ({
-            width: 48,
-            height: 4,
+            width: 36,
+            height: 3,
             borderRadius: 2,
             background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-            mt: 1,
+            mt: 0.75,
           })}
         />
       </Box>
       <Button
         component={Link}
         href={linkHref}
-        endIcon={<ArrowIcon />}
+        endIcon={<ArrowIcon sx={{ fontSize: { xs: "1rem !important", md: "1.25rem !important" } }} />}
         sx={{
           borderRadius: 100,
-          px: 2.5,
+          px: { xs: 1.5, md: 2.5 },
+          py: { xs: 0.5, md: 1 },
+          fontSize: { xs: "0.8rem", md: "0.875rem" },
           fontWeight: 600,
           color: "primary.main",
           "&:hover": { bgcolor: "primary.main", color: "white" },
           transition: "all 0.2s ease",
+          mt: { xs: 0.25, md: 0 },
         }}
       >
         {linkText}
@@ -83,6 +97,7 @@ function SectionHeader({
 export default function HomePage() {
   const t = useTranslations();
   const locale = useLocale();
+  const router = useRouter();
   const isRtl = locale === "ar";
   const ArrowIcon = isRtl ? ArrowBackIcon : ArrowForwardIcon;
 
@@ -91,10 +106,16 @@ export default function HomePage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const { apiParam: contentType } = useContentFilter();
   const requestKey = contentType ?? "__all__";
   const loading = loadedKey !== requestKey;
+
+  const handleSearch = () => {
+    const q = searchQuery.trim();
+    router.push(`/${locale}/products${q ? `?search=${encodeURIComponent(q)}` : ""}`);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -152,6 +173,44 @@ export default function HomePage() {
         <ContentFilterSwitch />
       </Box>
 
+      {/* Mobile search bar — Flutter-style full-width rounded search field */}
+      <Box
+        sx={{ display: { xs: "block", md: "none" }, mb: 2 }}
+        component="form"
+        onSubmit={(e: React.FormEvent) => { e.preventDefault(); handleSearch(); }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            bgcolor: "background.paper",
+            borderRadius: 3,
+            border: "1px solid",
+            borderColor: "divider",
+            px: 1.5,
+            boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+          }}
+        >
+          <SearchRoundedIcon sx={{ color: "text.secondary", fontSize: 22, flexShrink: 0 }} />
+          <InputBase
+            placeholder={t("common.searchHint")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            inputProps={{ "aria-label": t("common.search") }}
+            fullWidth
+            sx={{ py: 1.25, px: 1, fontSize: "0.95rem" }}
+          />
+          <IconButton
+            size="small"
+            onClick={() => router.push(`/${locale}/products`)}
+            aria-label={t("common.search")}
+            sx={{ color: "text.secondary", flexShrink: 0 }}
+          >
+            <TuneRoundedIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Box>
+
       {/* Mosaic Hero: slider + side tiles */}
       {(categories.length > 0 || banners.length > 0) && (
         <HeroMosaic
@@ -164,17 +223,22 @@ export default function HomePage() {
       {/* Circular categories carousel */}
       {categories.length > 0 && (
         <Box>
-          <Box sx={{ px: { xs: 1, md: 5 }, mb: 1 }}>
-            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+          <Box sx={{ px: { xs: 2, md: 5 }, mb: 1 }}>
+            <Typography
+              sx={{
+                fontWeight: 800,
+                fontSize: { xs: "1.1rem", md: "1.5rem" },
+              }}
+            >
               {t("home.topCategories")}
             </Typography>
             <Box
               sx={(theme) => ({
-                width: 48,
-                height: 4,
+                width: 36,
+                height: 3,
                 borderRadius: 2,
                 background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-                mt: 1,
+                mt: 0.75,
               })}
             />
           </Box>
@@ -184,7 +248,7 @@ export default function HomePage() {
 
       {/* Featured Products */}
       {featured.length > 0 && (
-        <Box sx={{ mb: 10, px: { xs: 1, md: 5 } }}>
+        <Box sx={{ mb: { xs: 5, md: 10 }, px: { xs: 2, md: 5 } }}>
           <SectionHeader
             title={t("home.featuredProducts")}
             linkText={t("common.viewAll")}
@@ -200,7 +264,7 @@ export default function HomePage() {
 
       {/* Top Vendors */}
       {vendors.length > 0 && (
-        <Box sx={{ mb: 10, px: { xs: 1, md: 5 } }}>
+        <Box sx={{ mb: { xs: 5, md: 10 }, px: { xs: 2, md: 5 } }}>
           <SectionHeader
             title={t("home.topVendors")}
             linkText={t("common.viewAll")}
