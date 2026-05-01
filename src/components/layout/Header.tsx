@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   AppBar,
   Toolbar,
@@ -37,9 +37,12 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PetsIcon from "@mui/icons-material/Pets";
+import TranslateRoundedIcon from "@mui/icons-material/TranslateRounded";
+import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
 import Navbar from "./Navbar";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ProfileMenu from "./ProfileMenu";
+import MobileAudienceIconBar from "@/components/home/MobileAudienceIconBar";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore } from "@/lib/store/cartStore";
 
@@ -54,6 +57,7 @@ export default function Header() {
   const t = useTranslations("common");
   const locale = useLocale();
   const pathname = usePathname();
+  const router = useRouter();
   const theme = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -61,6 +65,12 @@ export default function Header() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const itemCount = useCartStore((s) => s.itemCount);
+
+  const switchLocale = () => {
+    const newLocale = locale === "ar" ? "en" : "ar";
+    const pathWithoutLocale = pathname.replace(/^\/(ar|en)/, "");
+    router.push(`/${newLocale}${pathWithoutLocale}`);
+  };
 
   // The admin/vendor/delivery areas have their own full-screen dashboard chrome.
   if (
@@ -76,27 +86,51 @@ export default function Header() {
       <AppBar
         position="sticky"
         elevation={0}
-        style={{
-          background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 50%, ${theme.palette.primary.main} 100%)`,
-        }}
         sx={{
+          background: {
+            xs: "#FAF7F8",
+            md: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 50%, ${theme.palette.primary.main} 100%)`,
+          },
           backdropFilter: "blur(20px)",
-          borderBottom: "1px solid rgba(255,255,255,0.1)",
+          borderBottom: {
+            xs: "1px solid #EDE7E9",
+            md: "1px solid rgba(255,255,255,0.1)",
+          },
         }}
       >
-        <Container maxWidth="lg">
-          <Toolbar disableGutters sx={{ gap: 1, minHeight: { xs: 64, md: 70 } }}>
+        {/* ── MOBILE APPBAR (Flutter-style: audience pill + translate + favorites) ── */}
+        <Box sx={{ display: { xs: "block", md: "none" } }}>
+          <Toolbar sx={{ px: 1.5, gap: 0.5, minHeight: 56 }}>
+            <MobileAudienceIconBar />
+            <Box sx={{ flexGrow: 1 }} />
             <IconButton
-              color="inherit"
-              edge="start"
-              onClick={() => setDrawerOpen(true)}
+              onClick={switchLocale}
+              aria-label={locale === "ar" ? "Switch to English" : "التبديل إلى العربية"}
               sx={{
-                display: { xs: "none", sm: "flex", md: "none" },
-                "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
+                color: "#1A1A1A",
+                "&:hover": { bgcolor: "rgba(0,0,0,0.05)" },
               }}
             >
-              <MenuIcon />
+              <TranslateRoundedIcon />
             </IconButton>
+            <IconButton
+              component={Link}
+              href={`/${locale}/favorites`}
+              aria-label={t("favorites")}
+              sx={{
+                color: "#1A1A1A",
+                "&:hover": { bgcolor: "rgba(0,0,0,0.05)" },
+              }}
+            >
+              <FavoriteBorderRoundedIcon />
+            </IconButton>
+          </Toolbar>
+        </Box>
+
+        {/* ── DESKTOP APPBAR (gradient header, full nav) ── */}
+        <Box sx={{ display: { xs: "none", md: "block" } }}>
+        <Container maxWidth="lg">
+          <Toolbar disableGutters sx={{ gap: 1, minHeight: { xs: 64, md: 70 } }}>
 
             <Typography
               variant="h5"
@@ -209,6 +243,7 @@ export default function Header() {
             )}
           </Toolbar>
         </Container>
+        </Box>
       </AppBar>
 
       <Drawer
