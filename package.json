@@ -18,7 +18,7 @@
     "@mui/x-charts": "^9.0.4",
     "@mui/x-date-pickers": "^9.0.4",
     "@types/leaflet": "^1.9.21",
-    "altcha": "^3.0.4",
+    "altcha": "^2.3.0",
     "altcha-lib": "^2.0.3",
     "axios": "^1.15.0",
     "date-fns": "^4.1.0",
