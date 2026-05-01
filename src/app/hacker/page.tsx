@@ -1,23 +1,27 @@
 const content = {
   en: {
     dir: "ltr" as const,
+    lang: "en",
     title: "Hey there 👀",
     heading: "Oh, we caught you!",
     line1: "Looks like you opened the developer tools.",
-    line2: "Please don't try to dig around —",
-    highlight: "we've got everything locked up tight.",
-    line3: "Close DevTools and come back, we promise the shop is way more fun than the source code.",
+    line2: "Nothing to see here —",
+    highlight: "everything's locked up tight.",
+    line3: "Close DevTools and come back. We promise the shop is way more fun than the source code.",
     btn: "Take me back 🛍️",
+    btnHint: "Close DevTools first",
   },
   ar: {
     dir: "rtl" as const,
-    title: "مرحباً 👀",
-    heading: "وجدناك!",
-    line1: "يبدو أنك فتحت أدوات المطور.",
-    line2: "من فضلك لا تحاول التنقيب هنا —",
-    highlight: "كل شيء مؤمَّن بإحكام.",
-    line3: "أغلق أدوات المطور وتعال، نعدك أن المتجر أمتع بكثير من الكود.",
-    btn: "خذني للخلف 🛍️",
+    lang: "ar",
+    title: "لحظة.. 👀",
+    heading: "أوه، لقد أمسكناك!",
+    line1: "يبدو إنك فتحت أدوات المطوّر.",
+    line2: "ما في شي تشوفه هنا —",
+    highlight: "كل شي محمي ومقفّل.",
+    line3: "أغلق الأدوات وارجع للمتجر، وعدنا إنك بتستمتع فيه أكثر بكثير.",
+    btn: "خذني للمتجر 🛍️",
+    btnHint: "أغلق أدوات المطور أولاً",
   },
 };
 
@@ -135,14 +139,31 @@ export default async function HackerPage({
             border-radius: 50px;
             font-size: 14px;
             font-weight: 600;
+            font-family: inherit;
             letter-spacing: 0.2px;
-            transition: background 0.2s, box-shadow 0.2s, transform 0.15s;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s, transform 0.15s, opacity 0.2s;
           }
 
-          .back-btn:hover {
+          .back-btn:not(:disabled):hover {
             background: rgba(56, 189, 248, 0.22);
             box-shadow: 0 0 24px rgba(56, 189, 248, 0.25);
             transform: translateY(-2px);
+          }
+
+          .back-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            border-color: rgba(56, 189, 248, 0.15);
+          }
+
+          .btn-hint {
+            display: block;
+            margin-top: 10px;
+            font-size: 12px;
+            color: rgba(180, 200, 240, 0.4);
+            min-height: 18px;
+            transition: opacity 0.2s;
           }
         `}</style>
       </head>
@@ -156,8 +177,38 @@ export default async function HackerPage({
             <span className="highlight">{t.highlight}</span>
           </p>
           <p>{t.line3}</p>
-          <a href="/" className="back-btn">{t.btn}</a>
+          <button id="back-btn" className="back-btn" disabled>{t.btn}</button>
+          <span id="btn-hint" className="btn-hint">{t.btnHint}</span>
         </div>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            var THRESHOLD = 160;
+            var btn = document.getElementById('back-btn');
+            var hint = document.getElementById('btn-hint');
+            var hintText = ${JSON.stringify(t.btnHint)};
+
+            function isOpen() {
+              return (
+                window.outerWidth  - window.innerWidth  > THRESHOLD ||
+                window.outerHeight - window.innerHeight > THRESHOLD
+              );
+            }
+
+            function update() {
+              var open = isOpen();
+              btn.disabled = open;
+              hint.textContent = open ? hintText : '';
+              hint.style.opacity = open ? '1' : '0';
+            }
+
+            btn.addEventListener('click', function() {
+              if (!isOpen()) window.location.href = '/';
+            });
+
+            update();
+            setInterval(update, 500);
+          })();
+        `}} />
       </body>
     </html>
   );
