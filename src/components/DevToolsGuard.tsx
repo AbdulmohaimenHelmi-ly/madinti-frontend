@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// Threshold in pixels — DevTools docked to side/bottom takes at least this much space.
 const THRESHOLD = 100;
-
-let _redirected = false;
 
 function isDevToolsOpen(): boolean {
   return (
@@ -17,25 +14,29 @@ function isDevToolsOpen(): boolean {
 
 export default function DevToolsGuard({ locale }: { locale: string }) {
   const router = useRouter();
+  // useRef so the flag resets every time the component mounts (i.e. every page load).
+  const redirected = useRef(false);
 
   useEffect(() => {
     const target = `/hacker?lang=${locale}`;
+    redirected.current = false;
 
-    // Check immediately on mount (handles DevTools already open before page load).
-    if (isDevToolsOpen()) {
-      _redirected = true;
-      router.replace(target);
-      return;
-    }
-
-    const interval = setInterval(() => {
-      if (!_redirected && isDevToolsOpen()) {
-        _redirected = true;
+    function check() {
+      if (!redirected.current && isDevToolsOpen()) {
+        redirected.current = true;
         router.replace(target);
       }
-    }, 500);
+    }
 
-    return () => clearInterval(interval);
+    // Fire immediately + on every resize (docking/undocking DevTools triggers resize).
+    check();
+    window.addEventListener("resize", check);
+    const interval = setInterval(check, 500);
+
+    return () => {
+      window.removeEventListener("resize", check);
+      clearInterval(interval);
+    };
   }, [router, locale]);
 
   return null;
