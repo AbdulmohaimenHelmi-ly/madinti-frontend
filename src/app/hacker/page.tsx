@@ -15,13 +15,13 @@ const content = {
     dir: "rtl" as const,
     lang: "ar",
     title: "لحظة.. 👀",
-    heading: "أوه، لقد أمسكناك!",
-    line1: "يبدو إنك فتحت أدوات المطوّر.",
-    line2: "ما في شي تشوفه هنا —",
-    highlight: "كل شي محمي ومقفّل.",
-    line3: "أغلق الأدوات وارجع للمتجر، وعدنا إنك بتستمتع فيه أكثر بكثير.",
-    btn: "خذني للمتجر 🛍️",
-    btnHint: "أغلق أدوات المطور أولاً",
+    heading: "لحظة، وجدناك! 😊",
+    line1: "يبدو أنك فتحت أدوات المطوّر.",
+    line2: "لا يوجد ما يستحق المشاهدة هنا —",
+    highlight: "كل شيء محمي بشكل كامل.",
+    line3: "أغلق الأدوات وعُد إلى المتجر، نعدك أن التسوق أكثر متعةً بكثير.",
+    btn: "العودة إلى المتجر 🛍️",
+    btnHint: "يُرجى إغلاق أدوات المطوّر أولاً",
   },
 };
 
@@ -182,7 +182,7 @@ export default async function HackerPage({
         </div>
         <script dangerouslySetInnerHTML={{ __html: `
           (function() {
-            var THRESHOLD = 160;
+            var THRESHOLD = 100;
             var btn = document.getElementById('back-btn');
             var hint = document.getElementById('btn-hint');
             var hintText = ${JSON.stringify(t.btnHint)};
@@ -205,8 +205,11 @@ export default async function HackerPage({
               if (!isOpen()) window.location.href = '/';
             });
 
+            // React to DevTools open/close immediately via resize event
+            window.addEventListener('resize', update);
+            // Also poll as a fallback
+            setInterval(update, 300);
             update();
-            setInterval(update, 500);
           })();
         `}} />
       </body>

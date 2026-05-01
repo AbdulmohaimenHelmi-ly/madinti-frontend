@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 // Threshold in pixels — DevTools docked to side/bottom takes at least this much space.
-const THRESHOLD = 160;
+const THRESHOLD = 100;
 
 let _redirected = false;
 
