@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { startTransition, useState, useEffect, useMemo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
   Container,
@@ -33,6 +34,7 @@ import { productsApi } from "@/lib/api/products";
 import { categoriesApi } from "@/lib/api/categories";
 import { brandsApi } from "@/lib/api/brands";
 import apiClient from "@/lib/api/client";
+import { useContentFilter } from "@/lib/context/ContentFilterContext";
 
 // Sidebar width — keep aligned with the SHEIN-like fixed column.
 const SIDEBAR_WIDTH = 280;
@@ -40,6 +42,14 @@ const SIDEBAR_WIDTH = 280;
 export default function ProductsPage() {
   const t = useTranslations();
   const locale = useLocale();
+  const searchParams = useSearchParams();
+  const { apiParam: contentType, setFilter } = useContentFilter();
+  const requestedCategoryId = searchParams.get("category_id") ?? "";
+  const requestedBrand = searchParams.get("brand") || searchParams.get("brand_id");
+  const requestedBrandIds = requestedBrand
+    ? [Number(requestedBrand)].filter((n) => !Number.isNaN(n))
+    : [];
+  const requestedSearch = searchParams.get("q") ?? "";
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -47,31 +57,30 @@ export default function ProductsPage() {
   const [options, setOptions] = useState<ProductOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(requestedSearch);
   const [sortBy, setSortBy] = useState("newest");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [filters, setFilters] = useState<FilterState>(emptyFilterState());
+  const [filters, setFilters] = useState<FilterState>(() => ({
+    ...emptyFilterState(),
+    categoryId: requestedCategoryId,
+    brandIds: requestedBrandIds,
+  }));
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const requestedContentType = searchParams.get("content_type");
+  const effectiveContentType =
+    requestedContentType === "male" || requestedContentType === "female"
+      ? requestedContentType
+      : contentType;
 
   // Seed initial filter state from the URL query string so deep links like
   // `/products?category_id=18` open the page with the matching filter active.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const sp = new URLSearchParams(window.location.search);
-    const catId = sp.get("category_id");
-    const brand = sp.get("brand") || sp.get("brand_id");
-    const q = sp.get("q");
-    setFilters((f) => ({
-      ...f,
-      categoryId: catId ?? f.categoryId,
-      brandIds: brand ? [Number(brand)].filter((n) => !Number.isNaN(n)) : f.brandIds,
-    }));
-    if (q) setSearch(q);
-    // Run once on mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (requestedContentType === "male" || requestedContentType === "female") {
+      setFilter(requestedContentType);
+    }
+  }, [requestedContentType, setFilter]);
 
   // Compute price bounds from the current product set so the slider has a
   // realistic range. Falls back to 0..1000 until products arrive.
@@ -85,30 +94,37 @@ export default function ProductsPage() {
 
   // ---------- Initial reference data ----------
   useEffect(() => {
+    const params = effectiveContentType
+      ? { content_type: effectiveContentType }
+      : undefined;
+
     categoriesApi
-      .getAll()
+      .getAll(params)
       .then((res) => setCategories(res.data.data))
       .catch(() => {});
     brandsApi
-      .getAll()
+      .getAll(params)
       .then((res) => setBrands(res.data.data))
       .catch(() => {});
     apiClient
       .get<ApiResponse<ProductOption[]>>("/options")
       .then((res) => setOptions(res.data.data))
       .catch(() => {});
-  }, []);
+  }, [effectiveContentType]);
 
   // ---------- Reload products whenever filters change ----------
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    startTransition(() => {
+      setLoading(true);
+      setError(null);
+    });
 
     // Build query params for the unified /products endpoint.
     const params: Record<string, string | number> = { page, per_page: 12 };
     if (search.trim()) params.q = search.trim();
     if (filters.categoryId) params.category_id = filters.categoryId;
     if (sortBy) params.sort = sortBy;
+    if (effectiveContentType) params.content_type = effectiveContentType;
     if (filters.priceMin !== "") params.min_price = filters.priceMin;
     if (filters.priceMax !== "") params.max_price = filters.priceMax;
     if (filters.inStock) params.in_stock = 1;
@@ -130,12 +146,14 @@ export default function ProductsPage() {
       })
       .catch(() => setError(t("common.error")))
       .finally(() => setLoading(false));
-  }, [search, sortBy, page, filters, t]);
+  }, [search, sortBy, page, filters, effectiveContentType, t]);
 
   // Reset page back to 1 whenever filters or search change.
   useEffect(() => {
-    setPage(1);
-  }, [filters, search, sortBy]);
+    startTransition(() => {
+      setPage(1);
+    });
+  }, [filters, search, sortBy, effectiveContentType]);
 
   // ---------- Active filter chips for the toolbar ----------
   const labelOf = useCallback(

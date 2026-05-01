@@ -9,10 +9,11 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Link from "next/link";
 import ProductRail from "@/components/products/ProductRail";
 import { productsApi } from "@/lib/api/products";
+import { withProductContentType } from "@/lib/products/contentTypeLink";
 import type { Product } from "@/lib/types";
 
 interface ForYouSectionProps {
-  contentType?: string;
+  contentType?: "male" | "female";
 }
 
 /**
@@ -34,6 +35,7 @@ export default function ForYouSection({ contentType }: ForYouSectionProps) {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const productsHref = withProductContentType(`/${locale}/products`, contentType);
   const requestKey = contentType ?? "__all__";
   const loading = loadedKey !== requestKey;
 
@@ -107,7 +109,7 @@ export default function ForYouSection({ contentType }: ForYouSectionProps) {
 
         <Button
           component={Link}
-          href={`/${locale}/products`}
+          href={productsHref}
           endIcon={<ArrowIcon />}
           sx={{
             borderRadius: 100,

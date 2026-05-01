@@ -8,6 +8,8 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import type { Banner, BannerPosition, Brand, Category, ContentType } from "@/lib/types";
+import { useContentFilter } from "@/lib/context/ContentFilterContext";
+import { withProductContentType } from "@/lib/products/contentTypeLink";
 
 interface HeroMosaicProps {
   categories: Category[];
@@ -54,6 +56,7 @@ export default function HeroMosaic({
 }: HeroMosaicProps) {
   const locale = useLocale();
   const t = useTranslations();
+  const { apiParam: contentType } = useContentFilter();
   const isRtl = locale === "ar";
   const sideLabels = isRtl ? SIDE_TILE_LABELS_AR : SIDE_TILE_LABELS_EN;
 
@@ -86,7 +89,7 @@ export default function HeroMosaic({
           image: b.image,
           title: bannerTitle(b),
           subtitle: bannerSubtitle(b) || t("home.heroSubtitle"),
-          link: b.link || `/${locale}/products`,
+          link: withProductContentType(b.link || `/${locale}/products`, contentType),
           contentType: b.content_type,
         }))
       : categories.slice(0, 5).map((c) => ({
@@ -94,7 +97,7 @@ export default function HeroMosaic({
           image: c.image,
           title: categoryName(c),
           subtitle: t("home.heroSubtitle"),
-          link: `/${locale}/products?category_id=${c.id}`,
+          link: withProductContentType(`/${locale}/products?category_id=${c.id}`, contentType),
           contentType: c.content_type,
         }));
 
@@ -109,7 +112,7 @@ export default function HeroMosaic({
         image: b.image,
         label: bannerSubtitle(b) || sideLabels[i] || "",
         title: bannerTitle(b) || sideLabels[i] || "",
-        href: b.link || `/${locale}/products`,
+        href: withProductContentType(b.link || `/${locale}/products`, contentType),
         contentType: b.content_type,
       };
     }
@@ -120,7 +123,7 @@ export default function HeroMosaic({
         image: null,
         label: sideLabels[i] ?? "",
         title: sideLabels[i] ?? "",
-        href: `/${locale}/products`,
+        href: withProductContentType(`/${locale}/products`, contentType),
       };
     }
     return {
@@ -128,7 +131,7 @@ export default function HeroMosaic({
       image: c.image,
       label: sideLabels[i] ?? "",
       title: categoryName(c),
-      href: `/${locale}/products?category_id=${c.id}`,
+      href: withProductContentType(`/${locale}/products?category_id=${c.id}`, contentType),
       contentType: c.content_type,
     };
   });
@@ -141,7 +144,7 @@ export default function HeroMosaic({
         image: b.image,
         label: bannerSubtitle(b) || t("home.featuredBrand"),
         title: bannerTitle(b) || "",
-        href: b.link || `/${locale}/products`,
+        href: withProductContentType(b.link || `/${locale}/products`, contentType),
         contentType: b.content_type,
       };
     }
@@ -152,7 +155,7 @@ export default function HeroMosaic({
         image: brand.logo,
         label: t("home.featuredBrand"),
         title: brandName(brand),
-        href: `/${locale}/products?brand=${brand.id}`,
+        href: withProductContentType(`/${locale}/products?brand=${brand.id}`, contentType),
         contentType: brand.content_type,
       };
     }
@@ -163,7 +166,7 @@ export default function HeroMosaic({
         image: c.image,
         label: sideLabels[i] ?? "",
         title: categoryName(c),
-        href: `/${locale}/products?category_id=${c.id}`,
+        href: withProductContentType(`/${locale}/products?category_id=${c.id}`, contentType),
         contentType: c.content_type,
       };
     }
@@ -172,7 +175,7 @@ export default function HeroMosaic({
       image: null,
       label: sideLabels[i] ?? "",
       title: sideLabels[i] ?? "",
-      href: `/${locale}/products`,
+      href: withProductContentType(`/${locale}/products`, contentType),
     };
   });
 

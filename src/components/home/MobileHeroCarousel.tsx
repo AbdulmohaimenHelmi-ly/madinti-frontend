@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { Box, Typography } from "@mui/material";
 import type { Banner, Category } from "@/lib/types";
+import { useContentFilter } from "@/lib/context/ContentFilterContext";
+import { withProductContentType } from "@/lib/products/contentTypeLink";
 
 const SLIDE_GRADIENTS = [
   "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -42,6 +44,7 @@ export default function MobileHeroCarousel({
   categories,
 }: MobileHeroCarouselProps) {
   const locale = useLocale();
+  const { apiParam: contentType } = useContentFilter();
   const isRtl = locale === "ar";
 
   const bannerTitle = (b: Banner) =>
@@ -63,14 +66,14 @@ export default function MobileHeroCarousel({
           image: b.image,
           title: bannerTitle(b),
           subtitle: bannerSubtitle(b),
-          link: b.link || `/${locale}/products`,
+          link: withProductContentType(b.link || `/${locale}/products`, contentType),
         }))
       : categories.slice(0, 5).map((c) => ({
           key: `cat-${c.id}`,
           image: c.image,
           title: categoryName(c),
           subtitle: "",
-          link: `/${locale}/products?category_id=${c.id}`,
+          link: withProductContentType(`/${locale}/products?category_id=${c.id}`, contentType),
         }));
 
   const [activeIdx, setActiveIdx] = useState(0);

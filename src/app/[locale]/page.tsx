@@ -30,7 +30,7 @@ import { vendorsApi } from "@/lib/api/vendors";
 import { brandsApi } from "@/lib/api/brands";
 import { bannersApi } from "@/lib/api/banners";
 import { useContentFilter } from "@/lib/context/ContentFilterContext";
-import ContentFilterSwitch from "@/components/common/ContentFilterSwitch";
+import { withProductContentType } from "@/lib/products/contentTypeLink";
 
 function SectionHeader({
   title,
@@ -107,6 +107,7 @@ export default function HomePage() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const { apiParam: contentType } = useContentFilter();
+  const productsHref = withProductContentType(`/${locale}/products`, contentType);
   const requestKey = contentType ?? "__all__";
   const loading = loadedKey !== requestKey;
 
@@ -155,17 +156,6 @@ export default function HomePage() {
         pt: { xs: 2, md: 3 },
       }}
     >
-      {/* Content audience switch — desktop only (mobile uses header icon pill) */}
-      <Box
-        sx={{
-          display: { xs: "none", md: "flex" },
-          justifyContent: "center",
-          mb: { xs: 1, md: 1.5 },
-        }}
-      >
-        <ContentFilterSwitch />
-      </Box>
-
       {/* Mobile search bar — Flutter _SearchBar exact match */}
       <Box
         component="form"
@@ -173,6 +163,7 @@ export default function HomePage() {
         method="get"
         sx={{ display: { xs: "block", md: "none" }, mt: "8px", mb: "12px" }}
       >
+        {contentType && <input type="hidden" name="content_type" value={contentType} />}
         <Box
           sx={{
             display: "flex",
@@ -194,7 +185,7 @@ export default function HomePage() {
           />
           <IconButton
             component={Link}
-            href={`/${locale}/products`}
+            href={productsHref}
             aria-label={t("common.filter")}
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
             sx={{ color: "#6B6B6B", flexShrink: 0, p: "8px", mr: "-8px" }}
@@ -254,7 +245,7 @@ export default function HomePage() {
           <SectionHeader
             title={t("home.featuredProducts")}
             linkText={t("common.viewAll")}
-            linkHref={`/${locale}/products`}
+            linkHref={productsHref}
             ArrowIcon={ArrowIcon}
           />
           <ProductRail products={featured.slice(0, 8)} />

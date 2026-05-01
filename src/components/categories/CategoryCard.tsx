@@ -4,6 +4,8 @@ import { Box, Typography } from "@mui/material";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import type { Category } from "@/lib/types";
+import { useContentFilter } from "@/lib/context/ContentFilterContext";
+import { withProductContentType } from "@/lib/products/contentTypeLink";
 
 interface CategoryCardProps {
   category: Category;
@@ -11,12 +13,17 @@ interface CategoryCardProps {
 
 export default function CategoryCard({ category }: CategoryCardProps) {
   const locale = useLocale();
+  const { apiParam: contentType } = useContentFilter();
   const name = locale === "en" && category.name_en ? category.name_en : category.name;
+  const href = withProductContentType(
+    `/${locale}/products?category_id=${category.id}`,
+    contentType
+  );
 
   return (
     <Box
       component={Link}
-      href={`/${locale}/products?category_id=${category.id}`}
+      href={href}
       sx={(theme) => ({
         textDecoration: "none",
         display: "flex",

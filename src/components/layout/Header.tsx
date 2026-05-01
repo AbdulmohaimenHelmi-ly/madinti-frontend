@@ -22,7 +22,6 @@ import {
   Container,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import MenuIcon from "@mui/icons-material/Menu";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import PersonIcon from "@mui/icons-material/Person";
 import CloseIcon from "@mui/icons-material/Close";
@@ -162,6 +161,10 @@ export default function Header() {
             <Navbar />
 
             <Box sx={{ flexGrow: 1 }} />
+
+            <Box sx={{ display: { xs: "none", md: "flex" }, mr: 1.5 }}>
+              <MobileAudienceIconBar />
+            </Box>
 
             <LanguageSwitcher />
 
