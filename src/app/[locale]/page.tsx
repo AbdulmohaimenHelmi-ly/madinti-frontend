@@ -174,9 +174,9 @@ export default function HomePage() {
         <ContentFilterSwitch />
       </Box>
 
-      {/* Mobile search bar — Flutter-style full-width rounded search field */}
+      {/* Mobile search bar — Flutter _SearchBar exact match */}
       <Box
-        sx={{ display: { xs: "block", md: "none" }, mb: 2 }}
+        sx={{ display: { xs: "block", md: "none" }, mt: "8px", mb: "12px" }}
         component="form"
         onSubmit={(e: React.FormEvent) => { e.preventDefault(); handleSearch(); }}
       >
@@ -184,30 +184,28 @@ export default function HomePage() {
           sx={{
             display: "flex",
             alignItems: "center",
-            bgcolor: "background.paper",
-            borderRadius: 3,
-            border: "1px solid",
-            borderColor: "divider",
-            px: 1.5,
-            boxShadow: "0 2px 10px rgba(0,0,0,0.06)",
+            bgcolor: "white",
+            borderRadius: "16px",
+            border: "1px solid #EDE7E9",
+            px: "14px",
           }}
         >
-          <SearchRoundedIcon sx={{ color: "text.secondary", fontSize: 22, flexShrink: 0 }} />
+          <SearchRoundedIcon sx={{ color: "#6B6B6B", fontSize: 24, flexShrink: 0 }} />
           <InputBase
             placeholder={t("common.searchHint")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             inputProps={{ "aria-label": t("common.search") }}
             fullWidth
-            sx={{ py: 1.25, px: 1, fontSize: "0.95rem" }}
+            sx={{ py: "14px", px: "10px", fontSize: "0.844rem", color: "#1A1A1A",
+              "& ::placeholder": { color: "#6B6B6B", opacity: 1 } }}
           />
           <IconButton
-            size="small"
             onClick={() => router.push(`/${locale}/products`)}
             aria-label={t("common.search")}
-            sx={{ color: "text.secondary", flexShrink: 0 }}
+            sx={{ color: "#6B6B6B", flexShrink: 0, p: "8px", mr: "-8px" }}
           >
-            <TuneRoundedIcon fontSize="small" />
+            <TuneRoundedIcon sx={{ fontSize: 22 }} />
           </IconButton>
         </Box>
       </Box>
