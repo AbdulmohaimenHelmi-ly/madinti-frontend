@@ -14,17 +14,6 @@ function markNonceUsed(nonce: string) {
   setTimeout(() => _usedNonces.delete(nonce), 3 * 60 * 1000);
 }
 
-// ── Per-IP rate limiter (3 calls per hour) ────────────────────────────────────
-const _initHits = new Map<string, number[]>();
-function isInitLimited(ip: string): boolean {
-  const now = Date.now();
-  const hits = (_initHits.get(ip) ?? []).filter((t) => now - t < 3_600_000);
-  if (hits.length >= 3) return true;
-  hits.push(now);
-  _initHits.set(ip, hits);
-  return false;
-}
-
 /** Generates a cryptographically random 8-character lowercase alias. */
 function randomAlias(): string {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -57,23 +46,10 @@ export async function GET(
     return new NextResponse(null, { status: 404 });
   }
 
-  // ── 3. Rate-limit per IP ──────────────────────────────────────────────────
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown";
-
-  if (isInitLimited(ip)) {
-    return new NextResponse("Too Many Requests", {
-      status: 429,
-      headers: { "Retry-After": "3600" },
-    });
-  }
-
-  // Consume nonce after all checks pass.
+  // Consume nonce.
   markNonceUsed(nonce);
 
-  // ── 4. Generate alias map ─────────────────────────────────────────────────
+  // ── 3. Generate alias map ───────────────────────────────────────────────────
   const forwardMap: Record<string, string> = {};
   const reverseMap: Record<string, string> = {};
 
