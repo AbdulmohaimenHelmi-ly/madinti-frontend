@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
 import {
   Container,
   Typography,
@@ -98,7 +97,6 @@ function SectionHeader({
 export default function HomePage() {
   const t = useTranslations();
   const locale = useLocale();
-  const router = useRouter();
   const isRtl = locale === "ar";
   const ArrowIcon = isRtl ? ArrowBackIcon : ArrowForwardIcon;
 
@@ -107,16 +105,10 @@ export default function HomePage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const { apiParam: contentType } = useContentFilter();
   const requestKey = contentType ?? "__all__";
   const loading = loadedKey !== requestKey;
-
-  const handleSearch = () => {
-    const q = searchQuery.trim();
-    router.push(`/${locale}/products${q ? `?search=${encodeURIComponent(q)}` : ""}`);
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -176,9 +168,10 @@ export default function HomePage() {
 
       {/* Mobile search bar — Flutter _SearchBar exact match */}
       <Box
-        sx={{ display: { xs: "block", md: "none" }, mt: "8px", mb: "12px" }}
         component="form"
-        onSubmit={(e: React.FormEvent) => { e.preventDefault(); handleSearch(); }}
+        action={`/${locale}/products`}
+        method="get"
+        sx={{ display: { xs: "block", md: "none" }, mt: "8px", mb: "12px" }}
       >
         <Box
           sx={{
@@ -192,17 +185,18 @@ export default function HomePage() {
         >
           <SearchRoundedIcon sx={{ color: "#6B6B6B", fontSize: 24, flexShrink: 0 }} />
           <InputBase
+            name="search"
             placeholder={t("common.searchHint")}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
             inputProps={{ "aria-label": t("common.search") }}
             fullWidth
             sx={{ py: "14px", px: "10px", fontSize: "0.844rem", color: "#1A1A1A",
               "& ::placeholder": { color: "#6B6B6B", opacity: 1 } }}
           />
           <IconButton
-            onClick={() => router.push(`/${locale}/products`)}
-            aria-label={t("common.search")}
+            component={Link}
+            href={`/${locale}/products`}
+            aria-label={t("common.filter")}
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
             sx={{ color: "#6B6B6B", flexShrink: 0, p: "8px", mr: "-8px" }}
           >
             <TuneRoundedIcon sx={{ fontSize: 22 }} />
