@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useState,
   type ReactNode,
 } from "react";
@@ -25,22 +26,20 @@ const ContentFilterContext = createContext<ContentFilterContextValue | null>(
 );
 
 export function ContentFilterProvider({ children }: { children: ReactNode }) {
-  const [filter, setFilterState] = useState<ContentFilter>(() => {
-    if (typeof window === "undefined") {
-      return "all";
-    }
+  // Always start with "all" — matches the server render, avoids hydration mismatch.
+  // After mount we sync from localStorage via useEffect.
+  const [filter, setFilterState] = useState<ContentFilter>("all");
 
+  useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY);
       if (saved === "male" || saved === "female" || saved === "all") {
-        return saved;
+        setFilterState(saved);
       }
     } catch {
-      // ignore storage errors (SSR / privacy)
+      // ignore storage errors (privacy mode etc.)
     }
-
-    return "all";
-  });
+  }, []);
 
   const setFilter = useCallback((value: ContentFilter) => {
     setFilterState(value);
