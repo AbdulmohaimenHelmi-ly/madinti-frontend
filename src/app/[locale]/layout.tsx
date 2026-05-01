@@ -29,6 +29,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { ContentFilterProvider } from "@/lib/context/ContentFilterContext";
+import DevToolsGuard from "@/components/DevToolsGuard";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -81,6 +82,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <ContentFilterProvider>
             <ThemeRegistry>
+              <DevToolsGuard />
               <AuthInitializer />
               <ImpersonationBanner />
               <Header />
