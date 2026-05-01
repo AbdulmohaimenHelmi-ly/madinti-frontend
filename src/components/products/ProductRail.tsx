@@ -4,24 +4,26 @@
  * ProductRail — matches Flutter's _ProductRail exactly.
  *
  * Mobile (xs/sm): horizontal scroll carousel
- *   height 290, cards 160px wide, 12px gap, 16px side padding, scroll-snap
+ *   height 280, cards 160px wide, square image (1:1), white card w/ rounded corners
+ *   12px gap, 16px side padding, scroll-snap
  * Desktop (md+): standard ProductGrid
  */
 
 import { Box, Skeleton } from "@mui/material";
 import type { Product } from "@/lib/types";
-import ProductCard from "./ProductCard";
+import ProductRailCard from "./ProductRailCard";
 import ProductGrid from "./ProductGrid";
 
 interface ProductRailProps {
   products: Product[];
   loading?: boolean;
-  /** How many skeleton cards to show while loading (mobile rail) */
   skeletonCount?: number;
 }
 
 const CARD_WIDTH = 160;
-const RAIL_HEIGHT = 290;
+// Square image = 160px + text padding top+bottom 22px + name ~34px + rating ~18px + price ~22px ≈ 256px
+// Flutter rail height is 290, use 280 to match
+const RAIL_HEIGHT = 280;
 const GAP = 12;
 
 export default function ProductRail({
@@ -42,13 +44,13 @@ export default function ProductRail({
             height: RAIL_HEIGHT,
             gap: `${GAP}px`,
             px: 2,
-            pb: 0.5,
+            py: 0.5,
             scrollSnapType: "x mandatory",
             WebkitOverflowScrolling: "touch",
-            /* hide scrollbar */
             scrollbarWidth: "none",
             "&::-webkit-scrollbar": { display: "none" },
             direction: "ltr",
+            alignItems: "stretch",
           }}
         >
           {loading
@@ -57,20 +59,27 @@ export default function ProductRail({
                   key={i}
                   sx={{
                     flex: `0 0 ${CARD_WIDTH}px`,
-                    height: RAIL_HEIGHT,
+                    height: RAIL_HEIGHT - 8,
                     scrollSnapAlign: "start",
-                    borderRadius: 2,
+                    borderRadius: "18px",
                     overflow: "hidden",
+                    bgcolor: "white",
+                    border: "1px solid #EDE7E9",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
                   <Skeleton
                     variant="rectangular"
                     width={CARD_WIDTH}
-                    height={RAIL_HEIGHT * 0.68}
-                    sx={{ borderRadius: 2 }}
+                    height={CARD_WIDTH}
+                    sx={{ flexShrink: 0 }}
                   />
-                  <Skeleton width="80%" sx={{ mt: 1 }} />
-                  <Skeleton width="50%" />
+                  <Box sx={{ p: "10px", display: "flex", flexDirection: "column", gap: 1 }}>
+                    <Skeleton width="85%" height={14} />
+                    <Skeleton width="60%" height={14} />
+                    <Skeleton width="50%" height={18} />
+                  </Box>
                 </Box>
               ))
             : products.map((product) => (
@@ -78,11 +87,13 @@ export default function ProductRail({
                   key={product.id}
                   sx={{
                     flex: `0 0 ${CARD_WIDTH}px`,
-                    height: RAIL_HEIGHT,
                     scrollSnapAlign: "start",
+                    /* Let the card fill the rail height */
+                    alignSelf: "stretch",
+                    overflow: "hidden",
                   }}
                 >
-                  <ProductCard product={product} />
+                  <ProductRailCard product={product} />
                 </Box>
               ))}
         </Box>
@@ -95,3 +106,4 @@ export default function ProductRail({
     </>
   );
 }
+
