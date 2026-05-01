@@ -30,7 +30,7 @@ import Footer from "@/components/layout/Footer";
 import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { ContentFilterProvider } from "@/lib/context/ContentFilterContext";
 import DevToolsGuard from "@/components/DevToolsGuard";
-import RefreshGuardLoader from "@/components/RefreshGuardLoader";
+import RefreshGuard from "@/components/RefreshGuard";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -84,16 +84,17 @@ export default async function LocaleLayout({
           <ContentFilterProvider>
             <ThemeRegistry>
               <DevToolsGuard locale={locale} />
-              <RefreshGuardLoader />
               <AuthInitializer />
               <ImpersonationBanner />
               <Header />
-              <main
-                style={{ minHeight: "80vh" }}
-                className="app-main-content"
-              >
-                {children}
-              </main>
+              <RefreshGuard>
+                <main
+                  style={{ minHeight: "80vh" }}
+                  className="app-main-content"
+                >
+                  {children}
+                </main>
+              </RefreshGuard>
               <Footer />
               <MobileBottomNav />
             </ThemeRegistry>
