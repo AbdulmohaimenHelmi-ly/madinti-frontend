@@ -58,7 +58,8 @@
     "remove": "Remove",
     "increase": "Increase",
     "decrease": "Decrease",
-    "searchHint": "Search products, brands..."
+    "searchHint": "Search products, brands...",
+    "favorites": "Favorites"
   },
   "home": {
     "hero": "Welcome to Ajjmal",

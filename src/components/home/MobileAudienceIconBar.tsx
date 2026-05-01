@@ -17,7 +17,7 @@ const SEGMENTS: { key: ContentFilter; Icon: React.ElementType; labelKey: string 
 export default function MobileAudienceIconBar() {
   const { filter, setFilter } = useContentFilter();
   const theme = useTheme();
-  const t = useTranslations("common");
+  const t = useTranslations("content");
 
   return (
     <Box
