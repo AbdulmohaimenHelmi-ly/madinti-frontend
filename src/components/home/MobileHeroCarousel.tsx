@@ -77,14 +77,24 @@ export default function MobileHeroCarousel({
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const count = slides.length;
 
+  const getScrollLeftForSlide = useCallback((idx: number) => {
+    const el = scrollRef.current;
+    if (!el) return 0;
+
+    const slide = el.children.item(idx) as HTMLElement | null;
+    if (!slide) return 0;
+
+    // Match Flutter's PageView centering instead of estimating with scrollWidth.
+    return slide.offsetLeft - (el.clientWidth - slide.offsetWidth) / 2;
+  }, []);
+
   const scrollToSlide = useCallback(
     (idx: number) => {
       const el = scrollRef.current;
       if (!el || count === 0) return;
-      const slideWidth = el.scrollWidth / count;
-      el.scrollTo({ left: slideWidth * idx, behavior: "smooth" });
+      el.scrollTo({ left: getScrollLeftForSlide(idx), behavior: "smooth" });
     },
-    [count]
+    [count, getScrollLeftForSlide]
   );
 
   const startAutoplay = useCallback(() => {
@@ -109,10 +119,22 @@ export default function MobileHeroCarousel({
   const handleScroll = () => {
     const el = scrollRef.current;
     if (!el || count === 0) return;
-    const slideWidth = el.scrollWidth / count;
-    const idx = Math.round(el.scrollLeft / slideWidth);
-    const clamped = Math.max(0, Math.min(idx, count - 1));
-    setActiveIdx(clamped);
+
+    const viewportCenter = el.scrollLeft + el.clientWidth / 2;
+    let nearestIdx = 0;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+
+    Array.from(el.children).forEach((child, idx) => {
+      const slide = child as HTMLElement;
+      const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
+      const distance = Math.abs(slideCenter - viewportCenter);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIdx = idx;
+      }
+    });
+
+    setActiveIdx(nearestIdx);
     // restart autoplay after user interaction
     startAutoplay();
   };
@@ -133,6 +155,7 @@ export default function MobileHeroCarousel({
        */}
       <Box
         ref={scrollRef}
+        dir="ltr"
         onScroll={handleScroll}
         sx={{
           display: "flex",
@@ -141,7 +164,6 @@ export default function MobileHeroCarousel({
           WebkitOverflowScrolling: "touch",
           scrollbarWidth: "none",
           "&::-webkit-scrollbar": { display: "none" },
-          direction: "ltr",
           // horizontal padding creates the Flutter viewportFraction:0.92 peek
           px: "4%",
           gap: 1.5,

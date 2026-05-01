@@ -36,6 +36,7 @@ export default function ProductRail({
       {/* ── MOBILE: horizontal scroll rail (xs/sm) ── */}
       <Box sx={{ display: { xs: "block", md: "none" } }}>
         <Box
+          dir="ltr"
           sx={{
             display: "flex",
             flexDirection: "row",
@@ -49,7 +50,6 @@ export default function ProductRail({
             WebkitOverflowScrolling: "touch",
             scrollbarWidth: "none",
             "&::-webkit-scrollbar": { display: "none" },
-            direction: "ltr",
             alignItems: "stretch",
           }}
         >
