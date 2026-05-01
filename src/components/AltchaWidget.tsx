@@ -20,6 +20,9 @@ export default function AltchaWidget({ onSolve }: AltchaWidgetProps) {
 
     // Dynamically load the web component, then mount it imperatively.
     import("altcha").then(() => {
+      // Guard against React Strict Mode double-invoke: don't add a second widget.
+      if (container.querySelector("altcha-widget")) return;
+
       widget = document.createElement("altcha-widget");
       widget.setAttribute("challengeurl", "/api/altcha");
       widget.setAttribute("name", "altcha");
