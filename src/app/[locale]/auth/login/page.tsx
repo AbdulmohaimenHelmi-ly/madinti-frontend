@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
 import AltchaWidget from "@/components/AltchaWidget";
 import { GoogleLogin } from "@react-oauth/google";
+import { googleClientId } from "@/components/providers/GoogleAuthProvider";
 
 export default function LoginPage() {
   const t = useTranslations();
@@ -154,14 +155,19 @@ export default function LoginPage() {
                   {t("auth.loginTitle")}
                 </Button>
               </Box>
-              <Divider sx={{ my: 2 }}>{t("auth.orContinueWith")}</Divider>
-              <Box sx={{ display: "flex", justifyContent: "center" }}>
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => setError(t("common.error"))}
-                  useOneTap={false}
-                  width="100%"
-                /></Box>
+              {googleClientId && (
+                <>
+                  <Divider sx={{ my: 2 }}>{t("auth.orContinueWith")}</Divider>
+                  <Box sx={{ display: "flex", justifyContent: "center" }}>
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={() => setError(t("common.error"))}
+                      useOneTap={false}
+                      width="100%"
+                    />
+                  </Box>
+                </>
+              )}
               <Typography sx={{ mt: 3, textAlign: "center", color: "text.secondary" }}>
                 {t("auth.noAccount")}{" "}
                 <Box component={Link} href={`/${locale}/auth/register`} sx={{ color: "primary.main", fontWeight: 700, textDecoration: "none" }}>
