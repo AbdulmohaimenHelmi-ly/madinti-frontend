@@ -89,12 +89,19 @@ export default function MobileHeroCarousel({
       const slide = el.children.item(idx) as HTMLElement | null;
       if (!slide) return;
 
-      // Let the browser resolve RTL/LTR positioning; this matches Flutter's
-      // PageView movement direction in Arabic without relying on scrollLeft math.
-      slide.scrollIntoView({
+      const targetLeft = Math.max(
+        0,
+        Math.min(
+          slide.offsetLeft - (el.clientWidth - slide.offsetWidth) / 2,
+          el.scrollWidth - el.clientWidth
+        )
+      );
+
+      // Scroll the carousel container itself so mobile browsers don't also
+      // move the page viewport back to the hero section.
+      el.scrollTo({
+        left: targetLeft,
         behavior: "smooth",
-        block: "nearest",
-        inline: "center",
       });
     },
     [count]
@@ -155,12 +162,13 @@ export default function MobileHeroCarousel({
   return (
     <Box sx={{ mb: 2 }}>
       {/*
-       * Scroll container — force LTR so scroll-left math doesn't flip in RTL
-       * locales. CSS scroll-snap gives native swipe on touch screens for free.
+       * Scroll container — keep real LTR here so child offsets stay stable for
+       * horizontal scroll math in every locale. CSS scroll-snap gives native
+       * swipe on touch screens for free.
        */}
       <Box
         ref={scrollRef}
-        dir={isRtl ? "rtl" : "ltr"}
+        dir="ltr"
         onScroll={handleScroll}
         sx={{
           display: "flex",
