@@ -121,10 +121,10 @@ export default function RefreshGuard({ children }: { children: React.ReactNode }
             boxShadow: "0 8px 40px rgba(0,0,0,0.6)",
           }}
         >
-          <Typography fontSize={56} lineHeight={1} mb={2}>
+          <Typography sx={{ fontSize: 56, lineHeight: 1, mb: 2 }}>
             {"\uD83D\uDC22"}
           </Typography>
-          <Typography variant="h5" fontWeight={700} sx={{ color: "#fbb6ce", mb: 1.5 }}>
+          <Typography variant="h5" sx={{ color: "#fbb6ce", mb: 1.5, fontWeight: 700 }}>
             {t("heading")}
           </Typography>
           <Typography
@@ -147,8 +147,7 @@ export default function RefreshGuard({ children }: { children: React.ReactNode }
           >
             <Typography
               variant="h3"
-              fontWeight={800}
-              sx={{ color: "#fbb6ce", fontVariantNumeric: "tabular-nums" }}
+              sx={{ color: "#fbb6ce", fontVariantNumeric: "tabular-nums", fontWeight: 800 }}
             >
               {secondsLeft}
             </Typography>
