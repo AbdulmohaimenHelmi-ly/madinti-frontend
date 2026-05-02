@@ -2,18 +2,20 @@
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { Container, Typography, TextField, Button, Card, CardContent, Box, Alert, Grid } from "@mui/material";
+import { Container, Typography, TextField, Button, Card, CardContent, Box, Alert, Grid, Divider } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import PetsIcon from "@mui/icons-material/Pets";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
 import AltchaWidget from "@/components/AltchaWidget";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginPage() {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
+  const loginWithGoogle = useAuthStore((s) => s.loginWithGoogle);
   const isLoading = useAuthStore((s) => s.isLoading);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,6 +43,23 @@ export default function LoginPage() {
       else if (u?.is_delivery) router.push(`/${locale}/delivery`);
       else if (u?.is_vendor) router.push(`/${locale}/vendor`);
       else router.push(`/${locale}`);
+    } catch { setError(t("common.error")); }
+  };
+
+  const redirectAfterAuth = () => {
+    const u = useAuthStore.getState().user;
+    if (u?.is_admin) router.push(`/${locale}/admin`);
+    else if (u?.is_delivery) router.push(`/${locale}/delivery`);
+    else if (u?.is_vendor) router.push(`/${locale}/vendor`);
+    else router.push(`/${locale}`);
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) return;
+    setError("");
+    try {
+      await loginWithGoogle(credentialResponse.credential);
+      redirectAfterAuth();
     } catch { setError(t("common.error")); }
   };
   return (
@@ -135,6 +154,14 @@ export default function LoginPage() {
                   {t("auth.loginTitle")}
                 </Button>
               </Box>
+              <Divider sx={{ my: 2 }}>{t("auth.orContinueWith")}</Divider>
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError(t("common.error"))}
+                  useOneTap={false}
+                  width="100%"
+                /></Box>
               <Typography sx={{ mt: 3, textAlign: "center", color: "text.secondary" }}>
                 {t("auth.noAccount")}{" "}
                 <Box component={Link} href={`/${locale}/auth/register`} sx={{ color: "primary.main", fontWeight: 700, textDecoration: "none" }}>

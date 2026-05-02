@@ -22,4 +22,9 @@ export const authApi = {
   logout: () => apiClient.post<ApiResponse<null>>("/auth/logout"),
 
   getMe: () => apiClient.get<ApiResponse<User>>("/auth/me"),
+
+  googleLogin: (idToken: string) =>
+    apiClient.post<ApiResponse<{ user: User; token: string }>>("/auth/google", {
+      id_token: idToken,
+    }),
 };

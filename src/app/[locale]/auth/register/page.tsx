@@ -2,18 +2,20 @@
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { Container, Typography, TextField, Button, Card, CardContent, Box, Alert, FormControlLabel, Checkbox, Grid } from "@mui/material";
+import { Container, Typography, TextField, Button, Card, CardContent, Box, Alert, FormControlLabel, Checkbox, Grid, Divider } from "@mui/material";
 import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
 import PetsIcon from "@mui/icons-material/Pets";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
 import AltchaWidget from "@/components/AltchaWidget";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function RegisterPage() {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
   const register = useAuthStore((s) => s.register);
+  const loginWithGoogle = useAuthStore((s) => s.loginWithGoogle);
   const isLoading = useAuthStore((s) => s.isLoading);
   const [form, setForm] = useState({ name: "", email: "", password: "", password_confirmation: "", phone: "" });
   const [isVendor, setIsVendor] = useState(false);
@@ -37,6 +39,15 @@ export default function RegisterPage() {
     } catch { setError(t("common.error")); return; }
     try {
       await register({ ...form, role: isVendor ? "vendor" : "customer" });
+      router.push(`/${locale}`);
+    } catch { setError(t("common.error")); }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) return;
+    setError("");
+    try {
+      await loginWithGoogle(credentialResponse.credential);
       router.push(`/${locale}`);
     } catch { setError(t("common.error")); }
   };
@@ -145,6 +156,15 @@ export default function RegisterPage() {
                 >
                   {t("auth.registerTitle")}
                 </Button>
+              </Box>
+              <Divider sx={{ my: 2 }}>{t("auth.orContinueWith")}</Divider>
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError(t("common.error"))}
+                  useOneTap={false}
+                  width="100%"
+                />
               </Box>
               <Typography sx={{ mt: 3, textAlign: "center", color: "text.secondary" }}>
                 {t("auth.hasAccount")}{" "}

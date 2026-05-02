@@ -87,15 +87,16 @@ export default function CategoriesMegaMenu() {
           />
         }
         sx={{
-          color: "white",
+          color: "#1A1A1A",
           fontWeight: active ? 700 : 500,
           borderRadius: 100,
           px: 2,
           py: 0.75,
           minWidth: "auto",
           fontSize: "0.875rem",
-          bgcolor: active ? "rgba(255,255,255,0.18)" : "transparent",
-          "&:hover": { bgcolor: "rgba(255,255,255,0.12)" },
+          bgcolor: active ? "white" : "transparent",
+          boxShadow: active ? "0 4px 10px rgba(10, 37, 64, 0.08)" : "none",
+          "&:hover": { bgcolor: active ? "white" : "rgba(255,255,255,0.55)" },
           transition: "all 0.2s ease",
         }}
       >

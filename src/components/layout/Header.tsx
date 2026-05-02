@@ -86,15 +86,9 @@ export default function Header() {
         position="sticky"
         elevation={0}
         sx={{
-          background: {
-            xs: "#FAF7F8",
-            md: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 50%, ${theme.palette.primary.main} 100%)`,
-          },
+          background: "#FAF7F8",
           backdropFilter: "blur(20px)",
-          borderBottom: {
-            xs: "1px solid #EDE7E9",
-            md: "1px solid rgba(255,255,255,0.1)",
-          },
+          borderBottom: "1px solid #EDE7E9",
         }}
       >
         {/* ── MOBILE APPBAR (Flutter-style: audience pill + translate + favorites) ── */}
@@ -126,10 +120,10 @@ export default function Header() {
           </Toolbar>
         </Box>
 
-        {/* ── DESKTOP APPBAR (gradient header, full nav) ── */}
+        {/* ── DESKTOP APPBAR (mobile-inspired light header, full nav) ── */}
         <Box sx={{ display: { xs: "none", md: "block" } }}>
         <Container maxWidth="lg">
-          <Toolbar disableGutters sx={{ gap: 1, minHeight: { xs: 64, md: 70 } }}>
+          <Toolbar disableGutters sx={{ gap: 1.25, minHeight: { xs: 64, md: 64 } }}>
 
             <Typography
               variant="h5"
@@ -137,7 +131,7 @@ export default function Header() {
               href={`/${locale}`}
               sx={{
                 fontWeight: 800,
-                color: "white",
+                color: "#1A1A1A",
                 textDecoration: "none",
                 flexShrink: 0,
                 letterSpacing: "0.02em",
@@ -149,10 +143,10 @@ export default function Header() {
             >
               <PetsIcon
                 sx={{
-                  color: "white",
+                  color: theme.palette.primary.main,
                   fontSize: { xs: 22, md: 26 },
                   transform: "rotate(-15deg)",
-                  filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))",
+                  filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.08))",
                 }}
               />
               {t("appName")}
@@ -172,12 +166,17 @@ export default function Header() {
               component={Link}
               href={`/${locale}/cart`}
               sx={{
-                color: "white",
+                color: "#1A1A1A",
                 position: "relative",
                 // Cart lives in the mobile bottom nav on phones — hide here
                 // to avoid a duplicate entry point.
                 display: { xs: "none", md: "inline-flex" },
-                "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
+                width: 40,
+                height: 40,
+                borderRadius: 100,
+                border: "1px solid #EDE7E9",
+                bgcolor: "white",
+                "&:hover": { bgcolor: "#F5F0F2" },
               }}
             >
               <Badge
@@ -203,11 +202,12 @@ export default function Header() {
                 startIcon={<AddBusinessIcon />}
                 sx={{
                   display: { xs: "none", md: "inline-flex" },
-                  color: "white",
+                  color: "#1A1A1A",
                   borderRadius: 100,
                   px: 2,
-                  bgcolor: "rgba(255,255,255,0.12)",
-                  "&:hover": { bgcolor: "rgba(255,255,255,0.22)" },
+                  border: "1px solid #EDE7E9",
+                  bgcolor: "white",
+                  "&:hover": { bgcolor: "#F5F0F2" },
                   fontWeight: 600,
                 }}
               >
@@ -221,7 +221,8 @@ export default function Header() {
                   width: 110,
                   height: 40,
                   borderRadius: 100,
-                  bgcolor: "rgba(255,255,255,0.12)",
+                  bgcolor: "white",
+                  border: "1px solid #EDE7E9",
                   display: { xs: "none", sm: "block" },
                 }}
               />
@@ -237,8 +238,10 @@ export default function Header() {
                   display: { xs: "none", sm: "flex" },
                   borderRadius: 100,
                   px: 2.5,
-                  bgcolor: "rgba(255,255,255,0.1)",
-                  "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+                  color: "#1A1A1A",
+                  border: "1px solid #EDE7E9",
+                  bgcolor: "white",
+                  "&:hover": { bgcolor: "#F5F0F2" },
                 }}
               >
                 {t("login")}

@@ -21,6 +21,7 @@ interface AuthState {
     role?: "customer" | "vendor";
   }) => Promise<void>;
   logout: () => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   fetchUser: () => Promise<void>;
   initialize: () => void;
   startImpersonation: (token: string, user: User) => void;
@@ -76,6 +77,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true });
     try {
       const response = await authApi.register(data);
+      const { user, token } = response.data.data;
+      get().setToken(token);
+      set({ user, isAuthenticated: true, isLoading: false, isInitialized: true });
+    } catch (error) {
+      set({ isLoading: false });
+      throw error;
+    }
+  },
+
+  loginWithGoogle: async (idToken) => {
+    set({ isLoading: true });
+    try {
+      const response = await authApi.googleLogin(idToken);
       const { user, token } = response.data.data;
       get().setToken(token);
       set({ user, isAuthenticated: true, isLoading: false, isInitialized: true });

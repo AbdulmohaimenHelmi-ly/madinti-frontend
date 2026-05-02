@@ -88,7 +88,8 @@
     "forgotPassword": "Forgot Password?",
     "noAccount": "Don't have an account?",
     "hasAccount": "Already have an account?",
-    "registerAsVendor": "Register as Vendor"
+    "registerAsVendor": "Register as Vendor",
+    "orContinueWith": "or continue with"
   },
   "product": {
     "details": "Product Details",

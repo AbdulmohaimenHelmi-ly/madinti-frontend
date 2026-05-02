@@ -62,15 +62,18 @@ export default function ProfileMenu() {
           pl: 0.5,
           pr: 1.5,
           py: 0.5,
-          bgcolor: "rgba(255,255,255,0.1)",
-          "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+          color: "#1A1A1A",
+          border: "1px solid #EDE7E9",
+          bgcolor: "white",
+          "&:hover": { bgcolor: "#F5F0F2" },
         }}
       >
         <Avatar
           sx={{
             width: 30,
             height: 30,
-            bgcolor: "rgba(255,255,255,0.25)",
+            bgcolor: "#F5F0F2",
+            color: "#1A1A1A",
             fontSize: "0.85rem",
             fontWeight: 700,
           }}

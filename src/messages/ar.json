@@ -88,7 +88,8 @@
     "forgotPassword": "نسيت كلمة المرور؟",
     "noAccount": "ليس لديك حساب؟",
     "hasAccount": "لديك حساب بالفعل؟",
-    "registerAsVendor": "سجل كبائع"
+    "registerAsVendor": "سجل كبائع",
+    "orContinueWith": "أو تابع بـ"
   },
   "product": {
     "details": "تفاصيل المنتج",

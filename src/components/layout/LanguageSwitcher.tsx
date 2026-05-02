@@ -2,7 +2,8 @@
 
 import { useLocale } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
-import { Box, Typography } from "@mui/material";
+import { IconButton } from "@mui/material";
+import TranslateRoundedIcon from "@mui/icons-material/TranslateRounded";
 
 export default function LanguageSwitcher() {
   const locale = useLocale();
@@ -16,55 +17,21 @@ export default function LanguageSwitcher() {
   };
 
   return (
-    <Box
+    <IconButton
       onClick={switchLocale}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") switchLocale(); }}
       aria-label={locale === "ar" ? "Switch to English" : "التبديل إلى العربية"}
       sx={{
-        display: "flex",
-        alignItems: "center",
-        bgcolor: "rgba(255,255,255,0.12)",
+        color: "#1A1A1A",
+        width: 40,
+        height: 40,
         borderRadius: 100,
-        p: "3px",
-        cursor: "pointer",
+        border: "1px solid #EDE7E9",
+        bgcolor: "white",
         transition: "all 0.2s ease",
-        "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+        "&:hover": { bgcolor: "#F5F0F2" },
       }}
     >
-      <Typography
-        component="span"
-        sx={{
-          px: 1.5,
-          py: 0.5,
-          borderRadius: 100,
-          fontSize: "0.75rem",
-          fontWeight: 700,
-          color: locale === "ar" ? "primary.main" : "white",
-          bgcolor: locale === "ar" ? "white" : "transparent",
-          transition: "all 0.2s ease",
-          lineHeight: 1.4,
-        }}
-      >
-        عربي
-      </Typography>
-      <Typography
-        component="span"
-        sx={{
-          px: 1.5,
-          py: 0.5,
-          borderRadius: 100,
-          fontSize: "0.75rem",
-          fontWeight: 700,
-          color: locale === "en" ? "primary.main" : "white",
-          bgcolor: locale === "en" ? "white" : "transparent",
-          transition: "all 0.2s ease",
-          lineHeight: 1.4,
-        }}
-      >
-        EN
-      </Typography>
-    </Box>
+      <TranslateRoundedIcon />
+    </IconButton>
   );
 }

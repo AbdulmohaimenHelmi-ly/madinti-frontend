@@ -31,6 +31,7 @@ import MobileBottomNav from "@/components/layout/MobileBottomNav";
 import { ContentFilterProvider } from "@/lib/context/ContentFilterContext";
 import DevToolsGuard from "@/components/DevToolsGuard";
 import RefreshGuard from "@/components/RefreshGuard";
+import GoogleAuthProvider from "@/components/providers/GoogleAuthProvider";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -82,7 +83,8 @@ export default async function LocaleLayout({
       <body style={{ background: "#F5F7FA" }}>
         <NextIntlClientProvider messages={messages}>
           <ContentFilterProvider>
-            <ThemeRegistry>
+            <GoogleAuthProvider>
+              <ThemeRegistry>
               <DevToolsGuard locale={locale} />
               <AuthInitializer />
               <ImpersonationBanner />
@@ -98,6 +100,7 @@ export default async function LocaleLayout({
               <Footer />
               <MobileBottomNav />
             </ThemeRegistry>
+            </GoogleAuthProvider>
           </ContentFilterProvider>
         </NextIntlClientProvider>
       </body>

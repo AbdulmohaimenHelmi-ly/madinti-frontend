@@ -29,6 +29,11 @@ export default function Navbar() {
         gap: 0.5,
         alignItems: "center",
         ml: 2,
+        px: 0.75,
+        py: 0.5,
+        borderRadius: 100,
+        bgcolor: "#F5F0F2",
+        border: "1px solid #EDE7E9",
       }}
     >
       <CategoriesMegaMenu />
@@ -40,15 +45,16 @@ export default function Navbar() {
           href={`/${locale}${item.path}`}
           size="small"
           sx={{
-            color: "white",
+            color: "#1A1A1A",
             fontWeight: isActive(item.path) ? 700 : 500,
             borderRadius: 100,
             px: 2,
             py: 0.75,
             minWidth: "auto",
             fontSize: "0.875rem",
-            bgcolor: isActive(item.path) ? "rgba(255,255,255,0.18)" : "transparent",
-            "&:hover": { bgcolor: "rgba(255,255,255,0.12)" },
+            bgcolor: isActive(item.path) ? "white" : "transparent",
+            boxShadow: isActive(item.path) ? "0 4px 10px rgba(10, 37, 64, 0.08)" : "none",
+            "&:hover": { bgcolor: isActive(item.path) ? "white" : "rgba(255,255,255,0.55)" },
             transition: "all 0.2s ease",
           }}
         >
