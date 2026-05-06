@@ -53,134 +53,195 @@ export default function RegisterPage() {
     } catch { setError(t("common.error")); }
   };
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 4, md: 8 } }}>
-      <Grid container spacing={0} sx={{ minHeight: { md: 580 } }}>
-        {/* Decorative side panel */}
-        <Grid
-          size={{ xs: 12, md: 5 }}
+    <>
+      {/* ── MOBILE LAYOUT ── full-screen native-app feel */}
+      <Box sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", minHeight: "100dvh" }}>
+        {/* Brand header */}
+        <Box
           sx={(theme) => ({
-            display: { xs: "none", md: "flex" },
+            background: `linear-gradient(160deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+            pt: 7,
+            pb: 6,
+            px: 3,
+            display: "flex",
             flexDirection: "column",
-            justifyContent: "center",
             alignItems: "center",
-            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 50%, ${theme.palette.primary.light} 100%)`,
-            borderRadius: "16px 0 0 16px",
             color: "white",
-            p: 4,
-            position: "relative",
-            overflow: "hidden",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              top: "-50%",
-              right: "-30%",
-              width: "200px",
-              height: "200px",
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.06)",
-            },
-            "&::after": {
-              content: '""',
-              position: "absolute",
-              bottom: "-20%",
-              left: "-20%",
-              width: "150px",
-              height: "150px",
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.04)",
-            },
           })}
         >
-          <PersonAddAltIcon sx={{ fontSize: 56, mb: 2, opacity: 0.9 }} />
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: 700,
-              mb: 1,
-              textAlign: "center",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            <PetsIcon sx={{ fontSize: 24, transform: "rotate(-15deg)" }} />
+          <PetsIcon sx={{ fontSize: 64, mb: 1.5, opacity: 0.95 }} />
+          <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: 0.5 }}>
             {t("common.appName")}
           </Typography>
-          <Typography variant="body2" sx={{ opacity: 0.8, textAlign: "center" }}>
+          <Typography variant="body2" sx={{ opacity: 0.75, mt: 0.5, textAlign: "center" }}>
             {t("home.heroSubtitle")}
           </Typography>
-        </Grid>
-        {/* Form */}
-        <Grid size={{ xs: 12, md: 7 }}>
-          <Card sx={{ height: "100%", borderRadius: { xs: 4, md: "0 16px 16px 0" } }}>
-            <CardContent sx={{ p: { xs: 3, md: 5 }, height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-              <Typography variant="h4" gutterBottom sx={{ fontWeight: 800, mb: 3 }}>
-                {t("auth.registerTitle")}
-              </Typography>
-              {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
-              <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {/* Honeypot — invisible to humans, bots fill it and get silently blocked */}
-                <input
-                  type="text"
-                  name="website"
-                  value={_hp}
-                  onChange={(e) => setHp(e.target.value)}
-                  tabIndex={-1}
-                  aria-hidden="true"
-                  autoComplete="off"
-                  style={{ display: "none" }}
+        </Box>
+
+        {/* Form sheet — slides up over the header */}
+        <Box
+          sx={{
+            flex: 1,
+            bgcolor: "background.paper",
+            borderRadius: "24px 24px 0 0",
+            mt: -3,
+            px: 3,
+            pt: 4,
+            pb: 5,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
+            {t("auth.registerTitle")}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            {t("auth.hasAccount")}{" "}
+            <Box
+              component={Link}
+              href={`/${locale}/auth/login`}
+              sx={{ color: "primary.main", fontWeight: 700, textDecoration: "none" }}
+            >
+              {t("common.login")}
+            </Box>
+          </Typography>
+
+          {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <input type="text" name="website" value={_hp} onChange={(e) => setHp(e.target.value)} tabIndex={-1} aria-hidden="true" autoComplete="off" style={{ display: "none" }} />
+            <TextField label={t("auth.name")} value={form.name} onChange={handleChange("name")} required fullWidth sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }} />
+            <TextField label={t("auth.email")} type="email" value={form.email} onChange={handleChange("email")} required fullWidth sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }} />
+            <TextField label={t("auth.phone")} value={form.phone} onChange={handleChange("phone")} fullWidth sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }} />
+            <TextField label={t("auth.password")} type="password" value={form.password} onChange={handleChange("password")} required fullWidth sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }} />
+            <TextField label={t("auth.confirmPassword")} type="password" value={form.password_confirmation} onChange={handleChange("password_confirmation")} required fullWidth sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }} />
+            <AltchaWidget onSolve={setAltcha} />
+            <FormControlLabel
+              control={<Checkbox checked={isVendor} onChange={(e) => setIsVendor(e.target.checked)} sx={{ "&.Mui-checked": { color: "primary.main" } }} />}
+              label={t("auth.registerAsVendor")}
+              sx={{ "& .MuiFormControlLabel-label": { fontWeight: 500, fontSize: "0.9rem" } }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              fullWidth
+              disabled={isLoading}
+              sx={{ py: 1.75, borderRadius: 3, fontSize: "1rem", fontWeight: 700, mt: 0.5 }}
+            >
+              {t("auth.registerTitle")}
+            </Button>
+          </Box>
+
+          {googleClientId && (
+            <>
+              <Divider sx={{ my: 2.5 }}>{t("auth.orContinueWith")}</Divider>
+              <Box sx={{ display: "flex", justifyContent: "center" }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError(t("common.error"))}
+                  useOneTap={false}
+                  width="100%"
                 />
-                <TextField label={t("auth.name")} value={form.name} onChange={handleChange("name")} required fullWidth />
-                <TextField label={t("auth.email")} type="email" value={form.email} onChange={handleChange("email")} required fullWidth />
-                <TextField label={t("auth.phone")} value={form.phone} onChange={handleChange("phone")} fullWidth />
-                <TextField label={t("auth.password")} type="password" value={form.password} onChange={handleChange("password")} required fullWidth />
-                <TextField label={t("auth.confirmPassword")} type="password" value={form.password_confirmation} onChange={handleChange("password_confirmation")} required fullWidth />
-                <AltchaWidget onSolve={setAltcha} />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={isVendor}
-                      onChange={(e) => setIsVendor(e.target.checked)}
-                      sx={{ "&.Mui-checked": { color: "primary.main" } }}
-                    />
-                  }
-                  label={t("auth.registerAsVendor")}
-                  sx={{ "& .MuiFormControlLabel-label": { fontWeight: 500, fontSize: "0.9rem" } }}
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                  disabled={isLoading}
-                  sx={{ py: 1.5, borderRadius: 3, fontSize: "1rem" }}
-                >
-                  {t("auth.registerTitle")}
-                </Button>
               </Box>
-              {googleClientId && (
-                <>
-                  <Divider sx={{ my: 2 }}>{t("auth.orContinueWith")}</Divider>
-                  <Box sx={{ display: "flex", justifyContent: "center" }}>
-                    <GoogleLogin
-                      onSuccess={handleGoogleSuccess}
-                      onError={() => setError(t("common.error"))}
-                      useOneTap={false}
-                      width="100%"
-                    />
-                  </Box>
-                </>
-              )}
-              <Typography sx={{ mt: 3, textAlign: "center", color: "text.secondary" }}>
-                {t("auth.hasAccount")}{" "}
-                <Box component={Link} href={`/${locale}/auth/login`} sx={{ color: "primary.main", fontWeight: 700, textDecoration: "none" }}>
-                  {t("common.login")}
+            </>
+          )}
+        </Box>
+      </Box>
+
+      {/* ── DESKTOP LAYOUT ── unchanged */}
+      <Container maxWidth="md" sx={{ display: { xs: "none", md: "block" }, py: 8 }}>
+        <Grid container spacing={0} sx={{ minHeight: 580 }}>
+          {/* Decorative side panel */}
+          <Grid
+            size={{ md: 5 }}
+            sx={(theme) => ({
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 50%, ${theme.palette.primary.light} 100%)`,
+              borderRadius: "16px 0 0 16px",
+              color: "white",
+              p: 4,
+              position: "relative",
+              overflow: "hidden",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: "-50%",
+                right: "-30%",
+                width: "200px",
+                height: "200px",
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.06)",
+              },
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                bottom: "-20%",
+                left: "-20%",
+                width: "150px",
+                height: "150px",
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.04)",
+              },
+            })}
+          >
+            <PersonAddAltIcon sx={{ fontSize: 56, mb: 2, opacity: 0.9 }} />
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, textAlign: "center", display: "inline-flex", alignItems: "center", gap: 1 }}>
+              <PetsIcon sx={{ fontSize: 24, transform: "rotate(-15deg)" }} />
+              {t("common.appName")}
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.8, textAlign: "center" }}>
+              {t("home.heroSubtitle")}
+            </Typography>
+          </Grid>
+
+          {/* Form */}
+          <Grid size={{ md: 7 }}>
+            <Card sx={{ height: "100%", borderRadius: "0 16px 16px 0" }}>
+              <CardContent sx={{ p: 5, height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <Typography variant="h4" gutterBottom sx={{ fontWeight: 800, mb: 3 }}>
+                  {t("auth.registerTitle")}
+                </Typography>
+                {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
+                <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <input type="text" name="website" value={_hp} onChange={(e) => setHp(e.target.value)} tabIndex={-1} aria-hidden="true" autoComplete="off" style={{ display: "none" }} />
+                  <TextField label={t("auth.name")} value={form.name} onChange={handleChange("name")} required fullWidth />
+                  <TextField label={t("auth.email")} type="email" value={form.email} onChange={handleChange("email")} required fullWidth />
+                  <TextField label={t("auth.phone")} value={form.phone} onChange={handleChange("phone")} fullWidth />
+                  <TextField label={t("auth.password")} type="password" value={form.password} onChange={handleChange("password")} required fullWidth />
+                  <TextField label={t("auth.confirmPassword")} type="password" value={form.password_confirmation} onChange={handleChange("password_confirmation")} required fullWidth />
+                  <AltchaWidget onSolve={setAltcha} />
+                  <FormControlLabel
+                    control={<Checkbox checked={isVendor} onChange={(e) => setIsVendor(e.target.checked)} sx={{ "&.Mui-checked": { color: "primary.main" } }} />}
+                    label={t("auth.registerAsVendor")}
+                    sx={{ "& .MuiFormControlLabel-label": { fontWeight: 500, fontSize: "0.9rem" } }}
+                  />
+                  <Button type="submit" variant="contained" size="large" fullWidth disabled={isLoading} sx={{ py: 1.5, borderRadius: 3, fontSize: "1rem" }}>
+                    {t("auth.registerTitle")}
+                  </Button>
                 </Box>
-              </Typography>
-            </CardContent>
-          </Card>
+                {googleClientId && (
+                  <>
+                    <Divider sx={{ my: 2 }}>{t("auth.orContinueWith")}</Divider>
+                    <Box sx={{ display: "flex", justifyContent: "center" }}>
+                      <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError(t("common.error"))} useOneTap={false} width="100%" />
+                    </Box>
+                  </>
+                )}
+                <Typography sx={{ mt: 3, textAlign: "center", color: "text.secondary" }}>
+                  {t("auth.hasAccount")}{" "}
+                  <Box component={Link} href={`/${locale}/auth/login`} sx={{ color: "primary.main", fontWeight: 700, textDecoration: "none" }}>
+                    {t("common.login")}
+                  </Box>
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-      </Grid>
-    </Container>
+      </Container>
+    </>
   );
 }
