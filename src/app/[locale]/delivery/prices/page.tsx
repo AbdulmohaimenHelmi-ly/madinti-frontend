@@ -2,33 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  MenuItem,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { Plus, Trash2, ArrowRight, AlertCircle } from "lucide-react";
 
 import { deliveryApi, type DeliveryPrice } from "@/lib/api/delivery";
 import { citiesApi, type City, type Area } from "@/lib/api/cities";
@@ -198,21 +172,22 @@ export default function DeliveryPricesPage() {
   );
 
   return (
-    <Box>
+    <div>
       <DeliveryPageHeader
         title={t("prices")}
         subtitle={t("pricesSubtitle")}
         action={{
           label: t("addPrice"),
-          icon: <AddIcon />,
+          icon: <Plus size={16} />,
           onClick: openDialog,
         }}
       />
 
       {pageError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {pageError}
-        </Alert>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>{pageError}</span>
+        </div>
       )}
 
       <AdminToolbar
@@ -253,220 +228,192 @@ export default function DeliveryPricesPage() {
       />
 
       {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-          <CircularProgress />
-        </Box>
+        <div className="flex justify-center py-6">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-[var(--color-primary)]" />
+        </div>
       ) : (
-        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>{t("fromCity")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("fromArea")}</TableCell>
-                <TableCell sx={{ fontWeight: 700, width: 36 }} />
-                <TableCell sx={{ fontWeight: 700 }}>{t("city")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("area")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }} align="right">
-                  {t("price")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }} />
-              </TableRow>
-            </TableHead>
-            <TableBody>
+        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("fromCity")}</th>
+                <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("fromArea")}</th>
+                <th className="px-4 py-3 w-9" />
+                <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("city")}</th>
+                <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("area")}</th>
+                <th className="px-4 py-3 text-end text-xs font-bold uppercase tracking-wide text-gray-500">{t("price")}</th>
+                <th className="px-4 py-3" />
+              </tr>
+            </thead>
+            <tbody>
               {sortedPrices.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={7}
-                    align="center"
-                    sx={{ py: 4, color: "text.secondary" }}
-                  >
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
                     {t("noPrices")}
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               )}
               {sortedPrices.map((p) => (
-                <TableRow key={p.id} hover>
-                  <TableCell>
+                <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                  <td className="px-4 py-3">
                     {p.from_city ? (
                       cityName(p.from_city)
                     ) : (
-                      <Chip
-                        label={t("anyOrigin")}
-                        size="small"
-                        variant="outlined"
-                      />
+                      <span className="inline-flex items-center rounded-full border border-gray-300 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
+                        {t("anyOrigin")}
+                      </span>
                     )}
-                  </TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="px-4 py-3">
                     {p.from_area ? (
                       cityName(p.from_area)
                     ) : (
-                      <Typography
-                        component="span"
-                        variant="caption"
-                        color="text.secondary"
-                      >
-                        {t("anyArea")}
-                      </Typography>
+                      <span className="text-xs text-gray-400">{t("anyArea")}</span>
                     )}
-                  </TableCell>
-                  <TableCell sx={{ color: "text.disabled", px: 0 }}>
-                    <ArrowForwardIcon
-                      fontSize="small"
-                      sx={{
-                        transform: isAr ? "rotate(180deg)" : "none",
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>{cityName(p.city)}</TableCell>
-                  <TableCell>
+                  </td>
+                  <td className="px-1 py-3 text-gray-300">
+                    <ArrowRight size={16} className={isAr ? "rotate-180" : ""} />
+                  </td>
+                  <td className="px-4 py-3">{cityName(p.city)}</td>
+                  <td className="px-4 py-3">
                     {p.area ? (
                       cityName(p.area)
                     ) : (
-                      <Typography
-                        component="span"
-                        variant="caption"
-                        color="text.secondary"
-                      >
-                        {t("anyArea")}
-                      </Typography>
+                      <span className="text-xs text-gray-400">{t("anyArea")}</span>
                     )}
-                  </TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 700 }}>
+                  </td>
+                  <td className="px-4 py-3 text-end font-bold">
                     {Number(p.price).toFixed(2)}
-                  </TableCell>
-                  <TableCell>
-                    <Tooltip title={t("delete")}>
-                      <IconButton
-                        color="error"
-                        onClick={() => onDelete(p.id)}
-                        size="small"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      type="button"
+                      title={t("delete")}
+                      onClick={() => onDelete(p.id)}
+                      className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </td>
+                </tr>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            </tbody>
+          </table>
+        </div>
       )}
 
-      <Dialog open={dialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 700 }}>{t("addPrice")}</DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2} sx={{ pt: 1 }}>
-            {formError && <Alert severity="error">{formError}</Alert>}
+      {dialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={closeDialog} />
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">{t("addPrice")}</h2>
+            </div>
+            <div className="px-6 py-4 space-y-4">
+              {formError && (
+                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                  <span>{formError}</span>
+                </div>
+              )}
 
-            <Typography variant="overline" color="text.secondary">
-              {t("origin")}
-            </Typography>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t("origin")}</p>
 
-            <TextField
-              select
-              label={t("fromCity")}
-              value={fromCityId}
-              onChange={(e) =>
-                setFromCityId(
-                  e.target.value === "" ? "" : Number(e.target.value)
-                )
-              }
-              helperText={t("fromCityHelp")}
-              fullWidth
-            >
-              <MenuItem value="">{t("anyOrigin")}</MenuItem>
-              {cities.map((c) => (
-                <MenuItem key={c.id} value={c.id}>
-                  {cityName(c)}
-                </MenuItem>
-              ))}
-            </TextField>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("fromCity")}</label>
+                <select
+                  value={fromCityId}
+                  onChange={(e) => setFromCityId(e.target.value === "" ? "" : Number(e.target.value))}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                >
+                  <option value="">{t("anyOrigin")}</option>
+                  {cities.map((c) => (
+                    <option key={c.id} value={c.id}>{cityName(c)}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400 mt-0.5">{t("fromCityHelp")}</p>
+              </div>
 
-            <TextField
-              select
-              label={t("fromArea")}
-              value={fromAreaId}
-              onChange={(e) =>
-                setFromAreaId(
-                  e.target.value === "" ? "" : Number(e.target.value)
-                )
-              }
-              disabled={!fromCityId}
-              helperText={t("areaHelp")}
-              fullWidth
-            >
-              <MenuItem value="">{t("anyArea")}</MenuItem>
-              {fromAreas.map((a) => (
-                <MenuItem key={a.id} value={a.id}>
-                  {cityName(a)}
-                </MenuItem>
-              ))}
-            </TextField>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("fromArea")}</label>
+                <select
+                  value={fromAreaId}
+                  onChange={(e) => setFromAreaId(e.target.value === "" ? "" : Number(e.target.value))}
+                  disabled={!fromCityId}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
+                >
+                  <option value="">{t("anyArea")}</option>
+                  {fromAreas.map((a) => (
+                    <option key={a.id} value={a.id}>{cityName(a)}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400 mt-0.5">{t("areaHelp")}</p>
+              </div>
 
-            <Typography variant="overline" color="text.secondary">
-              {t("destination")}
-            </Typography>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t("destination")}</p>
 
-            <TextField
-              select
-              label={t("city")}
-              value={cityId}
-              onChange={(e) =>
-                setCityId(e.target.value === "" ? "" : Number(e.target.value))
-              }
-              fullWidth
-            >
-              <MenuItem value="">{t("selectCity")}</MenuItem>
-              {cities.map((c) => (
-                <MenuItem key={c.id} value={c.id}>
-                  {cityName(c)}
-                </MenuItem>
-              ))}
-            </TextField>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("city")}</label>
+                <select
+                  value={cityId}
+                  onChange={(e) => setCityId(e.target.value === "" ? "" : Number(e.target.value))}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                >
+                  <option value="">{t("selectCity")}</option>
+                  {cities.map((c) => (
+                    <option key={c.id} value={c.id}>{cityName(c)}</option>
+                  ))}
+                </select>
+              </div>
 
-            <TextField
-              select
-              label={t("area")}
-              value={areaId}
-              onChange={(e) =>
-                setAreaId(e.target.value === "" ? "" : Number(e.target.value))
-              }
-              disabled={!cityId}
-              helperText={t("areaHelp")}
-              fullWidth
-            >
-              <MenuItem value="">{t("anyArea")}</MenuItem>
-              {toAreas.map((a) => (
-                <MenuItem key={a.id} value={a.id}>
-                  {cityName(a)}
-                </MenuItem>
-              ))}
-            </TextField>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("area")}</label>
+                <select
+                  value={areaId}
+                  onChange={(e) => setAreaId(e.target.value === "" ? "" : Number(e.target.value))}
+                  disabled={!cityId}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
+                >
+                  <option value="">{t("anyArea")}</option>
+                  {toAreas.map((a) => (
+                    <option key={a.id} value={a.id}>{cityName(a)}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400 mt-0.5">{t("areaHelp")}</p>
+              </div>
 
-            <TextField
-              label={t("price")}
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              fullWidth
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button onClick={closeDialog} disabled={adding}>
-            {tCommon("cancel")}
-          </Button>
-          <Button
-            variant="contained"
-            onClick={onAdd}
-            disabled={adding || !cityId || price === ""}
-            startIcon={<AddIcon />}
-          >
-            {t("add")}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("price")}</label>
+                <input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={closeDialog}
+                disabled={adding}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={onAdd}
+                disabled={adding || !cityId || price === ""}
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                style={{ background: "var(--color-primary)" }}
+              >
+                <Plus size={16} /> {t("add")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

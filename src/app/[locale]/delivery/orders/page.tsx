@@ -3,20 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
+import { AlertCircle } from "lucide-react";
 
 import DeliveryPageHeader from "@/components/delivery/DeliveryPageHeader";
 import AdminToolbar from "@/components/admin/AdminToolbar";
@@ -42,16 +29,13 @@ const STATUSES = [
 
 type OrderStatus = (typeof STATUSES)[number];
 
-const STATUS_COLOR: Record<
-  OrderStatus,
-  "default" | "primary" | "warning" | "info" | "success" | "error"
-> = {
-  pending: "warning",
-  processing: "info",
-  shipped: "primary",
-  delivered: "success",
-  cancelled: "error",
-  refunded: "default",
+const STATUS_CHIP: Record<OrderStatus, string> = {
+  pending: "bg-yellow-100 text-yellow-700",
+  processing: "bg-blue-100 text-blue-700",
+  shipped: "bg-indigo-100 text-indigo-700",
+  delivered: "bg-green-100 text-green-700",
+  cancelled: "bg-red-100 text-red-700",
+  refunded: "bg-purple-100 text-purple-700",
 };
 
 export default function DeliveryOrdersPage() {
@@ -127,7 +111,7 @@ export default function DeliveryOrdersPage() {
   );
 
   return (
-    <Box>
+    <div>
       <DeliveryPageHeader title={t("orders")} subtitle={t("ordersSubtitle")} />
 
       <AdminToolbar
@@ -160,9 +144,11 @@ export default function DeliveryOrdersPage() {
       />
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
-          {error}
-        </Alert>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>{error}</span>
+          <button type="button" onClick={() => setError("")} className="ml-auto text-red-400 hover:text-red-600">✕</button>
+        </div>
       )}
 
       {loading ? (
@@ -171,23 +157,21 @@ export default function DeliveryOrdersPage() {
         <EmptyState message={t("noOrders")} />
       ) : (
         <>
-          <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700 }}>{t("orderNumber")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>{t("date")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>{t("vendor")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>{t("customer")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>{t("city")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>{t("total")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }} align="right">
-                    {t("actions")}
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("orderNumber")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("date")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("vendor")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("customer")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("city")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("total")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("status")}</th>
+                  <th className="px-4 py-3 text-end text-xs font-bold uppercase tracking-wide text-gray-500">{t("actions")}</th>
+                </tr>
+              </thead>
+              <tbody>
                 {orders.map((o) => {
                   const addr =
                     typeof o.shipping_address === "object" && o.shipping_address
@@ -196,36 +180,32 @@ export default function DeliveryOrdersPage() {
                   const customerName = o.user?.name ?? addr?.name ?? "—";
                   const cityName = o.shipping_city ?? addr?.city ?? "—";
                   return (
-                    <TableRow key={o.id} hover>
-                      <TableCell sx={{ fontWeight: 600 }}>#{o.order_number}</TableCell>
-                      <TableCell>{formatDate(o.created_at)}</TableCell>
-                      <TableCell>{o.vendor?.store_name ?? "—"}</TableCell>
-                      <TableCell>{customerName}</TableCell>
-                      <TableCell>{cityName}</TableCell>
-                      <TableCell>{currency(o.total)}</TableCell>
-                      <TableCell>
-                        <Chip
-                          size="small"
-                          label={statusLabel[o.status]}
-                          color={STATUS_COLOR[o.status]}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <Button
-                          component={Link}
+                    <tr key={o.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                      <td className="px-4 py-3 font-semibold">#{o.order_number}</td>
+                      <td className="px-4 py-3">{formatDate(o.created_at)}</td>
+                      <td className="px-4 py-3">{o.vendor?.store_name ?? "—"}</td>
+                      <td className="px-4 py-3">{customerName}</td>
+                      <td className="px-4 py-3">{cityName}</td>
+                      <td className="px-4 py-3">{currency(o.total)}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_CHIP[o.status as OrderStatus] ?? "bg-gray-100 text-gray-600"}`}>
+                          {statusLabel[o.status as OrderStatus]}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-end">
+                        <Link
                           href={`/${locale}/delivery/orders/${o.id}`}
-                          size="small"
-                          variant="outlined"
+                          className="inline-flex items-center gap-2 rounded-xl border border-blue-300 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-50"
                         >
                           {t("viewOrder")}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                        </Link>
+                      </td>
+                    </tr>
                   );
                 })}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              </tbody>
+            </table>
+          </div>
           <DataPagination
             page={page}
             lastPage={lastPage}
@@ -233,15 +213,11 @@ export default function DeliveryOrdersPage() {
             perPage={15}
             onChange={setPage}
           />
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ mt: 1, display: "block", textAlign: "end" }}
-          >
+          <span className="mt-1 block text-end text-xs text-gray-500">
             {total} {t("orders")}
-          </Typography>
+          </span>
         </>
       )}
-    </Box>
+    </div>
   );
 }

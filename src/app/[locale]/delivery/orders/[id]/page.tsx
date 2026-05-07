@@ -4,33 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Chip,
-  CircularProgress,
-  Divider,
-  Grid,
-  Paper,
-  Snackbar,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
-import Inventory2Icon from "@mui/icons-material/Inventory2";
+import { ArrowLeft, ArrowRight, Truck, CheckCircle, XCircle, Package, AlertCircle } from "lucide-react";
 
 import DeliveryPageHeader from "@/components/delivery/DeliveryPageHeader";
 import { deliveryApi } from "@/lib/api/delivery";
@@ -41,14 +15,14 @@ type OrderDetail = Order & {
   user?: { id: number; name?: string | null; phone?: string | null; email?: string | null } | null;
 };
 
-const STATUS_COLOR = {
-  pending: "warning",
-  processing: "info",
-  shipped: "primary",
-  delivered: "success",
-  cancelled: "error",
-  refunded: "default",
-} as const;
+const STATUS_CHIP: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-700",
+  processing: "bg-blue-100 text-blue-700",
+  shipped: "bg-indigo-100 text-indigo-700",
+  delivered: "bg-green-100 text-green-700",
+  cancelled: "bg-red-100 text-red-700",
+  refunded: "bg-purple-100 text-purple-700",
+};
 
 export default function DeliveryOrderDetailPage() {
   const t = useTranslations("delivery");
@@ -63,7 +37,7 @@ export default function DeliveryOrderDetailPage() {
   const [snack, setSnack] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
 
-  const Back = locale === "ar" ? ArrowForwardIcon : ArrowBackIcon;
+  const BackIcon = locale === "ar" ? ArrowRight : ArrowLeft;
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -82,6 +56,12 @@ export default function DeliveryOrderDetailPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!snack) return;
+    const timer = setTimeout(() => setSnack(null), 3000);
+    return () => clearTimeout(timer);
+  }, [snack]);
 
   const statusLabel = useMemo(
     () => ({
@@ -120,18 +100,21 @@ export default function DeliveryOrderDetailPage() {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center py-6">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-[var(--color-primary)]" />
+      </div>
     );
   }
 
   if (!order) {
     return (
-      <Box>
+      <div>
         <DeliveryPageHeader title={t("orders")} />
-        <Alert severity="error">{error || t("loadError")}</Alert>
-      </Box>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>{error || t("loadError")}</span>
+        </div>
+      </div>
     );
   }
 
@@ -142,7 +125,7 @@ export default function DeliveryOrderDetailPage() {
 
   const nextActions: Array<{
     label: string;
-    color: "primary" | "success" | "info" | "error";
+    btnClass: string;
     icon: React.ReactNode;
     target: "processing" | "shipped" | "delivered" | "cancelled";
   }> = [];
@@ -150,38 +133,38 @@ export default function DeliveryOrderDetailPage() {
   if (order.status === "pending") {
     nextActions.push({
       label: t("markProcessing"),
-      color: "info",
-      icon: <Inventory2Icon />,
+      btnClass: "inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50 bg-blue-600",
+      icon: <Package size={16} />,
       target: "processing",
     });
   }
   if (order.status === "processing") {
     nextActions.push({
       label: t("markShipped"),
-      color: "primary",
-      icon: <LocalShippingIcon />,
+      btnClass: "inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50",
+      icon: <Truck size={16} />,
       target: "shipped",
     });
   }
   if (order.status === "shipped") {
     nextActions.push({
       label: t("markDelivered"),
-      color: "success",
-      icon: <CheckCircleIcon />,
+      btnClass: "inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50 bg-green-600",
+      icon: <CheckCircle size={16} />,
       target: "delivered",
     });
   }
   if (["pending", "processing"].includes(order.status)) {
     nextActions.push({
       label: t("cancelOrder"),
-      color: "error",
-      icon: <CancelIcon />,
+      btnClass: "inline-flex items-center gap-2 rounded-xl border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50",
+      icon: <XCircle size={16} />,
       target: "cancelled",
     });
   }
 
   return (
-    <Box>
+    <div>
       <DeliveryPageHeader
         title={`#${order.order_number}`}
         breadcrumb={t("orders")}
@@ -189,207 +172,147 @@ export default function DeliveryOrderDetailPage() {
       />
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }} onClose={() => setError("")}>
-          {error}
-        </Alert>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>{error}</span>
+          <button type="button" onClick={() => setError("")} className="ml-auto text-red-400 hover:text-red-600">✕</button>
+        </div>
       )}
 
-      <Stack direction="row" sx={{ mb: 2 }}>
-        <Button
-          component={Link}
+      <div className="mb-4">
+        <Link
           href={`/${locale}/delivery/orders`}
-          startIcon={<Back />}
-          size="small"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-gray-600 hover:bg-gray-100 transition"
         >
+          <BackIcon size={16} />
           {t("backToOrders")}
-        </Button>
-      </Stack>
+        </Link>
+      </div>
 
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Paper
-            sx={{
-              p: 3,
-              mb: 3,
-              borderRadius: 3,
-              border: "1px solid",
-              borderColor: "divider",
-            }}
-          >
-            <Stack
-              direction="row"
-              spacing={2}
-              sx={{ alignItems: "center", justifyContent: "space-between", mb: 2 }}
-            >
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                {t("status")}
-              </Typography>
-              <Chip
-                label={statusLabel[order.status]}
-                color={STATUS_COLOR[order.status]}
-                sx={{ fontWeight: 700 }}
-              />
-            </Stack>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+        <div className="md:col-span-8">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-extrabold">{t("status")}</h2>
+              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_CHIP[order.status] ?? "bg-gray-100 text-gray-600"}`}>
+                {statusLabel[order.status]}
+              </span>
+            </div>
             {nextActions.length > 0 && (
-              <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", gap: 1 }}>
+              <div className="flex flex-wrap gap-2">
                 {nextActions.map((a) => (
-                  <Button
+                  <button
                     key={a.target}
+                    type="button"
                     onClick={() => setStatus(a.target)}
                     disabled={updating}
-                    variant={a.color === "error" ? "outlined" : "contained"}
-                    color={a.color}
-                    startIcon={a.icon}
+                    className={a.btnClass}
+                    style={a.target === "shipped" ? { background: "var(--color-primary)" } : undefined}
                   >
+                    {a.icon}
                     {a.label}
-                  </Button>
+                  </button>
                 ))}
-              </Stack>
+              </div>
             )}
-          </Paper>
+          </div>
 
-          <Paper
-            sx={{
-              p: 0,
-              mb: 3,
-              borderRadius: 3,
-              border: "1px solid",
-              borderColor: "divider",
-              overflow: "hidden",
-            }}
-          >
-            <Box sx={{ px: 3, pt: 3, pb: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 800 }}>
-                {t("items")}
-              </Typography>
-            </Box>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>{t("items")}</TableCell>
-                    <TableCell align="right">{t("price")}</TableCell>
-                    <TableCell align="right">×</TableCell>
-                    <TableCell align="right">{t("total")}</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
+          <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden mb-4">
+            <div className="px-6 pt-6 pb-2">
+              <h2 className="text-lg font-extrabold">{t("items")}</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("items")}</th>
+                    <th className="px-4 py-3 text-end text-xs font-bold uppercase tracking-wide text-gray-500">{t("price")}</th>
+                    <th className="px-4 py-3 text-end text-xs font-bold uppercase tracking-wide text-gray-500">×</th>
+                    <th className="px-4 py-3 text-end text-xs font-bold uppercase tracking-wide text-gray-500">{t("total")}</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {order.items.map((it) => (
-                    <TableRow key={it.id}>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    <tr key={it.id} className="border-b border-gray-100">
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-sm">
                           {it.product_name ?? it.product?.name ?? `#${it.product_id}`}
-                        </Typography>
+                        </p>
                         {it.variant_label && (
-                          <Typography variant="caption" color="text.secondary">
-                            {it.variant_label}
-                          </Typography>
+                          <span className="text-xs text-gray-400">{it.variant_label}</span>
                         )}
-                      </TableCell>
-                      <TableCell align="right">{currency(it.price)}</TableCell>
-                      <TableCell align="right">{it.quantity}</TableCell>
-                      <TableCell align="right">{currency(it.total)}</TableCell>
-                    </TableRow>
+                      </td>
+                      <td className="px-4 py-3 text-end">{currency(it.price)}</td>
+                      <td className="px-4 py-3 text-end">{it.quantity}</td>
+                      <td className="px-4 py-3 text-end">{currency(it.total)}</td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <Divider />
-            <Box sx={{ p: 3 }}>
-              <Stack spacing={1} sx={{ maxWidth: 320, ml: "auto" }}>
-                <Stack direction="row" sx={{ justifyContent: "space-between" }}>
-                  <Typography variant="body2" color="text.secondary">
-                    {t("price")}
-                  </Typography>
-                  <Typography variant="body2">{currency(order.subtotal)}</Typography>
-                </Stack>
-                <Stack direction="row" sx={{ justifyContent: "space-between" }}>
-                  <Typography variant="body2" color="text.secondary">
-                    {t("orders")} ({t("price")})
-                  </Typography>
-                  <Typography variant="body2">{currency(order.shipping_cost)}</Typography>
-                </Stack>
-                <Divider />
-                <Stack direction="row" sx={{ justifyContent: "space-between" }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                    {t("total")}
-                  </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                    {currency(order.total)}
-                  </Typography>
-                </Stack>
-              </Stack>
-            </Box>
-          </Paper>
-        </Grid>
+                </tbody>
+              </table>
+            </div>
+            <hr className="border-gray-100" />
+            <div className="p-6">
+              <div className="ml-auto max-w-xs space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500">{t("price")}</span>
+                  <span className="text-sm">{currency(order.subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-500">{t("orders")} ({t("price")})</span>
+                  <span className="text-sm">{currency(order.shipping_cost)}</span>
+                </div>
+                <hr className="border-gray-100" />
+                <div className="flex justify-between">
+                  <span className="text-base font-extrabold">{t("total")}</span>
+                  <span className="text-base font-extrabold">{currency(order.total)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card sx={{ mb: 3, borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-            <CardContent>
-              <Typography variant="overline" color="text.secondary">
-                {t("vendor")}
-              </Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                {order.vendor?.store_name ?? "—"}
-              </Typography>
-              {order.vendor?.phone && (
-                <Typography variant="body2" color="text.secondary">
-                  {order.vendor.phone}
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
+        <div className="md:col-span-4">
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 mb-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">{t("vendor")}</p>
+            <p className="text-base font-bold">{order.vendor?.store_name ?? "—"}</p>
+            {order.vendor?.phone && (
+              <p className="text-sm text-gray-500">{order.vendor.phone}</p>
+            )}
+          </div>
 
-          <Card sx={{ mb: 3, borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-            <CardContent>
-              <Typography variant="overline" color="text.secondary">
-                {t("customer")}
-              </Typography>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                {order.user?.name ?? addr?.name ?? "—"}
-              </Typography>
-              {(order.shipping_phone || addr?.phone || order.user?.phone) && (
-                <Typography variant="body2" color="text.secondary">
-                  {order.shipping_phone ?? addr?.phone ?? order.user?.phone}
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 mb-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">{t("customer")}</p>
+            <p className="text-base font-bold">{order.user?.name ?? addr?.name ?? "—"}</p>
+            {(order.shipping_phone || addr?.phone || order.user?.phone) && (
+              <p className="text-sm text-gray-500">
+                {order.shipping_phone ?? addr?.phone ?? order.user?.phone}
+              </p>
+            )}
+          </div>
 
-          <Card sx={{ borderRadius: 3, border: "1px solid", borderColor: "divider" }}>
-            <CardContent>
-              <Typography variant="overline" color="text.secondary">
-                {t("shippingAddress")}
-              </Typography>
-              {addr ? (
-                <Box>
-                  {addr.address && (
-                    <Typography variant="body2">{addr.address}</Typography>
-                  )}
-                  {(addr.city || order.shipping_city) && (
-                    <Typography variant="body2" color="text.secondary">
-                      {addr.city ?? order.shipping_city}
-                    </Typography>
-                  )}
-                </Box>
-              ) : typeof order.shipping_address === "string" ? (
-                <Typography variant="body2">{order.shipping_address}</Typography>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  —
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+          <div className="rounded-2xl border border-gray-200 bg-white p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">{t("shippingAddress")}</p>
+            {addr ? (
+              <div>
+                {addr.address && <p className="text-sm">{addr.address}</p>}
+                {(addr.city || order.shipping_city) && (
+                  <p className="text-sm text-gray-500">{addr.city ?? order.shipping_city}</p>
+                )}
+              </div>
+            ) : typeof order.shipping_address === "string" ? (
+              <p className="text-sm">{order.shipping_address}</p>
+            ) : (
+              <p className="text-sm text-gray-400">—</p>
+            )}
+          </div>
+        </div>
+      </div>
 
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={3000}
-        onClose={() => setSnack(null)}
-        message={snack}
-      />
-    </Box>
+      {snack && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {snack}
+        </div>
+      )}
+    </div>
   );
 }
