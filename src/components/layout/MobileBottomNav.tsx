@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -50,7 +51,14 @@ const TABS = [
       p.startsWith(`/${locale}/favorites`) ||
       p.startsWith(`/${locale}/auth`),
   },
-] as const;
+] satisfies Array<{
+  key: string;
+  path: string | null;
+  labelKey: string;
+  Icon: React.ElementType;
+  match: (p: string, locale: string) => boolean;
+  badge?: boolean;
+}>;
 
 export default function MobileBottomNav() {
   const t = useTranslations("common");

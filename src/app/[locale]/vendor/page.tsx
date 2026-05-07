@@ -158,7 +158,7 @@ export default function VendorDashboardPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="label" tick={{ fontSize: 11 }} angle={-20} textAnchor="end" />
                     <YAxis tick={{ fontSize: 11 }} />
-                    <ReTooltip formatter={(v: number) => currency(v)} />
+                    <ReTooltip formatter={(v) => currency(v as number)} />
                     <Bar dataKey="revenue" name={t("totalSales")} fill="#2e7d32" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>

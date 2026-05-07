@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, MouseEvent } from "react";
-import { Storefront, Group, ShoppingBag, Heart, Lock, LockOpen, Star, Ban, Loader2 } from "lucide-react";
+import { ShoppingBag, Heart, Lock, LockOpen, Star, Ban, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
