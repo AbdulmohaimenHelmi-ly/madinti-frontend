@@ -3,7 +3,7 @@
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PawPrint, Facebook, Instagram, Globe, Mail, Phone } from "lucide-react";
+import { PawPrint, Twitter, Globe, Mail, Phone } from "lucide-react";
 
 export default function Footer() {
   const t = useTranslations();
@@ -33,7 +33,7 @@ export default function Footer() {
           </h2>
           <p className="text-sm opacity-80 leading-[1.8] mb-4">{t("footer.aboutText")}</p>
           <div className="flex gap-2">
-            {[{ Icon: Facebook, label: "Facebook" }, { Icon: Instagram, label: "Instagram" }, { Icon: Globe, label: "X" }].map(({ Icon, label }) => (
+            {[{ Icon: Twitter, label: "Twitter" }, { Icon: Globe, label: "Website" }].map(({ Icon, label }) => (
               <button key={label} type="button" aria-label={label} className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition">
                 <Icon size={15} />
               </button>

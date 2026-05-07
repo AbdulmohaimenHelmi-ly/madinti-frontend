@@ -3,31 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  MenuItem,
-  Paper,
-  Snackbar,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import VisibilityIcon from "@mui/icons-material/Visibility";
+import { Pencil, Eye, AlertCircle } from "lucide-react";
 
 import { adminApi } from "@/lib/api/admin";
 import type { Order } from "@/lib/types";
@@ -48,16 +24,13 @@ const STATUSES = [
 
 type Status = (typeof STATUSES)[number];
 
-const statusColor: Record<
-  Status,
-  "warning" | "info" | "primary" | "success" | "error" | "default"
-> = {
-  pending: "warning",
-  processing: "info",
-  shipped: "primary",
-  delivered: "success",
-  cancelled: "error",
-  refunded: "default",
+const STATUS_CHIP: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-700",
+  processing: "bg-blue-100 text-blue-700",
+  shipped: "bg-indigo-100 text-indigo-700",
+  delivered: "bg-green-100 text-green-700",
+  cancelled: "bg-red-100 text-red-700",
+  refunded: "bg-purple-100 text-purple-700",
 };
 
 export default function AdminOrdersPage() {
@@ -98,6 +71,12 @@ export default function AdminOrdersPage() {
     load();
   }, [load]);
 
+  useEffect(() => {
+    if (!snack) return;
+    const timer = setTimeout(() => setSnack(""), 3000);
+    return () => clearTimeout(timer);
+  }, [snack]);
+
   const openOrder = async (id: number) => {
     try {
       const res = await adminApi.getOrder(id);
@@ -131,7 +110,7 @@ export default function AdminOrdersPage() {
   };
 
   return (
-    <Box>
+    <div>
       <AdminPageHeader title={t("orders")} subtitle={t("ordersSubtitle")} />
 
       <AdminToolbar
@@ -150,9 +129,11 @@ export default function AdminOrdersPage() {
       />
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
-          {error}
-        </Alert>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>{error}</span>
+          <button type="button" onClick={() => setError("")} className="ml-auto text-red-400 hover:text-red-600">✕</button>
+        </div>
       )}
 
       {loading ? (
@@ -161,181 +142,140 @@ export default function AdminOrdersPage() {
         <EmptyState message={tOrder("noOrders")} />
       ) : (
         <>
-        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {tOrder("orderNumber")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("name")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("storeName")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{tOrder("status")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {tCommon("total")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{tOrder("date")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {t("actions")}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {orders.map((o) => {
-                const rich = o as Order & {
-                  user?: { id: number; name: string; email: string };
-                  vendor?: { id: number; store_name: string } | null;
-                };
-                return (
-                  <TableRow key={o.id} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>
-                      #{o.order_number}
-                    </TableCell>
-                    <TableCell>{rich.user?.name ?? "—"}</TableCell>
-                    <TableCell>{rich.vendor?.store_name ?? "—"}</TableCell>
-                    <TableCell>
-                      <Chip
-                        size="small"
-                        color={statusColor[o.status as Status]}
-                        label={tOrder(`statuses.${o.status}`)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {Number(o.total).toFixed(2)} {tCommon("currency")}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(o.created_at).toLocaleDateString(
-                        locale === "ar" ? "ar-LY" : "en-US"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Stack
-                        direction="row"
-                        spacing={0.5}
-                        sx={{ justifyContent: "flex-start" }}
-                      >
-                        <Tooltip title={tCommon("view")}>
-                          <IconButton
-                            size="small"
-                            component={Link}
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{tOrder("orderNumber")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("name")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("storeName")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{tOrder("status")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{tCommon("total")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{tOrder("date")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("actions")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((o) => {
+                  const rich = o as Order & {
+                    user?: { id: number; name: string; email: string };
+                    vendor?: { id: number; store_name: string } | null;
+                  };
+                  return (
+                    <tr key={o.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                      <td className="px-4 py-3 font-semibold">#{o.order_number}</td>
+                      <td className="px-4 py-3">{rich.user?.name ?? "—"}</td>
+                      <td className="px-4 py-3">{rich.vendor?.store_name ?? "—"}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_CHIP[o.status] ?? "bg-gray-100 text-gray-600"}`}>
+                          {tOrder(`statuses.${o.status}`)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {Number(o.total).toFixed(2)} {tCommon("currency")}
+                      </td>
+                      <td className="px-4 py-3">
+                        {new Date(o.created_at).toLocaleDateString(
+                          locale === "ar" ? "ar-LY" : "en-US"
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <Link
                             href={`/${locale}/orders/${o.id}`}
                             target="_blank"
+                            title={tCommon("view")}
+                            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition inline-flex"
                           >
-                            <VisibilityIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title={tCommon("edit")}>
-                          <IconButton
-                            size="small"
-                            color="primary"
+                            <Eye size={16} />
+                          </Link>
+                          <button
+                            type="button"
+                            title={tCommon("edit")}
+                            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition"
                             onClick={() => openOrder(o.id)}
                           >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <DataPagination
-          page={page}
-          lastPage={lastPage}
-          total={total}
-          perPage={15}
-          onChange={setPage}
-        />
+                            <Pencil size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <DataPagination
+            page={page}
+            lastPage={lastPage}
+            total={total}
+            perPage={15}
+            onChange={setPage}
+          />
         </>
       )}
 
-      <Dialog
-        open={!!viewOrder}
-        onClose={() => setViewOrder(null)}
-        maxWidth="sm"
-        fullWidth
-      >
-        {viewOrder && (
-          <>
-            <DialogTitle sx={{ fontWeight: 700 }}>
-              #{viewOrder.order_number}
-            </DialogTitle>
-            <DialogContent dividers>
-              <Stack spacing={2}>
-                <Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      mb: 1,
-                    }}
-                  >
-                    <span>{tCommon("total")}</span>
-                    <strong>
-                      {Number(viewOrder.total).toFixed(2)} {tCommon("currency")}
-                    </strong>
-                  </Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      mb: 1,
-                    }}
-                  >
-                    <span>{tOrder("shippingAddress")}</span>
-                    <span>{shippingAddressLabel(viewOrder)}</span>
-                  </Box>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      mb: 1,
-                    }}
-                  >
-                    <span>{tOrder("phone")}</span>
-                    <span>{viewOrder.shipping_phone}</span>
-                  </Box>
-                </Box>
-
-                <TextField
-                  select
-                  fullWidth
-                  label={tOrder("status")}
+      {/* Order detail / status update dialog */}
+      {!!viewOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setViewOrder(null)} />
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">#{viewOrder.order_number}</h2>
+            </div>
+            <div className="px-6 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="flex justify-between text-sm">
+                <span>{tCommon("total")}</span>
+                <strong>{Number(viewOrder.total).toFixed(2)} {tCommon("currency")}</strong>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>{tOrder("shippingAddress")}</span>
+                <span>{shippingAddressLabel(viewOrder)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>{tOrder("phone")}</span>
+                <span>{viewOrder.shipping_phone}</span>
+              </div>
+              <hr className="border-gray-100" />
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{tOrder("status")}</label>
+                <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value as Status)}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 >
                   {STATUSES.map((s) => (
-                    <MenuItem key={s} value={s}>
-                      {tOrder(`statuses.${s}`)}
-                    </MenuItem>
+                    <option key={s} value={s}>{tOrder(`statuses.${s}`)}</option>
                   ))}
-                </TextField>
-              </Stack>
-            </DialogContent>
-            <DialogActions sx={{ px: 3, py: 2 }}>
-              <Button onClick={() => setViewOrder(null)}>
+                </select>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setViewOrder(null)}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              >
                 {tCommon("cancel")}
-              </Button>
-              <Button variant="contained" onClick={saveStatus}>
+              </button>
+              <button
+                type="button"
+                onClick={saveStatus}
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                style={{ background: "var(--color-primary)" }}
+              >
                 {tCommon("save")}
-              </Button>
-            </DialogActions>
-          </>
-        )}
-      </Dialog>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={3000}
-        onClose={() => setSnack("")}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert severity="success" onClose={() => setSnack("")}>
+      {snack && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-lg">
           {snack}
-        </Alert>
-      </Snackbar>
-    </Box>
+        </div>
+      )}
+    </div>
   );
 }

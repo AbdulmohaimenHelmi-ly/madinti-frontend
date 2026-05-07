@@ -2,34 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  IconButton,
-  MenuItem,
-  Paper,
-  Snackbar,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import BlockIcon from "@mui/icons-material/Block";
+import { Pencil, Trash2, CheckCircle, Ban, AlertCircle } from "lucide-react";
 
 import { adminApi, type UpdateVendorPayload } from "@/lib/api/admin";
 import { citiesApi, type Area, type City } from "@/lib/api/cities";
@@ -121,6 +94,12 @@ export default function AdminVendorsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!snackbar) return;
+    const timer = setTimeout(() => setSnackbar(""), 3000);
+    return () => clearTimeout(timer);
+  }, [snackbar]);
 
   const handleToggleActive = async (v: Vendor) => {
     setBusyId(v.id);
@@ -239,7 +218,7 @@ export default function AdminVendorsPage() {
     locale === "en" && a.name_en ? a.name_en : a.name;
 
   return (
-    <Box>
+    <div>
       <AdminPageHeader title={t("vendors")} subtitle={t("vendorsSubtitle")} />
 
       <AdminToolbar
@@ -281,9 +260,10 @@ export default function AdminVendorsPage() {
       />
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-          {error}
-        </Alert>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </div>
       )}
 
       {loading ? (
@@ -292,225 +272,223 @@ export default function AdminVendorsPage() {
         <EmptyState message={t("noVendors")} />
       ) : (
         <>
-        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>{t("storeName")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("city")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("phone")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("joinedAt")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {t("actions")}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {vendors.map((v) => (
-                <TableRow key={v.id} hover>
-                  <TableCell sx={{ fontWeight: 600 }}>{storeName(v)}</TableCell>
-                  <TableCell>
-                    {v.city_details
-                      ? v.city_details.name
-                      : v.city || "—"}
-                  </TableCell>
-                  <TableCell>{v.phone || "—"}</TableCell>
-                  <TableCell>
-                    <Chip
-                      size="small"
-                      color={v.is_active ? "success" : "default"}
-                      label={v.is_active ? t("active") : t("inactive")}
-                      sx={{ fontWeight: 600 }}
-                    />
-                  </TableCell>
-                  <TableCell>{formatDate(v.created_at)}</TableCell>
-                  <TableCell>
-                    <Stack
-                      direction="row"
-                      spacing={0.5}
-                      sx={{ justifyContent: "flex-start" }}
-                    >
-                      <Tooltip title={tCommon("edit")}>
-                        <IconButton size="small" onClick={() => openEdit(v)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip
-                        title={v.is_active ? t("deactivate") : t("activate")}
-                      >
-                        <span>
-                          <IconButton
-                            size="small"
-                            disabled={busyId === v.id}
-                            color={v.is_active ? "warning" : "success"}
-                            onClick={() => handleToggleActive(v)}
-                          >
-                            {v.is_active ? (
-                              <BlockIcon fontSize="small" />
-                            ) : (
-                              <CheckCircleIcon fontSize="small" />
-                            )}
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                      <Tooltip title={tCommon("delete")}>
-                        <IconButton
-                          size="small"
-                          color="error"
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("storeName")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("city")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("phone")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("status")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("joinedAt")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("actions")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vendors.map((v) => (
+                  <tr key={v.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                    <td className="px-4 py-3 font-semibold">{storeName(v)}</td>
+                    <td className="px-4 py-3">{v.city_details ? v.city_details.name : v.city || "—"}</td>
+                    <td className="px-4 py-3">{v.phone || "—"}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${v.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                        {v.is_active ? t("active") : t("inactive")}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">{formatDate(v.created_at)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          title={tCommon("edit")}
+                          className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition"
+                          onClick={() => openEdit(v)}
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          title={v.is_active ? t("deactivate") : t("activate")}
+                          disabled={busyId === v.id}
+                          className={`p-1.5 rounded-lg transition disabled:opacity-40 ${v.is_active ? "text-yellow-600 hover:bg-yellow-50" : "text-green-500 hover:bg-green-50"}`}
+                          onClick={() => handleToggleActive(v)}
+                        >
+                          {v.is_active ? <Ban size={16} /> : <CheckCircle size={16} />}
+                        </button>
+                        <button
+                          type="button"
+                          title={tCommon("delete")}
+                          className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition"
                           onClick={() => setToDelete(v)}
                         >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <DataPagination
-          page={page}
-          lastPage={lastPage}
-          total={total}
-          perPage={15}
-          onChange={setPage}
-        />
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <DataPagination
+            page={page}
+            lastPage={lastPage}
+            total={total}
+            perPage={15}
+            onChange={setPage}
+          />
         </>
       )}
 
-      <Dialog
-        open={!!editing}
-        onClose={() => !saving && setEditing(null)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>{t("editVendor")}</DialogTitle>
-        <DialogContent>
-          {formError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {formError}
-            </Alert>
-          )}
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label={t("storeName")}
-              value={form.store_name}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, store_name: e.target.value }))
-              }
-              fullWidth
-              size="small"
-            />
-            <TextField
-              label={t("nameEn")}
-              value={form.store_name_en}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, store_name_en: e.target.value }))
-              }
-              fullWidth
-              size="small"
-            />
-            <TextField
-              label={t("phone")}
-              value={form.phone}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, phone: e.target.value }))
-              }
-              fullWidth
-              size="small"
-            />
-            <TextField
-              select
-              label={t("city")}
-              value={form.city_id}
-              onChange={(e) => handleFormCityChange(e.target.value)}
-              fullWidth
-              size="small"
-            >
-              <MenuItem value="">—</MenuItem>
-              {cities.map((c) => (
-                <MenuItem key={c.id} value={String(c.id)}>
-                  {cityLabel(c)}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label={t("area")}
-              value={form.area_id}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, area_id: e.target.value }))
-              }
-              fullWidth
-              size="small"
-              disabled={!form.city_id}
-            >
-              <MenuItem value="">—</MenuItem>
-              {formAreas.map((a) => (
-                <MenuItem key={a.id} value={String(a.id)}>
-                  {areaLabel(a)}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              label={t("description")}
-              value={form.description}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
-              }
-              fullWidth
-              size="small"
-              multiline
-              minRows={2}
-            />
-            <TextField
-              label={`${t("description")} (EN)`}
-              value={form.description_en}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description_en: e.target.value }))
-              }
-              fullWidth
-              size="small"
-              multiline
-              minRows={2}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditing(null)} disabled={saving}>
-            {tCommon("cancel")}
-          </Button>
-          <Button onClick={handleSave} variant="contained" disabled={saving}>
-            {tCommon("save")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Edit vendor dialog */}
+      {!!editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => !saving && setEditing(null)} />
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">{t("editVendor")}</h2>
+            </div>
+            <div className="px-6 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              {formError && (
+                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                  <span>{formError}</span>
+                </div>
+              )}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("storeName")}</label>
+                <input
+                  type="text"
+                  value={form.store_name}
+                  onChange={(e) => setForm((f) => ({ ...f, store_name: e.target.value }))}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("nameEn")}</label>
+                <input
+                  type="text"
+                  value={form.store_name_en}
+                  onChange={(e) => setForm((f) => ({ ...f, store_name_en: e.target.value }))}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("phone")}</label>
+                <input
+                  type="text"
+                  value={form.phone}
+                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("city")}</label>
+                <select
+                  value={form.city_id}
+                  onChange={(e) => handleFormCityChange(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                >
+                  <option value="">—</option>
+                  {cities.map((c) => (
+                    <option key={c.id} value={String(c.id)}>{cityLabel(c)}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("area")}</label>
+                <select
+                  value={form.area_id}
+                  onChange={(e) => setForm((f) => ({ ...f, area_id: e.target.value }))}
+                  disabled={!form.city_id}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
+                >
+                  <option value="">—</option>
+                  {formAreas.map((a) => (
+                    <option key={a.id} value={String(a.id)}>{areaLabel(a)}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("description")}</label>
+                <textarea
+                  rows={2}
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("description")} (EN)</label>
+                <textarea
+                  rows={2}
+                  value={form.description_en}
+                  onChange={(e) => setForm((f) => ({ ...f, description_en: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditing(null)}
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                style={{ background: "var(--color-primary)" }}
+              >
+                {tCommon("save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Dialog open={!!toDelete} onClose={() => setToDelete(null)}>
-        <DialogTitle>{t("confirmDeleteTitle")}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {t("confirmDeleteVendor", {
-              name: toDelete ? storeName(toDelete) : "",
-            })}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setToDelete(null)}>{tCommon("cancel")}</Button>
-          <Button onClick={handleDelete} color="error" variant="contained">
-            {tCommon("delete")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Delete confirmation dialog */}
+      {!!toDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setToDelete(null)} />
+          <div className="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">{t("confirmDeleteTitle")}</h2>
+            </div>
+            <div className="px-6 py-4">
+              <p className="text-sm text-gray-600">
+                {t("confirmDeleteVendor", { name: storeName(toDelete) })}
+              </p>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setToDelete(null)}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {tCommon("delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Snackbar
-        open={!!snackbar}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar("")}
-        message={snackbar}
-      />
-    </Box>
+      {snackbar && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {snackbar}
+        </div>
+      )}
+    </div>
   );
 }

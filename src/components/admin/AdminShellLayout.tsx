@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  LayoutDashboard, Users, Store, Tag, Package, Sliders, HowToReg, MapPin, Receipt, LayoutTemplate, ShieldCheck, PawPrint, Menu, X, LogOut, ExternalLink
+  LayoutDashboard, Users, Store, Tag, Package, Sliders, UserCheck, MapPin, Receipt, LayoutTemplate, ShieldCheck, PawPrint, Menu, X, LogOut, ExternalLink
 } from "lucide-react";
 import { useAuthStore } from "@/lib/store/authStore";
 import { cn } from "@/lib/utils";
@@ -48,7 +48,7 @@ export default function AdminShellLayout({ children }: { children: React.ReactNo
     { label: t("dashboard"), href: `/${locale}/admin`, icon: LayoutDashboard, exact: true },
     { label: t("users"), href: `/${locale}/admin/users`, icon: Users },
     { label: t("vendors"), href: `/${locale}/admin/vendors`, icon: Store },
-    { label: t("vendorApplications"), href: `/${locale}/admin/vendor-applications`, icon: HowToReg },
+    { label: t("vendorApplications"), href: `/${locale}/admin/vendor-applications`, icon: UserCheck },
     { label: t("categories"), href: `/${locale}/admin/categories`, icon: Tag },
     { label: t("brands"), href: `/${locale}/admin/brands`, icon: Tag },
     { label: t("products"), href: `/${locale}/admin/products`, icon: Package },

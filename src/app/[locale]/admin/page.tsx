@@ -2,16 +2,22 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Alert, Box, Grid } from "@mui/material";
-import { LineChart } from "@mui/x-charts/LineChart";
-import { PieChart } from "@mui/x-charts/PieChart";
-import { BarChart } from "@mui/x-charts/BarChart";
-import PeopleIcon from "@mui/icons-material/People";
-import StorefrontIcon from "@mui/icons-material/Storefront";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import PaymentsIcon from "@mui/icons-material/Payments";
-import DashboardIcon from "@mui/icons-material/Dashboard";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as ReTooltip,
+  Legend,
+} from "recharts";
+import { Users, Store, Package, Receipt, CreditCard, LayoutDashboard, AlertCircle } from "lucide-react";
 
 import { adminApi, type AdminDashboardPayload } from "@/lib/api/admin";
 import { StatCardsSkeleton } from "@/components/common/Skeletons";
@@ -66,35 +72,35 @@ export default function AdminDashboardPage() {
           key: "users",
           label: t("users"),
           value: data.totals.users,
-          icon: <PeopleIcon />,
+          icon: <Users size={20} />,
           color: "#1976d2",
         },
         {
           key: "vendors",
           label: t("vendors"),
           value: data.totals.vendors,
-          icon: <StorefrontIcon />,
+          icon: <Store size={20} />,
           color: "#2e7d32",
         },
         {
           key: "products",
           label: t("products"),
           value: data.totals.products,
-          icon: <InventoryIcon />,
+          icon: <Package size={20} />,
           color: "#9c27b0",
         },
         {
           key: "orders",
           label: t("orders"),
           value: data.totals.orders,
-          icon: <ReceiptLongIcon />,
+          icon: <Receipt size={20} />,
           color: "#0F172A",
         },
         {
           key: "revenue",
           label: t("revenue"),
           value: currency(data.totals.revenue),
-          icon: <PaymentsIcon />,
+          icon: <CreditCard size={20} />,
           color: "#ed6c02",
         },
       ]
@@ -127,6 +133,16 @@ export default function AdminDashboardPage() {
     () => data?.charts.users_daily.map((p) => p.users) ?? [],
     [data]
   );
+
+  const ordersRevenueData = useMemo(
+    () => chartDates.map((date, i) => ({ date, orders: chartOrders[i], revenue: chartRevenue[i] })),
+    [chartDates, chartOrders, chartRevenue]
+  );
+  const usersData = useMemo(
+    () => chartDates.map((date, i) => ({ date, users: chartUsers[i] })),
+    [chartDates, chartUsers]
+  );
+
   const statusPieData = useMemo(
     () =>
       data?.charts.status_breakdown.map((s, i) => ({
@@ -142,6 +158,14 @@ export default function AdminDashboardPage() {
   const revenueByStatus = data?.charts.revenue_by_status ?? [];
   const ordersByWeekday = data?.charts.orders_by_weekday ?? [];
 
+  const topVendorData = topVendors.map((v) => ({ name: v.name, revenue: v.revenue }));
+  const topCategoryData = topCategories.map((c) => ({ name: c.name, products: c.products }));
+  const revenueStatusData = revenueByStatus.map((s) => ({
+    value: Math.round(s.revenue),
+    label: tStatus(s.status),
+    color: STATUS_COLORS[s.status] ?? "#90a4ae",
+  }));
+
   const weekdayLabels = useMemo(() => {
     const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-LY" : "en-US", {
       weekday: "short",
@@ -152,19 +176,25 @@ export default function AdminDashboardPage() {
     );
   }, [locale]);
 
+  const weekdayData = weekdayLabels.map((day, i) => ({
+    day,
+    count: ordersByWeekday[i]?.count ?? 0,
+  }));
+
   return (
-    <Box>
+    <div>
       <DashboardHero
         eyebrow={t("adminPanel")}
         title={t("dashboard")}
         subtitle={t("dashboardSubtitle")}
-        icon={<DashboardIcon />}
+        icon={<LayoutDashboard size={24} />}
       />
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-          {error}
-        </Alert>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </div>
       )}
 
       <SectionTitle title={t("keyMetrics")} subtitle={t("atAGlance")} />
@@ -172,253 +202,135 @@ export default function AdminDashboardPage() {
       {loading ? (
         <StatCardsSkeleton count={5} />
       ) : (
-        <Grid container spacing={2.5}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-5">
           {stats.map((s) => (
-            <Grid key={s.key} size={{ xs: 12, sm: 6, md: 4, lg: 2.4 }}>
-              <StatCard
-                label={s.label}
-                value={s.value}
-                icon={s.icon}
-                color={s.color}
-              />
-            </Grid>
+            <StatCard
+              key={s.key}
+              label={s.label}
+              value={s.value}
+              icon={s.icon}
+              color={s.color}
+            />
           ))}
-        </Grid>
+        </div>
       )}
 
       {!loading && data && (
-        <Box sx={{ mt: 4 }}>
+        <div className="mt-4">
           <SectionTitle
             title={t("analytics")}
             subtitle={t("analyticsSubtitle")}
           />
-          <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, md: 8 }}>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
+            <div className="md:col-span-8">
               <ChartCard title={t("ordersTrend")} height={280}>
-                <LineChart
-                  margin={{ left: 50, right: 60, top: 16, bottom: 30 }}
-                  xAxis={[
-                    {
-                      data: chartDates,
-                      scaleType: "point",
-                      tickLabelStyle: { fontSize: 11 },
-                    },
-                  ]}
-                  yAxis={[
-                    { id: "orders", scaleType: "linear" },
-                    { id: "revenue", scaleType: "linear", position: "right" },
-                  ]}
-                  series={[
-                    {
-                      yAxisId: "orders",
-                      data: chartOrders,
-                      label: t("ordersTrend"),
-                      color: "#1976d2",
-                      area: true,
-                      curve: "monotoneX",
-                      showMark: false,
-                    },
-                    {
-                      yAxisId: "revenue",
-                      data: chartRevenue,
-                      label: t("revenueTrend"),
-                      color: "#2e7d32",
-                      curve: "monotoneX",
-                      showMark: false,
-                    },
-                  ]}
-                  grid={{ horizontal: true }}
-                />
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={ordersRevenueData} margin={{ left: 10, right: 30, top: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                    <YAxis yAxisId="left" tick={{ fontSize: 11 }} />
+                    <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
+                    <ReTooltip />
+                    <Legend />
+                    <Line yAxisId="left" type="monotone" dataKey="orders" stroke="#1976d2" strokeWidth={2} dot={false} name={t("ordersTrend")} />
+                    <Line yAxisId="right" type="monotone" dataKey="revenue" stroke="#2e7d32" strokeWidth={2} dot={false} name={t("revenueTrend")} />
+                  </LineChart>
+                </ResponsiveContainer>
               </ChartCard>
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
+            </div>
+            <div className="md:col-span-4">
               <ChartCard title={t("statusBreakdown")} height={280}>
-                <PieChart
-                  margin={{ left: 8, right: 8, top: 8, bottom: 8 }}
-                  series={[
-                    {
-                      innerRadius: 50,
-                      paddingAngle: 2,
-                      cornerRadius: 4,
-                      data: statusPieData,
-                      arcLabel: (item) =>
-                        item.value > 0 ? `${item.value}` : "",
-                      arcLabelMinAngle: 25,
-                    },
-                  ]}
-                  hideLegend={false}
-                  slotProps={{
-                    legend: {
-                      direction: "horizontal",
-                      position: { vertical: "bottom", horizontal: "center" },
-                      sx: { fontSize: 11 },
-                    },
-                  }}
-                />
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusPieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value">
+                      {statusPieData.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Legend />
+                    <ReTooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </ChartCard>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
+            </div>
+            <div className="md:col-span-6">
               <ChartCard title={t("newUsersTrend")} height={260}>
-                <BarChart
-                  margin={{ left: 50, right: 16, top: 16, bottom: 30 }}
-                  xAxis={[
-                    {
-                      data: chartDates,
-                      scaleType: "band",
-                      tickLabelStyle: { fontSize: 10 },
-                    },
-                  ]}
-                  series={[
-                    {
-                      data: chartUsers,
-                      label: t("users"),
-                      color: "#0288d1",
-                    },
-                  ]}
-                  grid={{ horizontal: true }}
-                  hideLegend
-                  borderRadius={4}
-                />
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={usersData} margin={{ left: 10, right: 10, top: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <ReTooltip />
+                    <Bar dataKey="users" fill="#0288d1" radius={[4, 4, 0, 0]} name={t("users")} />
+                  </BarChart>
+                </ResponsiveContainer>
               </ChartCard>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
+            </div>
+            <div className="md:col-span-6">
               <ChartCard title={t("topVendorsChart")} height={260}>
                 {topVendors.length === 0 ? (
-                  <Box
-                    sx={{
-                      height: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "text.secondary",
-                      fontSize: 13,
-                    }}
-                  >
-                    —
-                  </Box>
+                  <div className="h-full flex items-center justify-center text-gray-400 text-sm">—</div>
                 ) : (
-                  <BarChart
-                    layout="horizontal"
-                    margin={{ left: 120, right: 16, top: 16, bottom: 30 }}
-                    yAxis={[
-                      {
-                        data: topVendors.map((v) => v.name),
-                        scaleType: "band",
-                        tickLabelStyle: { fontSize: 11 },
-                      },
-                    ]}
-                    series={[
-                      {
-                        data: topVendors.map((v) => v.revenue),
-                        label: t("revenue"),
-                        color: "#9c27b0",
-                      },
-                    ]}
-                    grid={{ vertical: true }}
-                    hideLegend
-                    borderRadius={6}
-                  />
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart layout="horizontal" data={topVendorData} margin={{ left: 10, right: 10, top: 8, bottom: 8 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis type="category" dataKey="name" tick={{ fontSize: 11 }} />
+                      <YAxis type="number" tick={{ fontSize: 11 }} />
+                      <ReTooltip />
+                      <Bar dataKey="revenue" fill="#9c27b0" radius={[4, 4, 0, 0]} name={t("revenue")} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 )}
               </ChartCard>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
+            </div>
+            <div className="md:col-span-6">
               <ChartCard title={t("topCategoriesChart")} height={260}>
                 {topCategories.length === 0 ? (
-                  <Box
-                    sx={{
-                      height: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "text.secondary",
-                      fontSize: 13,
-                    }}
-                  >
-                    —
-                  </Box>
+                  <div className="h-full flex items-center justify-center text-gray-400 text-sm">—</div>
                 ) : (
-                  <BarChart
-                    layout="horizontal"
-                    margin={{ left: 120, right: 16, top: 16, bottom: 30 }}
-                    yAxis={[
-                      {
-                        data: topCategories.map((c) => c.name),
-                        scaleType: "band",
-                        tickLabelStyle: { fontSize: 11 },
-                      },
-                    ]}
-                    series={[
-                      {
-                        data: topCategories.map((c) => c.products),
-                        label: t("products"),
-                        color: "#0F172A",
-                      },
-                    ]}
-                    grid={{ vertical: true }}
-                    hideLegend
-                    borderRadius={6}
-                  />
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart layout="horizontal" data={topCategoryData} margin={{ left: 10, right: 10, top: 8, bottom: 8 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis type="category" dataKey="name" tick={{ fontSize: 11 }} />
+                      <YAxis type="number" tick={{ fontSize: 11 }} />
+                      <ReTooltip />
+                      <Bar dataKey="products" fill="#0F172A" radius={[4, 4, 0, 0]} name={t("products")} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 )}
               </ChartCard>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
+            </div>
+            <div className="md:col-span-6">
               <ChartCard title={t("weekdayDistribution")} height={260}>
-                <BarChart
-                  margin={{ left: 50, right: 16, top: 16, bottom: 30 }}
-                  xAxis={[
-                    {
-                      data: weekdayLabels,
-                      scaleType: "band",
-                      tickLabelStyle: { fontSize: 11 },
-                    },
-                  ]}
-                  series={[
-                    {
-                      data: ordersByWeekday.map((d) => d.count),
-                      label: t("orders"),
-                      color: "#1976d2",
-                    },
-                  ]}
-                  grid={{ horizontal: true }}
-                  hideLegend
-                  borderRadius={6}
-                />
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weekdayData} margin={{ left: 10, right: 10, top: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <ReTooltip />
+                    <Bar dataKey="count" fill="#1976d2" radius={[4, 4, 0, 0]} name={t("orders")} />
+                  </BarChart>
+                </ResponsiveContainer>
               </ChartCard>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
+            </div>
+            <div className="md:col-span-6">
               <ChartCard title={t("revenueByStatus")} height={260}>
-                <PieChart
-                  margin={{ left: 8, right: 8, top: 8, bottom: 8 }}
-                  series={[
-                    {
-                      innerRadius: 50,
-                      paddingAngle: 2,
-                      cornerRadius: 4,
-                      data: revenueByStatus.map((s, i) => ({
-                        id: i,
-                        value: Math.round(s.revenue),
-                        label: tStatus(s.status),
-                        color: STATUS_COLORS[s.status] ?? "#90a4ae",
-                      })),
-                      arcLabel: (item) =>
-                        item.value > 0 ? currency(item.value) : "",
-                      arcLabelMinAngle: 30,
-                    },
-                  ]}
-                  hideLegend={false}
-                  slotProps={{
-                    legend: {
-                      direction: "horizontal",
-                      position: { vertical: "bottom", horizontal: "center" },
-                      sx: { fontSize: 11 },
-                    },
-                  }}
-                />
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={revenueStatusData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" nameKey="label">
+                      {revenueStatusData.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Legend />
+                    <ReTooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </ChartCard>
-            </Grid>
-          </Grid>
-        </Box>
+            </div>
+          </div>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }
