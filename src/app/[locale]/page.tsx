@@ -2,19 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Container,
-  Typography,
-  Box,
-  Button,
-  Grid,
-  InputBase,
-  IconButton,
-} from "@mui/material";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
+import { ArrowRight, ArrowLeft, Search, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import ProductRail from "@/components/products/ProductRail";
 import VendorCard from "@/components/vendors/VendorCard";
@@ -32,65 +20,23 @@ import { bannersApi } from "@/lib/api/banners";
 import { useContentFilter } from "@/lib/context/ContentFilterContext";
 import { withProductContentType } from "@/lib/products/contentTypeLink";
 
-function SectionHeader({
-  title,
-  linkText,
-  linkHref,
-  ArrowIcon,
-}: {
-  title: string;
-  linkText: string;
-  linkHref: string;
-  ArrowIcon: typeof ArrowForwardIcon;
-}) {
+function SectionHeader({ title, linkText, linkHref, isRtl }: { title: string; linkText: string; linkHref: string; isRtl: boolean }) {
+  const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
   return (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "flex-start",
-        mb: { xs: 2.5, md: 4 },
-      }}
-    >
-      <Box>
-        <Typography
-          sx={{
-            fontWeight: 800,
-            color: "text.primary",
-            fontSize: { xs: "1.1rem", md: "1.5rem" },
-          }}
-        >
-          {title}
-        </Typography>
-        <Box
-          sx={(theme) => ({
-            width: 36,
-            height: 3,
-            borderRadius: 2,
-            background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-            mt: 0.75,
-          })}
-        />
-      </Box>
-      <Button
-        component={Link}
-        href={linkHref}
-        endIcon={<ArrowIcon sx={{ fontSize: { xs: "1rem !important", md: "1.25rem !important" } }} />}
-        sx={{
-          borderRadius: 100,
-          px: { xs: 1.5, md: 2.5 },
-          py: { xs: 0.5, md: 1 },
-          fontSize: { xs: "0.8rem", md: "0.875rem" },
-          fontWeight: 600,
-          color: "primary.main",
-          "&:hover": { bgcolor: "primary.main", color: "white" },
-          transition: "all 0.2s ease",
-          mt: { xs: 0.25, md: 0 },
-        }}
+    <div className="flex justify-between items-start mb-6 md:mb-8">
+      <div>
+        <h2 className="text-lg md:text-2xl font-extrabold text-gray-900">{title}</h2>
+        <div className="w-9 h-[3px] rounded-sm mt-1.5" style={{ background: "linear-gradient(90deg, var(--color-primary), var(--color-primary-light))" }} />
+      </div>
+      <Link href={linkHref}
+        className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-semibold no-underline transition-all"
+        style={{ color: "var(--color-primary)" }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = "var(--color-primary)"; (e.currentTarget as HTMLElement).style.color = "white"; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = ""; (e.currentTarget as HTMLElement).style.color = "var(--color-primary)"; }}
       >
-        {linkText}
-      </Button>
-    </Box>
+        {linkText} <ArrowIcon size={14} />
+      </Link>
+    </div>
   );
 }
 
@@ -98,7 +44,6 @@ export default function HomePage() {
   const t = useTranslations();
   const locale = useLocale();
   const isRtl = locale === "ar";
-  const ArrowIcon = isRtl ? ArrowBackIcon : ArrowForwardIcon;
 
   const [featured, setFeatured] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -117,20 +62,13 @@ export default function HomePage() {
     if (contentType) baseParams.content_type = contentType;
 
     Promise.all([
-      productsApi
-        .getFeatured(baseParams)
-        .catch(() => ({ data: { data: [] } })),
+      productsApi.getFeatured(baseParams).catch(() => ({ data: { data: [] } })),
       categoriesApi.getAll(baseParams).catch(() => ({ data: { data: [] } })),
       vendorsApi.getAll({ per_page: 4 }).catch(() => ({ data: { data: [] } })),
-      brandsApi
-        .getAll({ is_featured: 1, per_page: 6, ...baseParams })
-        .catch(() => ({ data: { data: [] } })),
-      bannersApi
-        .getAll({ is_active: 1, ...baseParams })
-        .catch(() => ({ data: { data: [] } })),
+      brandsApi.getAll({ is_featured: 1, per_page: 6, ...baseParams }).catch(() => ({ data: { data: [] } })),
+      bannersApi.getAll({ is_active: 1, ...baseParams }).catch(() => ({ data: { data: [] } })),
     ]).then(([featuredRes, categoriesRes, vendorsRes, brandsRes, bannersRes]) => {
       if (cancelled) return;
-
       setFeatured(featuredRes.data.data);
       setCategories(categoriesRes.data.data);
       setVendors(vendorsRes.data.data);
@@ -139,140 +77,60 @@ export default function HomePage() {
       setLoadedKey(requestKey);
     });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [contentType, requestKey]);
 
   if (loading) return <HomePageSkeleton />;
 
   return (
-    <Container
-      maxWidth={false}
-      sx={{
-        maxWidth: 1680,
-        mx: "auto",
-        px: { xs: 2, md: 3 },
-        pt: { xs: 2, md: 3 },
-      }}
-    >
-      {/* Mobile search bar — Flutter _SearchBar exact match */}
-      <Box
-        component="form"
-        action={`/${locale}/products`}
-        method="get"
-        sx={{ display: { xs: "block", md: "none" }, mt: "8px", mb: "12px" }}
-      >
+    <div className="max-w-[1680px] mx-auto px-3 md:px-4 pt-3 md:pt-4">
+      {/* Mobile search bar */}
+      <form action={`/${locale}/products`} method="get" className="md:hidden mt-2 mb-3">
         {contentType && <input type="hidden" name="content_type" value={contentType} />}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            bgcolor: "white",
-            borderRadius: "16px",
-            border: "1px solid #EDE7E9",
-            px: "14px",
-          }}
-        >
-          <SearchRoundedIcon sx={{ color: "#6B6B6B", fontSize: 24, flexShrink: 0 }} />
-          <InputBase
-            name="search"
-            placeholder={t("common.searchHint")}
-            inputProps={{ "aria-label": t("common.search") }}
-            fullWidth
-            sx={{ py: "14px", px: "10px", fontSize: "0.844rem", color: "#1A1A1A",
-              "& ::placeholder": { color: "#6B6B6B", opacity: 1 } }}
-          />
-          <IconButton
-            component={Link}
-            href={productsHref}
-            aria-label={t("common.filter")}
-            onClick={(e: React.MouseEvent) => e.stopPropagation()}
-            sx={{ color: "#6B6B6B", flexShrink: 0, p: "8px", mr: "-8px" }}
-          >
-            <TuneRoundedIcon sx={{ fontSize: 22 }} />
-          </IconButton>
-        </Box>
-      </Box>
+        <div className="flex items-center bg-white rounded-2xl border border-[#EDE7E9] px-3.5">
+          <Search size={22} className="text-[#6B6B6B] shrink-0" />
+          <input name="search" placeholder={t("common.searchHint")} aria-label={t("common.search")}
+            className="flex-1 py-3.5 px-2.5 text-[0.844rem] text-gray-900 bg-transparent focus:outline-none placeholder:text-[#6B6B6B]" />
+          <Link href={productsHref} aria-label={t("common.filter")} className="p-2 text-[#6B6B6B] -me-2">
+            <SlidersHorizontal size={20} />
+          </Link>
+        </div>
+      </form>
 
-      {/* ── MOBILE: Flutter-style swipeable carousel (xs/sm only) ── */}
       {(categories.length > 0 || banners.length > 0) && (
-        <Box sx={{ display: { xs: "block", md: "none" } }}>
-          <MobileHeroCarousel banners={banners} categories={categories} />
-        </Box>
+        <>
+          <div className="md:hidden"><MobileHeroCarousel banners={banners} categories={categories} /></div>
+          <div className="hidden md:block"><HeroMosaic categories={categories} brands={brands} banners={banners} /></div>
+        </>
       )}
 
-      {/* ── DESKTOP: three-column mosaic with side tiles (md+) ── */}
-      {(categories.length > 0 || banners.length > 0) && (
-        <Box sx={{ display: { xs: "none", md: "block" } }}>
-          <HeroMosaic
-            categories={categories}
-            brands={brands}
-            banners={banners}
-          />
-        </Box>
-      )}
-
-      {/* Circular categories carousel */}
       {categories.length > 0 && (
-        <Box>
-          <Box sx={{ px: { xs: 2, md: 5 }, mb: 1 }}>
-            <Typography
-              sx={{
-                fontWeight: 800,
-                fontSize: { xs: "1.1rem", md: "1.5rem" },
-              }}
-            >
-              {t("home.topCategories")}
-            </Typography>
-            <Box
-              sx={(theme) => ({
-                width: 36,
-                height: 3,
-                borderRadius: 2,
-                background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-                mt: 0.75,
-              })}
-            />
-          </Box>
+        <div>
+          <div className="px-4 md:px-10 mb-1">
+            <h2 className="text-lg md:text-2xl font-extrabold text-gray-900">{t("home.topCategories")}</h2>
+            <div className="w-9 h-[3px] rounded-sm mt-1.5" style={{ background: "linear-gradient(90deg, var(--color-primary), var(--color-primary-light))" }} />
+          </div>
           <CategoriesCarousel categories={categories} />
-        </Box>
+        </div>
       )}
 
-      {/* Featured Products */}
       {featured.length > 0 && (
-        <Box sx={{ mb: { xs: 5, md: 10 }, px: { xs: 2, md: 5 } }}>
-          <SectionHeader
-            title={t("home.featuredProducts")}
-            linkText={t("common.viewAll")}
-            linkHref={productsHref}
-            ArrowIcon={ArrowIcon}
-          />
+        <div className="mb-10 md:mb-20 px-4 md:px-10">
+          <SectionHeader title={t("home.featuredProducts")} linkText={t("common.viewAll")} linkHref={productsHref} isRtl={isRtl} />
           <ProductRail products={featured.slice(0, 8)} />
-        </Box>
+        </div>
       )}
 
-      {/* For You — personalised recommendations */}
       <ForYouSection contentType={contentType ?? undefined} />
 
-      {/* Top Vendors */}
       {vendors.length > 0 && (
-        <Box sx={{ mb: { xs: 5, md: 10 }, px: { xs: 2, md: 5 } }}>
-          <SectionHeader
-            title={t("home.topVendors")}
-            linkText={t("common.viewAll")}
-            linkHref={`/${locale}/vendors`}
-            ArrowIcon={ArrowIcon}
-          />
-          <Grid container spacing={3}>
-            {vendors.slice(0, 4).map((vendor) => (
-              <Grid key={vendor.id} size={{ xs: 12, sm: 6, md: 3 }}>
-                <VendorCard vendor={vendor} />
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
+        <div className="mb-10 md:mb-20 px-4 md:px-10">
+          <SectionHeader title={t("home.topVendors")} linkText={t("common.viewAll")} linkHref={`/${locale}/vendors`} isRtl={isRtl} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            {vendors.slice(0, 4).map((vendor) => <VendorCard key={vendor.id} vendor={vendor} />)}
+          </div>
+        </div>
       )}
-    </Container>
+    </div>
   );
 }

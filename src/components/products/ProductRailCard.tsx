@@ -1,21 +1,7 @@
 "use client";
 
-/**
- * ProductRailCard — compact card for the horizontal mobile rail.
- *
- * Matches Flutter ProductCard exactly:
- *   - White card, borderRadius 18, border (#EDE7E9)
- *   - AspectRatio(1) square image  →  1:1 on web
- *   - Discount badge top-start inside image
- *   - Favorite button top-end inside image (white circle)
- *   - Primary cart button bottom-end inside image (filled circle)
- *   - Name (2 lines, ellipsis) + price row below
- */
-
 import { useState } from "react";
-import { Box, CircularProgress, IconButton, Typography, Snackbar, Alert } from "@mui/material";
-import AddShoppingCartRoundedIcon from "@mui/icons-material/AddShoppingCartRounded";
-import StarRoundedIcon from "@mui/icons-material/StarRounded";
+import { ShoppingCart, Star, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -24,6 +10,18 @@ import { useCartStore } from "@/lib/store/cartStore";
 import { useAuthStore } from "@/lib/store/authStore";
 import FavoriteButton from "./FavoriteButton";
 import VariantPickerDialog from "./VariantPickerDialog";
+import { cn } from "@/lib/utils";
+
+let toastId = 0;
+function useToast() {
+  const [toast, setToast] = useState<{ id: number; msg: string; type: "success" | "error" } | null>(null);
+  const show = (msg: string, type: "success" | "error") => {
+    const id = ++toastId;
+    setToast({ id, msg, type });
+    setTimeout(() => setToast((t) => (t?.id === id ? null : t)), 2500);
+  };
+  return { toast, show, hide: () => setToast(null) };
+}
 
 export default function ProductRailCard({ product }: { product: Product }) {
   const t = useTranslations("common");
@@ -35,8 +33,8 @@ export default function ProductRailCard({ product }: { product: Product }) {
   const addItem = useCartStore((s) => s.addItem);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [adding, setAdding] = useState(false);
-  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [variantDialogOpen, setVariantDialogOpen] = useState(false);
+  const { toast, show, hide } = useToast();
 
   const price = Number(product.price) || 0;
   const comparePrice = product.compare_price != null ? Number(product.compare_price) : null;
@@ -52,247 +50,98 @@ export default function ProductRailCard({ product }: { product: Product }) {
     "/placeholder-product.svg";
 
   const hasDiscount = comparePrice !== null && comparePrice > price;
-  const discountPercent = hasDiscount
-    ? Math.round(((comparePrice! - price) / comparePrice!) * 100)
-    : 0;
+  const discountPercent = hasDiscount ? Math.round(((comparePrice! - price) / comparePrice!) * 100) : 0;
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isAuthenticated) {
-      router.push(`/${locale}/auth/login`);
-      return;
-    }
-    if (product.has_variants) {
-      setVariantDialogOpen(true);
-      return;
-    }
+    if (!isAuthenticated) { router.push(`/${locale}/auth/login`); return; }
+    if (product.has_variants) { setVariantDialogOpen(true); return; }
     setAdding(true);
     try {
       await addItem(product.id, 1, null);
-      setToast({ msg: pt("addedToCart"), type: "success" });
+      show(pt("addedToCart"), "success");
     } catch (err) {
       const e2 = err as { response?: { data?: { message?: string } } };
-      setToast({ msg: e2.response?.data?.message ?? t("error"), type: "error" });
+      show(e2.response?.data?.message ?? t("error"), "error");
     } finally {
       setAdding(false);
     }
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100%",
-        bgcolor: "white",
-        borderRadius: "18px",
-        border: "1px solid #EDE7E9",
-        overflow: "hidden",
-      }}
-    >
-      {/* Square image */}
-      <Box
-        component={Link}
+    <div className="flex flex-col h-full bg-white rounded-[18px] border border-[#EDE7E9] overflow-hidden">
+      <Link
         href={`/${locale}/products/${product.id}`}
-        sx={{
-          position: "relative",
-          display: "block",
-          width: "100%",
-          aspectRatio: "1 / 1",
-          bgcolor: "#F5F0F2",
-          flexShrink: 0,
-          overflow: "hidden",
-        }}
+        className="relative block w-full bg-[#F5F0F2] shrink-0 overflow-hidden"
+        style={{ aspectRatio: "1/1" }}
       >
-        <Box
-          component="img"
-          src={imageSrc}
-          alt={name}
-          loading="lazy"
-          sx={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block",
-          }}
-        />
-
-        {/* Discount badge — top start */}
+        <img src={imageSrc} alt={name} loading="lazy" className="w-full h-full object-cover" />
         {hasDiscount && (
-          <Box
-            sx={{
-              position: "absolute",
-              top: 8,
-              insetInlineStart: 8,
-              bgcolor: "secondary.main",
-              color: "white",
-              fontSize: "0.68rem",
-              fontWeight: 800,
-              px: 0.75,
-              py: 0.35,
-              borderRadius: "8px",
-              lineHeight: 1.2,
-              boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
-            }}
-          >
+          <span className="absolute top-2 start-2 bg-[var(--color-secondary)] text-white text-[0.68rem] font-extrabold px-1.5 py-0.5 rounded-lg leading-tight shadow">
             -{discountPercent}%
-          </Box>
+          </span>
         )}
-
-        {/* Favorite — top end, white circle */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 6,
-            insetInlineEnd: 6,
-            zIndex: 2,
-          }}
-        >
+        <div className="absolute top-1.5 end-1.5 z-10">
           <FavoriteButton productId={product.id} size="small" />
-        </Box>
-
-        {/* Cart button — bottom end, filled primary circle */}
+        </div>
         {!outOfStock && (
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: 6,
-              insetInlineEnd: 6,
-              zIndex: 2,
-            }}
-          >
-            <IconButton
-              size="small"
+          <div className="absolute bottom-1.5 end-1.5 z-10">
+            <button
               onClick={handleAddToCart}
               disabled={adding}
               aria-label={t("addToCart")}
-              sx={{
-                width: 34,
-                height: 34,
-                bgcolor: "primary.main",
-                color: "white",
-                boxShadow: 2,
-                "&:hover": { bgcolor: "primary.dark" },
-                "&:disabled": { bgcolor: "primary.main", opacity: 0.7 },
-              }}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white shadow-md disabled:opacity-70"
+              style={{ backgroundColor: "var(--color-primary)" }}
             >
-              {adding ? (
-                <CircularProgress size={16} sx={{ color: "white" }} />
-              ) : (
-                <AddShoppingCartRoundedIcon sx={{ fontSize: 18 }} />
-              )}
-            </IconButton>
-          </Box>
+              {adding ? <Loader2 size={15} className="animate-spin" /> : <ShoppingCart size={15} />}
+            </button>
+          </div>
         )}
-
-        {/* Out of stock veil */}
         {outOfStock && (
-          <Box
-            sx={{
-              position: "absolute",
-              inset: 0,
-              bgcolor: "rgba(255,255,255,0.6)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "0.8rem",
-              fontWeight: 700,
-              color: "text.primary",
-            }}
-          >
+          <div className="absolute inset-0 bg-white/60 flex items-center justify-center text-sm font-bold">
             {pt("outOfStock")}
-          </Box>
+          </div>
         )}
-      </Box>
+      </Link>
 
-      {/* Text section */}
-      <Box
-        sx={{
-          px: "10px",
-          pt: "10px",
-          pb: "12px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "6px",
-          flexGrow: 1,
-          minHeight: 0,
-        }}
-      >
-        {/* Name — 2 lines max */}
-        <Typography
-          component={Link}
+      <div className="px-2.5 pt-2.5 pb-3 flex flex-col gap-1.5 flex-1 min-h-0">
+        <Link
           href={`/${locale}/products/${product.id}`}
-          sx={{
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            fontSize: "0.82rem",
-            fontWeight: 600,
-            lineHeight: 1.25,
-            color: "text.primary",
-            textDecoration: "none",
-          }}
+          className="line-clamp-2 text-[0.82rem] font-semibold leading-tight text-gray-800 no-underline"
         >
           {name}
-        </Typography>
-
-        {/* Rating */}
+        </Link>
         {totalReviews > 0 && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-            <StarRoundedIcon sx={{ fontSize: 13, color: "#FFB300" }} />
-            <Typography sx={{ fontSize: "0.72rem", fontWeight: 600, color: "text.primary" }}>
-              {rating.toFixed(1)}
-            </Typography>
-            <Typography sx={{ fontSize: "0.7rem", color: "text.secondary" }}>
-              ({totalReviews})
-            </Typography>
-          </Box>
+          <div className="flex items-center gap-0.5">
+            <Star size={11} className="text-amber-400 fill-amber-400" />
+            <span className="text-[0.72rem] font-semibold">{rating.toFixed(1)}</span>
+            <span className="text-[0.7rem] text-gray-400">({totalReviews})</span>
+          </div>
         )}
-
-        {/* Price */}
-        <Box sx={{ display: "flex", alignItems: "baseline", gap: "6px", flexWrap: "wrap" }}>
-          <Typography
-            component="span"
-            sx={{
-              color: "primary.main",
-              fontWeight: 800,
-              fontSize: "0.95rem",
-              lineHeight: 1.1,
-              whiteSpace: "nowrap",
-            }}
-          >
+        <div className="flex items-baseline gap-1.5 flex-wrap">
+          <span className="font-extrabold text-[0.95rem] whitespace-nowrap" style={{ color: "var(--color-primary)" }}>
             {price.toFixed(2)} {t("currency")}
-          </Typography>
+          </span>
           {hasDiscount && (
-            <Typography
-              component="span"
-              sx={{
-                color: "text.disabled",
-                fontSize: "0.72rem",
-                textDecoration: "line-through",
-                whiteSpace: "nowrap",
-              }}
-            >
+            <span className="text-[0.72rem] text-gray-300 line-through whitespace-nowrap">
               {comparePrice!.toFixed(2)}
-            </Typography>
+            </span>
           )}
-        </Box>
-      </Box>
+        </div>
+      </div>
 
-      <Snackbar
-        open={!!toast}
-        autoHideDuration={2500}
-        onClose={() => setToast(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        {toast ? (
-          <Alert severity={toast.type} onClose={() => setToast(null)} sx={{ width: "100%" }}>
-            {toast.msg}
-          </Alert>
-        ) : undefined}
-      </Snackbar>
+      {toast && (
+        <div
+          className={cn(
+            "fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] px-4 py-2.5 rounded-xl text-white text-sm font-semibold shadow-lg",
+            toast.type === "success" ? "bg-green-600" : "bg-red-600"
+          )}
+          onClick={hide}
+        >
+          {toast.msg}
+        </div>
+      )}
 
       <VariantPickerDialog
         open={variantDialogOpen}
@@ -300,10 +149,10 @@ export default function ProductRailCard({ product }: { product: Product }) {
         onClose={() => setVariantDialogOpen(false)}
         onConfirm={async (variantId) => {
           await addItem(product.id, 1, variantId);
-          setToast({ msg: pt("addedToCart"), type: "success" });
+          show(pt("addedToCart"), "success");
         }}
         confirmLabel={t("addToCart")}
       />
-    </Box>
+    </div>
   );
 }

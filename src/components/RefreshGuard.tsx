@@ -2,17 +2,12 @@
 
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 
-// -- Tunable constants -------------------------------------------------------
-const WINDOW_MS   = 10_000;  // sliding window to count reloads in
-const MAX_LOADS   = 4;       // max reloads allowed inside the window
-const COOLDOWN_MS = 30_000;  // lockout duration after exceeding the limit
-
+const WINDOW_MS   = 10_000;
+const MAX_LOADS   = 4;
+const COOLDOWN_MS = 30_000;
 const LS_TIMESTAMPS = "_rl_ts";
 const LS_COOLDOWN   = "_rl_cd";
-// ---------------------------------------------------------------------------
 
 function checkAndRecordLoad(): number | null {
   try {
@@ -34,9 +29,7 @@ function checkAndRecordLoad(): number | null {
       localStorage.setItem(LS_COOLDOWN, String(expiry));
       return Math.ceil(COOLDOWN_MS / 1000);
     }
-  } catch {
-    // localStorage unavailable - fail silently
-  }
+  } catch { /* localStorage unavailable */ }
   return null;
 }
 
@@ -44,18 +37,11 @@ export default function RefreshGuard({ children }: { children: React.ReactNode }
   const t = useTranslations("refreshGuard");
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
 
-  // useLayoutEffect fires synchronously BEFORE the browser paints and
-  // BEFORE children useEffect hooks run. If blocked we unmount children
-  // here, so their data-fetch effects never fire -> no backend calls.
   useLayoutEffect(() => {
     const secs = checkAndRecordLoad();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (secs !== null) setSecondsLeft(secs);
   }, []);
 
-  // Back/Forward navigation guard — same counter as refresh.
-  // popstate fires on every browser history navigation (Back/Forward).
-  // We call setSecondsLeft inside the callback, which is the allowed pattern.
   useEffect(() => {
     function handlePopState() {
       const secs = checkAndRecordLoad();
@@ -65,17 +51,13 @@ export default function RefreshGuard({ children }: { children: React.ReactNode }
     return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  // Countdown ticker
   useEffect(() => {
     if (secondsLeft === null || secondsLeft <= 0) return;
     const timer = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev === null || prev <= 1) {
           clearInterval(timer);
-          try {
-            localStorage.removeItem(LS_COOLDOWN);
-            localStorage.removeItem(LS_TIMESTAMPS);
-          } catch { /* ignore */ }
+          try { localStorage.removeItem(LS_COOLDOWN); localStorage.removeItem(LS_TIMESTAMPS); } catch { /* ignore */ }
           return null;
         }
         return prev - 1;
@@ -86,83 +68,27 @@ export default function RefreshGuard({ children }: { children: React.ReactNode }
 
   if (secondsLeft !== null) {
     return (
-      <Box
-        sx={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 99999,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+      <div
+        className="fixed inset-0 z-[99999] flex items-center justify-center"
+        style={{
           background: "rgba(10, 12, 22, 0.92)",
           backdropFilter: "blur(6px)",
-          "&::before": {
-            content: '""',
-            position: "fixed",
-            inset: 0,
-            backgroundImage:
-              "linear-gradient(rgba(251, 182, 206, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(251, 182, 206, 0.05) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-            pointerEvents: "none",
-          },
+          backgroundImage: "linear-gradient(rgba(251,182,206,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(251,182,206,0.05) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
         }}
       >
-        <Box
-          sx={{
-            position: "relative",
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(251, 182, 206, 0.2)",
-            borderRadius: "24px",
-            px: { xs: 4, sm: 8 },
-            py: { xs: 5, sm: 7 },
-            maxWidth: 460,
-            width: "90%",
-            textAlign: "center",
-            boxShadow: "0 8px 40px rgba(0,0,0,0.6)",
-          }}
-        >
-          <Typography sx={{ fontSize: 56, lineHeight: 1, mb: 2 }}>
-            {"\uD83D\uDC22"}
-          </Typography>
-          <Typography variant="h5" sx={{ color: "#fbb6ce", mb: 1.5, fontWeight: 700 }}>
-            {t("heading")}
-          </Typography>
-          <Typography
-            variant="body1"
-            sx={{ color: "rgba(255,255,255,0.7)", mb: 4, lineHeight: 1.7 }}
-          >
-            {t("body")}
-          </Typography>
-          <Box
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 96,
-              height: 96,
-              borderRadius: "50%",
-              border: "3px solid rgba(251,182,206,0.4)",
-              background: "rgba(251,182,206,0.08)",
-            }}
-          >
-            <Typography
-              variant="h3"
-              sx={{ color: "#fbb6ce", fontVariantNumeric: "tabular-nums", fontWeight: 800 }}
-            >
-              {secondsLeft}
-            </Typography>
-          </Box>
-          <Typography
-            variant="caption"
-            sx={{ display: "block", color: "rgba(255,255,255,0.35)", mt: 2 }}
-          >
-            {t("hint")}
-          </Typography>
-        </Box>
-      </Box>
+        <div className="relative bg-white/5 border border-[rgba(251,182,206,0.2)] rounded-3xl px-8 sm:px-16 py-10 sm:py-14 max-w-[460px] w-[90%] text-center shadow-2xl">
+          <p className="text-5xl leading-none mb-4">🐢</p>
+          <h2 className="text-xl font-bold text-[#fbb6ce] mb-3">{t("heading")}</h2>
+          <p className="text-white/70 leading-relaxed mb-8">{t("body")}</p>
+          <div className="inline-flex items-center justify-center w-24 h-24 rounded-full border-[3px] border-[rgba(251,182,206,0.4)] bg-[rgba(251,182,206,0.08)]">
+            <span className="text-4xl font-extrabold text-[#fbb6ce] tabular-nums">{secondsLeft}</span>
+          </div>
+          <p className="text-white/35 text-xs mt-3">{t("hint")}</p>
+        </div>
+      </div>
     );
   }
 
   return <>{children}</>;
 }
-

@@ -1,13 +1,6 @@
 "use client";
-
 import { useEffect, useMemo, useState } from "react";
-import {
-  Container,
-  Typography,
-  Box,
-  Button,
-} from "@mui/material";
-import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
+import { Heart } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import ProductGrid from "@/components/products/ProductGrid";
@@ -32,92 +25,56 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     if (!isInitialized) return;
-    if (!isAuthenticated) {
-      setIsLoading(false);
-      setHasFetched(true);
-      return;
-    }
+    if (!isAuthenticated) { setIsLoading(false); setHasFetched(true); return; }
     let cancelled = false;
-
     (async () => {
       setIsLoading(true);
       try {
         const response = await wishlistApi.list({ per_page: 24 });
         const data = response.data.data ?? [];
         if (!cancelled) setProducts(data);
-      } catch {
-        if (!cancelled) setProducts([]);
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-          setHasFetched(true);
-        }
-      }
+      } catch { if (!cancelled) setProducts([]); }
+      finally { if (!cancelled) { setIsLoading(false); setHasFetched(true); } }
     })();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [isAuthenticated, isInitialized]);
 
-  // Once we have both the server list and a trustworthy local ids set,
-  // filter out anything the user un-favorited in-session so the UI reacts
-  // instantly. Before the ids set is ready, trust the server response as-is
-  // to avoid a flash of "no favorites" on hard refresh.
   const visibleProducts = useMemo(
-    () =>
-      wishlistInitialized
-        ? products.filter((p) => wishlistIds.has(p.id))
-        : products,
-    [products, wishlistIds, wishlistInitialized],
+    () => wishlistInitialized ? products.filter((p) => wishlistIds.has(p.id)) : products,
+    [products, wishlistIds, wishlistInitialized]
   );
 
   if (isInitialized && !isAuthenticated) {
     return (
-      <Container maxWidth="lg" sx={{ py: 6 }}>
+      <div className="max-w-screen-lg mx-auto px-4 py-12">
         <EmptyState message={t("product.noFavorites")} />
-        <Box sx={{ textAlign: "center", mt: 3 }}>
-          <Button
-            component={Link}
-            href={`/${locale}/auth/login`}
-            variant="contained"
-            sx={{ borderRadius: 100, px: 4, py: 1.2 }}
-          >
+        <div className="text-center mt-6">
+          <Link href={`/${locale}/auth/login`} className="inline-flex items-center px-8 py-3 rounded-full text-white font-bold no-underline" style={{ background: "var(--color-primary)" }}>
             {t("auth.loginTitle")}
-          </Button>
-        </Box>
-      </Container>
+          </Link>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 5 }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}>
-        <FavoriteRoundedIcon sx={{ color: "#ff3b30" }} />
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          {t("product.myFavorites")}
-        </Typography>
-      </Box>
-
-      {isLoading || !hasFetched ? (
-        <ProductGridSkeleton count={8} />
-      ) : visibleProducts.length === 0 ? (
-        <>
-          <EmptyState message={t("product.noFavorites")} />
-          <Box sx={{ textAlign: "center", mt: 3 }}>
-            <Button
-              component={Link}
-              href={`/${locale}/products`}
-              variant="contained"
-              sx={{ borderRadius: 100, px: 4, py: 1.2 }}
-            >
-              {t("cart.continueShopping")}
-            </Button>
-          </Box>
-        </>
-      ) : (
-        <ProductGrid products={visibleProducts} />
-      )}
-    </Container>
+    <div className="max-w-screen-lg mx-auto px-4 py-10">
+      <div className="flex items-center gap-2 mb-6">
+        <Heart size={22} className="text-red-500 fill-red-500" />
+        <h1 className="text-2xl font-bold">{t("product.myFavorites")}</h1>
+      </div>
+      {isLoading || !hasFetched ? <ProductGridSkeleton count={8} /> :
+        visibleProducts.length === 0 ? (
+          <>
+            <EmptyState message={t("product.noFavorites")} />
+            <div className="text-center mt-6">
+              <Link href={`/${locale}/products`} className="inline-flex items-center px-8 py-3 rounded-full text-white font-bold no-underline" style={{ background: "var(--color-primary)" }}>
+                {t("cart.continueShopping")}
+              </Link>
+            </div>
+          </>
+        ) : <ProductGrid products={visibleProducts} />
+      }
+    </div>
   );
 }

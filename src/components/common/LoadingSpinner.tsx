@@ -1,57 +1,26 @@
 "use client";
 
-import { Box, CircularProgress, Typography } from "@mui/material";
 import { useTranslations } from "next-intl";
 
 export default function LoadingSpinner() {
   const t = useTranslations("common");
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        py: 12,
-        gap: 3,
-      }}
-    >
-      <Box sx={{ position: "relative", display: "inline-flex" }}>
-        <CircularProgress
-          size={56}
-          thickness={3}
-          sx={{
-            color: "primary.main",
-            animationDuration: "1.2s",
-          }}
+    <div className="flex flex-col items-center justify-center py-24 gap-6">
+      <div className="relative inline-flex">
+        <div
+          className="w-14 h-14 rounded-full border-4 border-gray-200"
+          style={{ borderTopColor: "var(--color-primary)", animation: "spin 1.2s linear infinite" }}
         />
-        <Box
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            bottom: 0,
-            right: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Box
-            sx={{
-              width: 12,
-              height: 12,
-              borderRadius: "50%",
-              bgcolor: "primary.main",
-              opacity: 0.3,
-            }}
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div
+            className="w-3 h-3 rounded-full opacity-30"
+            style={{ backgroundColor: "var(--color-primary)" }}
           />
-        </Box>
-      </Box>
-      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-        {t("loading")}
-      </Typography>
-    </Box>
+        </div>
+      </div>
+      <p className="text-sm font-medium text-gray-500">{t("loading")}</p>
+    </div>
   );
 }

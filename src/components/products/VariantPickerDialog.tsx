@@ -1,28 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Box,
-  Typography,
-  Chip,
-  CircularProgress,
-  Alert,
-} from "@mui/material";
+import * as Dialog from "@radix-ui/react-dialog";
+import { X, Loader2, AlertCircle } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { productsApi } from "@/lib/api/products";
 import type { Product, ProductOption, ProductOptionValue, ProductVariant } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface VariantPickerDialogProps {
   open: boolean;
   productId: number | null;
-  /** Optional pre-fetched product to avoid an extra HTTP call. */
   initialProduct?: Product | null;
-  /** Variant currently selected (so we can preselect on open). */
   initialVariantId?: number | null;
   title?: string;
   confirmLabel?: string;
@@ -30,11 +19,6 @@ interface VariantPickerDialogProps {
   onConfirm: (variantId: number) => Promise<void> | void;
 }
 
-/**
- * Modal that lets the user pick a variant of a product by selecting one value
- * per option (Color, Size, etc.). Used by the product card "Add to cart" flow
- * and the cart "Change variant" flow.
- */
 export default function VariantPickerDialog({
   open,
   productId,
@@ -53,8 +37,6 @@ export default function VariantPickerDialog({
   const [error, setError] = useState<string>("");
   const [selection, setSelection] = useState<Record<number, number>>({});
 
-  // Fetch the full product (with options + variants) when the dialog opens
-  // unless the caller supplied one.
   useEffect(() => {
     if (!open || !productId) return;
     if (initialProduct && initialProduct.id === productId && initialProduct.variants) {
@@ -69,7 +51,6 @@ export default function VariantPickerDialog({
       .finally(() => setLoading(false));
   }, [open, productId, initialProduct, t]);
 
-  // Reset state when the dialog reopens for a different product/variant.
   useEffect(() => {
     if (!open) return;
     setError("");
@@ -77,8 +58,7 @@ export default function VariantPickerDialog({
   }, [open, productId]);
 
   const options: ProductOption[] = useMemo(
-    () =>
-      (product?.options || []).slice().sort((a, b) => a.position - b.position),
+    () => (product?.options || []).slice().sort((a, b) => a.position - b.position),
     [product]
   );
   const variants: ProductVariant[] = useMemo(
@@ -86,7 +66,6 @@ export default function VariantPickerDialog({
     [product]
   );
 
-  // Preselect the initial variant or a sensible default.
   useEffect(() => {
     if (!open || !product || options.length === 0 || variants.length === 0) return;
     if (Object.keys(selection).length > 0) return;
@@ -107,9 +86,7 @@ export default function VariantPickerDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, product, options, variants, initialVariantId]);
 
-  const allOptionsPicked =
-    options.length > 0 && options.every((o) => selection[o.id]);
-
+  const allOptionsPicked = options.length > 0 && options.every((o) => selection[o.id]);
   const selectedVariant = useMemo<ProductVariant | null>(() => {
     if (!allOptionsPicked) return null;
     const picked = new Set(Object.values(selection));
@@ -122,7 +99,6 @@ export default function VariantPickerDialog({
     );
   }, [allOptionsPicked, selection, variants]);
 
-  // Hide values that don't compose with the other selections (out of stock).
   const availableValueIds = useMemo<Record<number, Set<number>>>(() => {
     const result: Record<number, Set<number>> = {};
     for (const opt of options) {
@@ -144,25 +120,18 @@ export default function VariantPickerDialog({
     return result;
   }, [options, variants, selection]);
 
-  const optionLabel = (o: ProductOption) =>
-    locale === "en" && o.name_en ? o.name_en : o.name;
-  const valueLabel = (v: ProductOptionValue) =>
-    locale === "en" && v.value_en ? v.value_en : v.value;
+  const optionLabel = (o: ProductOption) => locale === "en" && o.name_en ? o.name_en : o.name;
+  const valueLabel = (v: ProductOptionValue) => locale === "en" && v.value_en ? v.value_en : v.value;
 
   const handleConfirm = async () => {
-    if (!selectedVariant) {
-      setError(t("product.pleaseSelectVariant"));
-      return;
-    }
+    if (!selectedVariant) { setError(t("product.pleaseSelectVariant")); return; }
     setError("");
     setSubmitting(true);
     try {
       await onConfirm(selectedVariant.id);
       onClose();
     } catch (e) {
-      const err = e as {
-        response?: { data?: { message?: string; errors?: Record<string, string[]> } };
-      };
+      const err = e as { response?: { data?: { message?: string; errors?: Record<string, string[]> } } };
       const msg =
         err?.response?.data?.errors?.variant_id?.[0] ||
         err?.response?.data?.errors?.quantity?.[0] ||
@@ -175,110 +144,117 @@ export default function VariantPickerDialog({
   };
 
   const productName = product
-    ? locale === "en" && product.name_en
-      ? product.name_en
-      : product.name
+    ? locale === "en" && product.name_en ? product.name_en : product.name
     : "";
 
   return (
-    <Dialog open={open} onClose={submitting ? undefined : onClose} fullWidth maxWidth="xs">
-      <DialogTitle sx={{ fontWeight: 700 }}>
-        {title || t("product.selectVariant")}
-        {productName && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontWeight: 400 }}>
-            {productName}
-          </Typography>
-        )}
-      </DialogTitle>
-      <DialogContent dividers>
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-            <CircularProgress size={28} />
-          </Box>
-        ) : !product ? (
-          <Alert severity="error">{error || t("common.error")}</Alert>
-        ) : options.length === 0 ? (
-          <Alert severity="warning">{t("product.outOfStock")}</Alert>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {options.map((opt) => {
-              const available = availableValueIds[opt.id] || new Set<number>();
-              return (
-                <Box key={opt.id}>
-                  <Typography sx={{ fontWeight: 600, mb: 1 }}>
-                    {optionLabel(opt)}
-                  </Typography>
-                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                    {opt.values.map((val) => {
-                      const isSelected = selection[opt.id] === val.id;
-                      const isAvailable = available.has(val.id);
-                      return (
-                        <Chip
-                          key={val.id}
-                          label={
-                            <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}>
+    <Dialog.Root open={open} onOpenChange={(v) => !submitting && !v && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-white shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95">
+          <div className="flex items-start justify-between p-5 border-b border-gray-100">
+            <div>
+              <Dialog.Title className="text-base font-bold">
+                {title || t("product.selectVariant")}
+              </Dialog.Title>
+              {productName && (
+                <p className="text-sm text-gray-500 mt-0.5">{productName}</p>
+              )}
+            </div>
+            <Dialog.Close className="rounded-lg p-1 hover:bg-gray-100 transition" disabled={submitting}>
+              <X size={18} />
+            </Dialog.Close>
+          </div>
+
+          <div className="p-5 max-h-[60vh] overflow-y-auto">
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="animate-spin" size={28} style={{ color: "var(--color-primary)" }} />
+              </div>
+            ) : !product ? (
+              <div className="flex items-center gap-2 text-red-600 text-sm">
+                <AlertCircle size={16} /> {error || t("common.error")}
+              </div>
+            ) : options.length === 0 ? (
+              <p className="text-sm text-amber-600">{t("product.outOfStock")}</p>
+            ) : (
+              <div className="flex flex-col gap-5">
+                {options.map((opt) => {
+                  const available = availableValueIds[opt.id] || new Set<number>();
+                  return (
+                    <div key={opt.id}>
+                      <p className="text-sm font-semibold mb-2">{optionLabel(opt)}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {opt.values.map((val) => {
+                          const isSelected = selection[opt.id] === val.id;
+                          const isAvailable = available.has(val.id);
+                          return (
+                            <button
+                              key={val.id}
+                              type="button"
+                              disabled={!isAvailable && !isSelected}
+                              onClick={() => setSelection((prev) => ({ ...prev, [opt.id]: val.id }))}
+                              className={cn(
+                                "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold transition",
+                                isSelected
+                                  ? "text-white border-transparent"
+                                  : "border-gray-200 hover:border-gray-400",
+                                !isAvailable && !isSelected && "opacity-40 cursor-not-allowed"
+                              )}
+                              style={isSelected ? { backgroundColor: "var(--color-primary)" } : {}}
+                            >
                               {val.hex_color && (
-                                <Box
-                                  sx={{
-                                    width: 14,
-                                    height: 14,
-                                    borderRadius: "50%",
-                                    bgcolor: val.hex_color,
-                                    border: "1px solid",
-                                    borderColor: "grey.400",
-                                  }}
+                                <span
+                                  className="inline-block w-3.5 h-3.5 rounded-full border border-gray-300"
+                                  style={{ backgroundColor: val.hex_color }}
                                 />
                               )}
-                              <span>{valueLabel(val)}</span>
-                            </Box>
-                          }
-                          onClick={() =>
-                            setSelection((prev) => ({ ...prev, [opt.id]: val.id }))
-                          }
-                          color={isSelected ? "primary" : "default"}
-                          variant={isSelected ? "filled" : "outlined"}
-                          disabled={!isAvailable && !isSelected}
-                          sx={{ borderRadius: 2, fontWeight: 600 }}
-                        />
-                      );
-                    })}
-                  </Box>
-                </Box>
-              );
-            })}
-            {selectedVariant && (
-              <Typography variant="body2" color="text.secondary">
-                {t("common.currency")} {Number(selectedVariant.price).toFixed(2)}
-                {Number(selectedVariant.quantity) <= 0 && (
-                  <span> · {t("product.outOfStock")}</span>
+                              {valueLabel(val)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {selectedVariant && (
+                  <p className="text-sm text-gray-500">
+                    {t("common.currency")} {Number(selectedVariant.price).toFixed(2)}
+                    {Number(selectedVariant.quantity) <= 0 && <span> · {t("product.outOfStock")}</span>}
+                  </p>
                 )}
-              </Typography>
+                {error && (
+                  <div className="flex items-center gap-2 text-red-600 text-sm">
+                    <AlertCircle size={14} /> {error}
+                  </div>
+                )}
+              </div>
             )}
-            {error && <Alert severity="error">{error}</Alert>}
-          </Box>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={submitting}>
-          {t("common.cancel")}
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleConfirm}
-          disabled={
-            submitting ||
-            loading ||
-            !selectedVariant ||
-            Number(selectedVariant.quantity) <= 0
-          }
-        >
-          {submitting ? (
-            <CircularProgress size={18} sx={{ color: "inherit" }} />
-          ) : (
-            confirmLabel || t("product.addToCart")
-          )}
-        </Button>
-      </DialogActions>
-    </Dialog>
+          </div>
+
+          <div className="flex justify-end gap-3 p-4 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              {t("common.cancel")}
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirm}
+              disabled={submitting || loading || !selectedVariant || Number(selectedVariant?.quantity) <= 0}
+              className="inline-flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-bold text-white transition disabled:opacity-50"
+              style={{ backgroundColor: "var(--color-primary)" }}
+            >
+              {submitting && <Loader2 size={14} className="animate-spin" />}
+              {confirmLabel || t("product.addToCart")}
+            </button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

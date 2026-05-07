@@ -1,6 +1,5 @@
 "use client";
 
-import { Grid } from "@mui/material";
 import type { Product } from "@/lib/types";
 import ProductCard from "./ProductCard";
 
@@ -10,12 +9,10 @@ interface ProductGridProps {
 
 export default function ProductGrid({ products }: ProductGridProps) {
   return (
-    <Grid container spacing={3}>
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {products.map((product) => (
-        <Grid key={product.id} size={{ xs: 6, sm: 6, md: 4, lg: 3 }}>
-          <ProductCard product={product} />
-        </Grid>
+        <ProductCard key={product.id} product={product} />
       ))}
-    </Grid>
+    </div>
   );
 }

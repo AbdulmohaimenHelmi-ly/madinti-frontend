@@ -1,7 +1,5 @@
 "use client";
 
-import { Box, Stack, Typography } from "@mui/material";
-
 export interface SectionTitleProps {
   title: string;
   subtitle?: string;
@@ -16,30 +14,14 @@ export default function SectionTitle({
   dense,
 }: SectionTitleProps) {
   return (
-    <Stack
-      direction="row"
-      spacing={2}
-      sx={{
-        alignItems: "flex-end",
-        justifyContent: "space-between",
-        mb: dense ? 1.5 : 2,
-        mt: dense ? 1 : 1.5,
-      }}
-    >
-      <Box sx={{ minWidth: 0 }}>
-        <Typography
-          variant="subtitle1"
-          sx={{ fontWeight: 800, lineHeight: 1.2, letterSpacing: "-0.01em" }}
-        >
-          {title}
-        </Typography>
+    <div className={`flex flex-row items-end justify-between gap-4 ${dense ? "mb-3 mt-2" : "mb-4 mt-3"}`}>
+      <div className="min-w-0">
+        <p className="text-base font-extrabold leading-tight tracking-tight">{title}</p>
         {subtitle && (
-          <Typography variant="caption" color="text.secondary">
-            {subtitle}
-          </Typography>
+          <p className="text-xs text-gray-500">{subtitle}</p>
         )}
-      </Box>
-      {action && <Box sx={{ flexShrink: 0 }}>{action}</Box>}
-    </Stack>
+      </div>
+      {action && <div className="shrink-0">{action}</div>}
+    </div>
   );
 }

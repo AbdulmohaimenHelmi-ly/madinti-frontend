@@ -1,6 +1,5 @@
 "use client";
 
-import { Box, Typography } from "@mui/material";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import type { Category } from "@/lib/types";
@@ -21,99 +20,41 @@ export default function CategoryCard({ category }: CategoryCardProps) {
   );
 
   return (
-    <Box
-      component={Link}
+    <Link
       href={href}
-      sx={(theme) => ({
-        textDecoration: "none",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 1.5,
-        cursor: "pointer",
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        "&:hover": {
-          transform: "translateY(-6px)",
-          "& .category-circle": {
-            boxShadow: `0 12px 32px ${theme.palette.primary.main}59`,
-            borderColor: theme.palette.primary.main,
-          },
-          "& .category-image": {
-            transform: "scale(1.1)",
-          },
-        },
-      })}
+      className="group flex flex-col items-center gap-3 no-underline"
     >
-      <Box
-        className="category-circle"
-        sx={(theme) => ({
-          width: { xs: 80, sm: 92, md: 104 },
-          height: { xs: 80, sm: 92, md: 104 },
-          borderRadius: "50%",
-          overflow: "hidden",
-          border: "3px solid",
-          borderColor: `${theme.palette.primary.main}4D`,
+      <div
+        className="category-circle relative overflow-hidden rounded-full border-[3px] flex items-center justify-center bg-gray-50 transition-all duration-300 group-hover:-translate-y-1.5"
+        style={{
+          width: "clamp(80px, 10vw, 104px)",
+          height: "clamp(80px, 10vw, 104px)",
+          borderColor: "rgba(var(--color-primary-rgb, 0,121,107), 0.3)",
           boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          bgcolor: "grey.50",
-        })}
-      >
-        {category.image ? (
-          <Box
-            className="category-image"
-            component="img"
-            src={category.image}
-            alt={name}
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-            }}
-          />
-        ) : (
-          <Box
-            className="category-image"
-            sx={(theme) => ({
-              width: "100%",
-              height: "100%",
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
-            })}
-          >
-            <Typography
-              variant="h3"
-              sx={{
-                color: "white",
-                fontWeight: 900,
-                fontSize: { xs: "2rem", sm: "2.5rem" },
-                textShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              }}
-            >
-              {name[0]}
-            </Typography>
-          </Box>
-        )}
-      </Box>
-      <Typography
-        variant="subtitle2"
-        color="text.primary"
-        sx={{
-          fontWeight: 700,
-          textAlign: "center",
-          maxWidth: 120,
-          lineHeight: 1.3,
-          fontSize: { xs: "0.8rem", sm: "0.875rem" },
         }}
       >
+        {category.image ? (
+          <img
+            src={category.image}
+            alt={name}
+            className="w-full h-full object-cover transition-transform duration-400 group-hover:scale-110"
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center transition-transform duration-400 group-hover:scale-110"
+            style={{
+              background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)",
+            }}
+          >
+            <span className="text-white font-black text-4xl" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+              {name[0]}
+            </span>
+          </div>
+        )}
+      </div>
+      <p className="text-center text-[0.82rem] font-bold text-gray-800 max-w-[120px] leading-snug">
         {name}
-      </Typography>
-    </Box>
+      </p>
+    </Link>
   );
 }

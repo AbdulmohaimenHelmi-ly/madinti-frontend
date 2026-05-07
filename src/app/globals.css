@@ -1,3 +1,44 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #00796B;
+  --color-primary-light: #26A69A;
+  --color-primary-dark: #004D40;
+  --color-secondary: #8D6E63;
+  --color-secondary-light: #BCAAA4;
+  --color-secondary-dark: #5D4037;
+  --color-background: #F5F7FA;
+  --color-paper: #FFFFFF;
+  --color-text-primary: #1A2027;
+  --color-text-secondary: #5A6670;
+}
+
+[data-theme="female"] {
+  --color-primary: #D81B60;
+  --color-primary-light: #F06292;
+  --color-primary-dark: #880E4F;
+  --color-secondary: #C48B6B;
+  --color-secondary-light: #E6B8A2;
+  --color-secondary-dark: #8D5A3C;
+  --color-background: #FFF7FA;
+  --color-paper: #FFFFFF;
+  --color-text-primary: #2A1A23;
+  --color-text-secondary: #6B5560;
+}
+
+[data-theme="male"] {
+  --color-primary: #1E3A5F;
+  --color-primary-light: #3B5998;
+  --color-primary-dark: #0D1F33;
+  --color-secondary: #546E7A;
+  --color-secondary-light: #819CA9;
+  --color-secondary-dark: #29434E;
+  --color-background: #F4F6F9;
+  --color-paper: #FFFFFF;
+  --color-text-primary: #101827;
+  --color-text-secondary: #455566;
+}
+
 *,
 *::before,
 *::after {
@@ -32,7 +73,6 @@ img {
   color: #FFB744;
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -51,29 +91,12 @@ img {
   background: rgba(0, 0, 0, 0.25);
 }
 
-/* Smooth focus outlines */
 *:focus-visible {
   outline: 2px solid rgba(255, 183, 68, 0.5);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* Mobile: bottom padding so content isn't hidden behind the fixed bottom nav */
-@media (max-width: 899.95px) {
-  .app-main-content {
-    padding-bottom: 72px;
-  }
-}
-
-/*
- * Mobile-app-like layout on phone resolutions.
- *
- * On phones (< 900px ~ MUI 'md' breakpoint) the website mounts a fixed
- * bottom navigation bar (see MobileBottomNav.tsx) and hides the desktop
- * footer so the page ends in the bottom nav, the same way the Flutter
- * mobile app does. We add bottom padding to the main content so it
- * isn't covered by the fixed bar (plus iOS home-indicator safe area).
- */
 @media (max-width: 899.95px) {
   .app-main-content {
     padding-bottom: calc(64px + env(safe-area-inset-bottom));
@@ -83,4 +106,3 @@ img {
     display: none !important;
   }
 }
-

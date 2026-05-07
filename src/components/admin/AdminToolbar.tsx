@@ -1,24 +1,6 @@
 "use client";
 
-import { Box, InputAdornment, MenuItem, Stack, TextField } from "@mui/material";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import SearchIcon from "@mui/icons-material/Search";
-
-function parseIsoDate(v?: string): Date | null {
-  if (!v) return null;
-  const [y, m, d] = v.split("-").map((n) => Number(n));
-  if (!y || !m || !d) return null;
-  const dt = new Date(y, m - 1, d);
-  return Number.isNaN(dt.getTime()) ? null : dt;
-}
-
-function formatIsoDate(d: Date | null): string {
-  if (!d || Number.isNaN(d.getTime())) return "";
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
+import { Search } from "lucide-react";
 
 export interface AdminToolbarOption {
   value: string;
@@ -60,85 +42,58 @@ export default function AdminToolbar({
   dateToLabel,
 }: AdminToolbarProps) {
   return (
-    <Box
-      sx={{
-        p: 2,
-        mb: 2,
-        bgcolor: "white",
-        borderRadius: 3,
-        border: "1px solid",
-        borderColor: "divider",
-      }}
-    >
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={2}
-        sx={{
-          alignItems: { xs: "stretch", sm: "center" },
-          flexWrap: "wrap",
-        }}
-        useFlexGap
-      >
+    <div className="p-4 mb-4 bg-white rounded-2xl border border-gray-100">
+      <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3">
         {onSearchChange !== undefined && (
-          <TextField
-            value={search ?? ""}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={searchPlaceholder}
-            size="small"
-            sx={{ flex: 1, minWidth: 200 }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" color="action" />
-                  </InputAdornment>
-                ),
-              },
-            }}
-          />
+          <div className="relative flex-1 min-w-[200px]">
+            <Search size={15} className="absolute top-1/2 start-3 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="search"
+              value={search ?? ""}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder={searchPlaceholder}
+              className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 ps-9 pe-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+            />
+          </div>
         )}
         {selects.map((s) => (
-          <TextField
-            key={s.key}
-            select
-            size="small"
-            label={s.label}
-            value={s.value}
-            onChange={(e) => s.onChange(e.target.value)}
-            sx={{ minWidth: s.width ?? 160 }}
-          >
-            {s.options.map((o) => (
-              <MenuItem key={o.value} value={o.value}>
-                {o.label}
-              </MenuItem>
-            ))}
-          </TextField>
+          <div key={s.key} className="min-w-[160px]">
+            <select
+              value={s.value}
+              onChange={(e) => s.onChange(e.target.value)}
+              title={s.label}
+              className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              style={s.width ? { minWidth: s.width } : {}}
+            >
+              {s.options.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
         ))}
         {onDateFromChange !== undefined && (
-          <DatePicker
-            label={dateFromLabel}
-            value={parseIsoDate(dateFrom)}
-            onChange={(v) => onDateFromChange(formatIsoDate(v))}
-            format="dd/MM/yyyy"
-            slotProps={{
-              textField: { size: "small", sx: { minWidth: 170 } },
-              field: { clearable: true },
-            }}
-          />
+          <div className="min-w-[170px]">
+            {dateFromLabel && <label className="block text-xs text-gray-500 mb-0.5">{dateFromLabel}</label>}
+            <input
+              type="date"
+              value={dateFrom ?? ""}
+              onChange={(e) => onDateFromChange(e.target.value)}
+              className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            />
+          </div>
         )}
         {onDateToChange !== undefined && (
-          <DatePicker
-            label={dateToLabel}
-            value={parseIsoDate(dateTo)}
-            onChange={(v) => onDateToChange(formatIsoDate(v))}
-            format="dd/MM/yyyy"
-            slotProps={{
-              textField: { size: "small", sx: { minWidth: 170 } },
-              field: { clearable: true },
-            }}
-          />
+          <div className="min-w-[170px]">
+            {dateToLabel && <label className="block text-xs text-gray-500 mb-0.5">{dateToLabel}</label>}
+            <input
+              type="date"
+              value={dateTo ?? ""}
+              onChange={(e) => onDateToChange(e.target.value)}
+              className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            />
+          </div>
         )}
-      </Stack>
-    </Box>
+      </div>
+    </div>
   );
 }

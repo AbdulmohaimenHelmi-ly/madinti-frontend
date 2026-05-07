@@ -1,10 +1,10 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { Box, Button } from "@mui/material";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import CategoriesMegaMenu from "./CategoriesMegaMenu";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { key: "products", path: "/products" },
@@ -23,44 +23,22 @@ export default function Navbar() {
   };
 
   return (
-    <Box
-      sx={{
-        display: { xs: "none", md: "flex" },
-        gap: 0.5,
-        alignItems: "center",
-        ml: 2,
-        px: 0.75,
-        py: 0.5,
-        borderRadius: 100,
-        bgcolor: "#F5F0F2",
-        border: "1px solid #EDE7E9",
-      }}
-    >
+    <nav className="hidden md:flex items-center gap-1 ms-4 px-2 py-1.5 rounded-full bg-[#F5F0F2] border border-[#EDE7E9]">
       <CategoriesMegaMenu />
-
       {navItems.map((item) => (
-        <Button
+        <Link
           key={item.key}
-          component={Link}
           href={`/${locale}${item.path}`}
-          size="small"
-          sx={{
-            color: "#1A1A1A",
-            fontWeight: isActive(item.path) ? 700 : 500,
-            borderRadius: 100,
-            px: 2,
-            py: 0.75,
-            minWidth: "auto",
-            fontSize: "0.875rem",
-            bgcolor: isActive(item.path) ? "white" : "transparent",
-            boxShadow: isActive(item.path) ? "0 4px 10px rgba(10, 37, 64, 0.08)" : "none",
-            "&:hover": { bgcolor: isActive(item.path) ? "white" : "rgba(255,255,255,0.55)" },
-            transition: "all 0.2s ease",
-          }}
+          className={cn(
+            "rounded-full px-4 py-1.5 text-[0.875rem] text-[#1A1A1A] no-underline transition-all duration-200",
+            isActive(item.path)
+              ? "bg-white font-bold shadow-sm"
+              : "font-medium hover:bg-white/55"
+          )}
         >
           {t(item.key)}
-        </Button>
+        </Link>
       ))}
-    </Box>
+    </nav>
   );
 }

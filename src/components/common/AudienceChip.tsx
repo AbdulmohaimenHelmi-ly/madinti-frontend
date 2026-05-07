@@ -1,9 +1,6 @@
 "use client";
 
-import { Chip } from "@mui/material";
-import FemaleIcon from "@mui/icons-material/Female";
-import MaleIcon from "@mui/icons-material/Male";
-import WcIcon from "@mui/icons-material/Wc";
+import { Venus, Mars, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ContentType } from "@/lib/types";
 
@@ -21,19 +18,28 @@ export default function AudienceChip({
   const t = useTranslations("content");
   const v: ContentType = value ?? "unisex";
   const label = v === "male" ? t("male") : v === "female" ? t("female") : t("unisex");
-  const Icon = v === "male" ? MaleIcon : v === "female" ? FemaleIcon : WcIcon;
-  const color: "primary" | "secondary" | "default" =
-    v === "female" ? "secondary" : v === "male" ? "primary" : "default";
+  const Icon = v === "male" ? Mars : v === "female" ? Venus : Users;
+
+  const colorClass =
+    v === "female"
+      ? variant === "filled"
+        ? "bg-pink-100 text-pink-700 border-pink-200"
+        : "border border-pink-400 text-pink-700"
+      : v === "male"
+        ? variant === "filled"
+          ? "bg-blue-100 text-blue-700 border-blue-200"
+          : "border border-blue-400 text-blue-700"
+        : variant === "filled"
+          ? "bg-gray-100 text-gray-700 border-gray-200"
+          : "border border-gray-400 text-gray-700";
+
+  const sizeClass = size === "small" ? "text-xs px-2 py-0.5" : "text-sm px-3 py-1";
 
   return (
-    <Chip
-      size={size}
-      variant={variant}
-      color={color}
-      icon={<Icon sx={{ fontSize: 16 }} />}
-      label={label}
-      sx={{ fontWeight: 600 }}
-    />
+    <span className={`inline-flex items-center gap-1 rounded-full font-semibold border ${colorClass} ${sizeClass}`}>
+      <Icon size={size === "small" ? 12 : 14} />
+      {label}
+    </span>
   );
 }
 
