@@ -2,15 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { Alert, Box, Grid } from "@mui/material";
-import { LineChart } from "@mui/x-charts/LineChart";
-import { PieChart } from "@mui/x-charts/PieChart";
-import { BarChart } from "@mui/x-charts/BarChart";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import StarIcon from "@mui/icons-material/Star";
-import StorefrontIcon from "@mui/icons-material/Storefront";
+import { TrendingUp, Package, Receipt, Star, Store } from "lucide-react";
+import { ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as ReTooltip, Legend } from "recharts";
 
 import { StatCardsSkeleton } from "@/components/common/Skeletons";
 import StatCard from "@/components/common/StatCard";
@@ -28,14 +21,6 @@ const STATUS_COLORS: Record<string, string> = {
   refunded: "#9c27b0",
 };
 
-interface Stat {
-  key: string;
-  label: string;
-  value: number | string;
-  icon: React.ReactNode;
-  color: string;
-}
-
 export default function VendorDashboardPage() {
   const t = useTranslations("vendor");
   const tStatus = useTranslations("order.statuses");
@@ -46,301 +31,142 @@ export default function VendorDashboardPage() {
 
   useEffect(() => {
     let active = true;
-    vendorApi
-      .getDashboard()
-      .then((res) => {
-        if (active) setData(res.data.data);
-      })
-      .catch(() => {
-        if (active) setError(t("loadError"));
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
+    vendorApi.getDashboard()
+      .then((res) => { if (active) setData(res.data.data); })
+      .catch(() => { if (active) setError(t("loadError")); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [t]);
 
   const currency = (n: number | string) =>
-    new Intl.NumberFormat(locale === "ar" ? "ar-LY" : "en-US", {
-      maximumFractionDigits: 2,
-    }).format(Number(n) || 0);
+    new Intl.NumberFormat(locale === "ar" ? "ar-LY" : "en-US", { maximumFractionDigits: 2 }).format(Number(n) || 0);
 
-  const stats: Stat[] = data
-    ? [
-        {
-          key: "sales",
-          label: t("totalSales"),
-          value: currency(data.total_sales),
-          icon: <TrendingUpIcon />,
-          color: "#2e7d32",
-        },
-        {
-          key: "orders",
-          label: t("totalOrders"),
-          value: data.total_orders,
-          icon: <ReceiptLongIcon />,
-          color: "#1976d2",
-        },
-        {
-          key: "products",
-          label: t("totalProducts"),
-          value: data.total_products,
-          icon: <InventoryIcon />,
-          color: "#9c27b0",
-        },
-        {
-          key: "rating",
-          label: t("rating"),
-          value: Number(data.rating || 0).toFixed(1),
-          icon: <StarIcon />,
-          color: "#ed6c02",
-        },
-      ]
-    : [];
+  const stats = data ? [
+    { key: "sales", label: t("totalSales"), value: currency(data.total_sales), icon: <TrendingUp size={20} />, color: "#2e7d32" },
+    { key: "orders", label: t("totalOrders"), value: data.total_orders, icon: <Receipt size={20} />, color: "#1976d2" },
+    { key: "products", label: t("totalProducts"), value: data.total_products, icon: <Package size={20} />, color: "#9c27b0" },
+    { key: "rating", label: t("rating"), value: Number(data.rating || 0).toFixed(1), icon: <Star size={20} />, color: "#ed6c02" },
+  ] : [];
 
   const dateLabel = useMemo(() => {
-    const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-LY" : "en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    return (iso: string) => {
-      const d = new Date(iso);
-      return Number.isNaN(d.getTime()) ? iso : fmt.format(d);
-    };
+    const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-LY" : "en-US", { month: "short", day: "numeric" });
+    return (iso: string) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? iso : fmt.format(d); };
   }, [locale]);
 
-  const chartDates = useMemo(
-    () => data?.charts?.orders_daily.map((p) => dateLabel(p.date)) ?? [],
-    [data, dateLabel]
-  );
-  const chartRevenue = useMemo(
-    () => data?.charts?.orders_daily.map((p) => p.revenue) ?? [],
-    [data]
-  );
-  const statusPieData = useMemo(
-    () =>
-      data?.charts?.status_breakdown.map((s, i) => ({
-        id: i,
-        value: s.count,
-        label: tStatus(s.status),
-        color: STATUS_COLORS[s.status] ?? "#90a4ae",
-      })) ?? [],
-    [data, tStatus]
-  );
+  const lineData = useMemo(() => (data?.charts?.orders_daily ?? []).map((p) => ({ date: dateLabel(p.date), orders: p.orders, revenue: p.revenue })), [data, dateLabel]);
+  const statusPieData = useMemo(() => (data?.charts?.status_breakdown ?? []).map((s, i) => ({ name: tStatus(s.status), value: s.count, color: STATUS_COLORS[s.status] ?? "#90a4ae" })), [data, tStatus]);
   const topProducts = data?.charts?.top_products ?? [];
   const ordersByWeekday = data?.charts?.orders_by_weekday ?? [];
   const revenueByStatus = data?.charts?.revenue_by_status ?? [];
-  const chartOrders = useMemo(
-    () => data?.charts?.orders_daily.map((p) => p.orders) ?? [],
-    [data]
-  );
   const weekdayLabels = useMemo(() => {
-    const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-LY" : "en-US", {
-      weekday: "short",
-    });
-    return Array.from({ length: 7 }, (_, i) =>
-      fmt.format(new Date(2024, 0, 7 + i))
-    );
+    const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-LY" : "en-US", { weekday: "short" });
+    return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(2024, 0, 7 + i)));
   }, [locale]);
+  const weekdayData = weekdayLabels.map((label, i) => ({ label, count: ordersByWeekday[i]?.count ?? 0 }));
+  const revenueStatusData = revenueByStatus.map((s) => ({ label: tStatus(s.status), revenue: s.revenue, color: STATUS_COLORS[s.status] ?? "#90a4ae" }));
+  const topProductData = topProducts.map((p) => ({ name: p.name, quantity: p.quantity }));
 
   return (
-    <Box>
-      <DashboardHero
-        eyebrow={data?.vendor?.store_name ?? t("dashboard")}
-        title={t("dashboard")}
-        subtitle={t("dashboardSubtitle")}
-        icon={<StorefrontIcon />}
-      />
+    <div>
+      <DashboardHero eyebrow={data?.vendor?.store_name ?? t("dashboard")} title={t("dashboard")} subtitle={t("dashboardSubtitle")} icon={<Store size={28} />} />
 
-      {error && (
-        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
-          {error}
-        </Alert>
-      )}
+      {error && <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4"><span>{error}</span></div>}
 
       <SectionTitle title={t("keyMetrics")} subtitle={t("atAGlance")} />
 
-      {loading ? (
-        <StatCardsSkeleton count={4} />
-      ) : (
-        <Grid container spacing={2.5}>
-          {stats.map((s) => (
-            <Grid key={s.key} size={{ xs: 12, sm: 6, md: 3 }}>
-              <StatCard
-                label={s.label}
-                value={s.value}
-                icon={s.icon}
-                color={s.color}
-              />
-            </Grid>
-          ))}
-        </Grid>
+      {loading ? <StatCardsSkeleton count={4} /> : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.map((s) => <StatCard key={s.key} label={s.label} value={s.value} icon={s.icon} color={s.color} />)}
+        </div>
       )}
 
       {!loading && data?.charts && (
-        <Box sx={{ mt: 4 }}>
-          <SectionTitle
-            title={t("analytics")}
-            subtitle={t("analyticsSubtitle")}
-          />
-          <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, md: 8 }}>
+        <div className="mt-6">
+          <SectionTitle title={t("analytics")} subtitle={t("analyticsSubtitle")} />
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-8">
               <ChartCard title={t("revenueTrend")} height={280}>
-                <LineChart
-                  margin={{ left: 60, right: 16, top: 16, bottom: 30 }}
-                  xAxis={[
-                    {
-                      data: chartDates,
-                      scaleType: "point",
-                      tickLabelStyle: { fontSize: 11 },
-                    },
-                  ]}
-                  series={[
-                    {
-                      data: chartRevenue,
-                      label: t("revenueTrend"),
-                      color: "#2e7d32",
-                      area: true,
-                      curve: "monotoneX",
-                      showMark: false,
-                    },
-                  ]}
-                  grid={{ horizontal: true }}
-                  hideLegend
-                />
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={lineData} margin={{ left: 10, right: 10, top: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <ReTooltip />
+                    <Line type="monotone" dataKey="revenue" name={t("revenueTrend")} stroke="#2e7d32" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
               </ChartCard>
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
+            </div>
+            <div className="md:col-span-4">
               <ChartCard title={t("statusBreakdown")} height={280}>
-                <PieChart
-                  margin={{ left: 8, right: 8, top: 8, bottom: 8 }}
-                  series={[
-                    {
-                      innerRadius: 50,
-                      paddingAngle: 2,
-                      cornerRadius: 4,
-                      data: statusPieData,
-                      arcLabel: (item) =>
-                        item.value > 0 ? `${item.value}` : "",
-                      arcLabelMinAngle: 25,
-                    },
-                  ]}
-                  hideLegend={false}
-                  slotProps={{
-                    legend: {
-                      direction: "horizontal",
-                      position: { vertical: "bottom", horizontal: "center" },
-                      sx: { fontSize: 11 },
-                    },
-                  }}
-                />
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusPieData} cx="50%" cy="45%" innerRadius={50} outerRadius={75} dataKey="value" paddingAngle={2}>
+                      {statusPieData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
+                    </Pie>
+                    <Legend iconSize={10} />
+                    <ReTooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </ChartCard>
-            </Grid>
-            {topProducts.length > 0 && (
-              <Grid size={12}>
+            </div>
+            {topProductData.length > 0 && (
+              <div className="md:col-span-12">
                 <ChartCard title={t("topProductsChart")} height={280}>
-                  <BarChart
-                    margin={{ left: 50, right: 16, top: 16, bottom: 60 }}
-                    xAxis={[
-                      {
-                        data: topProducts.map((p) => p.name),
-                        scaleType: "band",
-                        tickLabelStyle: { fontSize: 11 },
-                      },
-                    ]}
-                    series={[
-                      {
-                        data: topProducts.map((p) => p.quantity),
-                        label: t("totalProducts"),
-                        color: "#9c27b0",
-                      },
-                    ]}
-                    grid={{ horizontal: true }}
-                    hideLegend
-                    borderRadius={6}
-                  />
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={topProductData} margin={{ left: 10, right: 10, top: 8, bottom: 40 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                      <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" />
+                      <YAxis tick={{ fontSize: 11 }} />
+                      <ReTooltip />
+                      <Bar dataKey="quantity" name={t("totalProducts")} fill="#9c27b0" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </ChartCard>
-              </Grid>
+              </div>
             )}
-            <Grid size={{ xs: 12, md: 8 }}>
+            <div className="md:col-span-8">
               <ChartCard title={t("ordersTrend")} height={260}>
-                <LineChart
-                  margin={{ left: 50, right: 16, top: 16, bottom: 30 }}
-                  xAxis={[
-                    {
-                      data: chartDates,
-                      scaleType: "point",
-                      tickLabelStyle: { fontSize: 11 },
-                    },
-                  ]}
-                  series={[
-                    {
-                      data: chartOrders,
-                      label: t("totalOrders"),
-                      color: "#1976d2",
-                      curve: "monotoneX",
-                      showMark: false,
-                    },
-                  ]}
-                  grid={{ horizontal: true }}
-                  hideLegend
-                />
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={lineData} margin={{ left: 10, right: 10, top: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <ReTooltip />
+                    <Line type="monotone" dataKey="orders" name={t("totalOrders")} stroke="#1976d2" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
               </ChartCard>
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
+            </div>
+            <div className="md:col-span-4">
               <ChartCard title={t("weekdayDistribution")} height={260}>
-                <BarChart
-                  margin={{ left: 40, right: 16, top: 16, bottom: 30 }}
-                  xAxis={[
-                    {
-                      data: weekdayLabels,
-                      scaleType: "band",
-                      tickLabelStyle: { fontSize: 10 },
-                    },
-                  ]}
-                  series={[
-                    {
-                      data: ordersByWeekday.map((d) => d.count),
-                      label: t("totalOrders"),
-                      color: "#0288d1",
-                    },
-                  ]}
-                  grid={{ horizontal: true }}
-                  hideLegend
-                  borderRadius={4}
-                />
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weekdayData} margin={{ left: 10, right: 10, top: 8, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="label" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <ReTooltip />
+                    <Bar dataKey="count" name={t("totalOrders")} fill="#0288d1" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </ChartCard>
-            </Grid>
-            <Grid size={12}>
+            </div>
+            <div className="md:col-span-12">
               <ChartCard title={t("revenueByStatus")} height={260}>
-                <BarChart
-                  margin={{ left: 70, right: 16, top: 16, bottom: 40 }}
-                  xAxis={[
-                    {
-                      data: revenueByStatus.map((s) => tStatus(s.status)),
-                      scaleType: "band",
-                      tickLabelStyle: { fontSize: 11 },
-                    },
-                  ]}
-                  series={[
-                    {
-                      data: revenueByStatus.map((s) => s.revenue),
-                      label: t("totalSales"),
-                      color: "#2e7d32",
-                      valueFormatter: (v) => (v == null ? "" : currency(v)),
-                    },
-                  ]}
-                  grid={{ horizontal: true }}
-                  hideLegend
-                  borderRadius={6}
-                />
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={revenueStatusData} margin={{ left: 10, right: 10, top: 8, bottom: 40 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="label" tick={{ fontSize: 11 }} angle={-20} textAnchor="end" />
+                    <YAxis tick={{ fontSize: 11 }} />
+                    <ReTooltip formatter={(v: number) => currency(v)} />
+                    <Bar dataKey="revenue" name={t("totalSales")} fill="#2e7d32" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </ChartCard>
-            </Grid>
-          </Grid>
-        </Box>
+            </div>
+          </div>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }

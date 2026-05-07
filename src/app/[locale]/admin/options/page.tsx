@@ -2,33 +2,7 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Paper,
-  Snackbar,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
+import { Plus, Pencil, Trash2, Save, AlertCircle } from "lucide-react";
 
 import { adminApi, type SaveOptionPayload } from "@/lib/api/admin";
 import type { ProductOption } from "@/lib/types";
@@ -85,6 +59,12 @@ export default function AdminOptionsPage({
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!snack) return;
+    const timer = setTimeout(() => setSnack(null), 3000);
+    return () => clearTimeout(timer);
+  }, [snack]);
 
   const openCreate = () => setDialog({ open: true, draft: newDraft() });
 
@@ -190,206 +170,232 @@ export default function AdminOptionsPage({
     }
   };
 
+  void locale;
+
   return (
-    <Box>
+    <div>
       <AdminPageHeader title={t("options") || "Options"} subtitle="Global options catalog" />
 
-      <Paper sx={{ p: 3 }}>
-        <Stack
-          direction="row"
-          sx={{ mb: 2, justifyContent: "space-between", alignItems: "center" }}
-        >
-          <Typography variant="body2" color="text.secondary">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6">
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm text-gray-600">
             Define the option groups (Color, Size, ...) that products can use.
-          </Typography>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}>
-            Add option
-          </Button>
-        </Stack>
+          </p>
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+            style={{ background: "var(--color-primary)" }}
+            onClick={openCreate}
+          >
+            <Plus size={16} /> Add option
+          </button>
+        </div>
 
         {loading ? (
           <TableRowsSkeleton rows={4} />
         ) : options.length === 0 ? (
-          <Box sx={{ py: 4, textAlign: "center", color: "text.secondary" }}>
-            No options yet.
-          </Box>
+          <div className="py-8 text-center text-gray-400">No options yet.</div>
         ) : (
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name (AR)</TableCell>
-                  <TableCell>Name (EN)</TableCell>
-                  <TableCell>Values</TableCell>
-                  <TableCell />
-                </TableRow>
-              </TableHead>
-              <TableBody>
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                    Name (AR)
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                    Name (EN)
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                    Values
+                  </th>
+                  <th className="px-4 py-3" />
+                </tr>
+              </thead>
+              <tbody>
                 {options.map((opt) => (
-                  <TableRow key={opt.id} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>{opt.name}</TableCell>
-                    <TableCell>{opt.name_en || "—"}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                  <tr
+                    key={opt.id}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition"
+                  >
+                    <td className="px-4 py-3 font-semibold">{opt.name}</td>
+                    <td className="px-4 py-3">{opt.name_en || "—"}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
                         {opt.values.map((v) => (
-                          <Chip
+                          <span
                             key={v.id}
-                            size="small"
-                            label={v.value_en ? `${v.value} (${v.value_en})` : v.value}
-                            icon={
-                              v.hex_color ? (
-                                <Box
-                                  sx={{
-                                    width: 12,
-                                    height: 12,
-                                    borderRadius: "50%",
-                                    bgcolor: v.hex_color,
-                                    border: "1px solid rgba(0,0,0,0.2)",
-                                    ml: 0.5,
-                                  }}
-                                />
-                              ) : undefined
-                            }
-                          />
+                            className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-600"
+                          >
+                            {v.hex_color && (
+                              <span
+                                className="inline-block w-3 h-3 rounded-full border border-black/20"
+                                style={{ backgroundColor: v.hex_color }}
+                              />
+                            )}
+                            {v.value_en ? `${v.value} (${v.value_en})` : v.value}
+                          </span>
                         ))}
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Tooltip title="Edit">
-                        <IconButton size="small" onClick={() => openEdit(opt)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          color="error"
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          title="Edit"
+                          className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition"
+                          onClick={() => openEdit(opt)}
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          title="Delete"
+                          className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition"
                           onClick={() => deleteOption(opt)}
                         >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              </tbody>
+            </table>
+          </div>
         )}
-      </Paper>
+      </div>
 
-      <Dialog open={dialog.open} onClose={closeDialog} fullWidth maxWidth="sm">
-        <DialogTitle>{dialog.draft.id ? "Edit option" : "Add option"}</DialogTitle>
-        <DialogContent dividers>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Name (AR)"
-                value={dialog.draft.name}
-                onChange={(e) => updateDraft({ name: e.target.value })}
-              />
-              <TextField
-                fullWidth
-                size="small"
-                label="Name (EN)"
-                value={dialog.draft.name_en}
-                onChange={(e) => updateDraft({ name_en: e.target.value })}
-              />
-            </Stack>
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                Values
-              </Typography>
-              <Stack spacing={1}>
-                {dialog.draft.values.map((v, i) => (
-                  <Stack key={i} direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                    <TextField
-                      size="small"
-                      label="Value (AR)"
-                      value={v.value}
-                      onChange={(e) => updateValue(i, { value: e.target.value })}
-                      sx={{ flex: 1 }}
-                    />
-                    <TextField
-                      size="small"
-                      label="Value (EN)"
-                      value={v.value_en}
-                      onChange={(e) => updateValue(i, { value_en: e.target.value })}
-                      sx={{ flex: 1 }}
-                    />
-                    <TextField
-                      size="small"
-                      label="Hex"
-                      value={v.hex_color}
-                      onChange={(e) => updateValue(i, { hex_color: e.target.value })}
-                      sx={{ width: 140 }}
-                      slotProps={{
-                        input: {
-                          endAdornment: v.hex_color ? (
-                            <Box
-                              sx={{
-                                width: 16,
-                                height: 16,
-                                borderRadius: "50%",
-                                bgcolor: v.hex_color,
-                                border: "1px solid rgba(0,0,0,0.2)",
-                              }}
-                            />
-                          ) : undefined,
-                        },
-                      }}
-                    />
-                    <IconButton size="small" color="error" onClick={() => removeValue(i)}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </Stack>
-                ))}
-              </Stack>
-              <Button
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={addValue}
-                sx={{ mt: 1 }}
+      {/* Dialog */}
+      {dialog.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={closeDialog} />
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">
+                {dialog.draft.id ? "Edit option" : "Add option"}
+              </h2>
+            </div>
+            <div className="px-6 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Name (AR)
+                  </label>
+                  <input
+                    type="text"
+                    value={dialog.draft.name}
+                    onChange={(e) => updateDraft({ name: e.target.value })}
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    Name (EN)
+                  </label>
+                  <input
+                    type="text"
+                    value={dialog.draft.name_en}
+                    onChange={(e) => updateDraft({ name_en: e.target.value })}
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-semibold mb-2">Values</p>
+                <div className="space-y-2">
+                  {dialog.draft.values.map((v, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        placeholder="Value (AR)"
+                        value={v.value}
+                        onChange={(e) => updateValue(i, { value: e.target.value })}
+                        className="h-8 rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                        style={{ flex: 1 }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Value (EN)"
+                        value={v.value_en}
+                        onChange={(e) => updateValue(i, { value_en: e.target.value })}
+                        className="h-8 rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                        style={{ flex: 1 }}
+                      />
+                      <div className="flex items-center gap-1 border border-gray-200 rounded-lg bg-gray-50 px-2 h-8">
+                        <input
+                          type="text"
+                          placeholder="Hex"
+                          value={v.hex_color}
+                          onChange={(e) => updateValue(i, { hex_color: e.target.value })}
+                          className="w-20 bg-transparent text-sm focus:outline-none"
+                        />
+                        {v.hex_color && (
+                          <span
+                            className="inline-block w-4 h-4 rounded-full border border-black/20 shrink-0"
+                            style={{ backgroundColor: v.hex_color }}
+                          />
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition"
+                        onClick={() => removeValue(i)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 mt-2"
+                  onClick={addValue}
+                >
+                  <Plus size={13} /> Add value
+                </button>
+              </div>
+              {dialog.draft.id && (
+                <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
+                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                  <span>
+                    Removing a value that is currently used by a variant will be ignored.
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                onClick={closeDialog}
+                disabled={saving}
               >
-                Add value
-              </Button>
-            </Box>
-            {dialog.draft.id && (
-              <Alert severity="info">
-                Removing a value that is currently used by a variant will be ignored.
-              </Alert>
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog} disabled={saving}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<SaveIcon />}
-            onClick={saveDraft}
-            disabled={saving}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                style={{ background: "var(--color-primary)" }}
+                onClick={saveDraft}
+                disabled={saving}
+              >
+                <Save size={16} /> Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Snackbar
-        open={!!snack}
-        autoHideDuration={3000}
-        onClose={() => setSnack(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        {snack ? (
-          <Alert severity={snack.sev} variant="filled" onClose={() => setSnack(null)}>
-            {snack.msg}
-          </Alert>
-        ) : undefined}
-      </Snackbar>
-    </Box>
+      {snack && (
+        <div
+          className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-lg ${
+            snack.sev === "error" ? "bg-red-600" : "bg-gray-900"
+          }`}
+        >
+          {snack.msg}
+        </div>
+      )}
+    </div>
   );
 }
