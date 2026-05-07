@@ -1,26 +1,19 @@
 "use client";
 
 import { useMemo } from "react";
-import { IconButton, Tooltip } from "@mui/material";
-import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
-import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
+import { Heart } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useWishlistStore } from "@/lib/store/wishlistStore";
+import { cn } from "@/lib/utils";
 
 interface FavoriteButtonProps {
   productId: number;
   size?: "small" | "medium";
-  /** Render a contrast background halo (for use on top of product images). */
   floating?: boolean;
 }
 
-/**
- * Heart toggle used on product cards and product detail page.
- * - Unauthenticated clicks redirect to /login.
- * - Authenticated clicks optimistically toggle the wishlist store.
- */
 export default function FavoriteButton({
   productId,
   size = "small",
@@ -48,30 +41,27 @@ export default function FavoriteButton({
     await toggle(productId);
   };
 
+  const iconSize = size === "small" ? 16 : 20;
+
   return (
-    <Tooltip title={label} placement="top" arrow>
-      <IconButton
-        onClick={handleClick}
-        size={size}
-        aria-label={label}
-        aria-pressed={isFavorite}
-        sx={{
-          bgcolor: floating ? "rgba(255,255,255,0.92)" : "transparent",
-          color: isFavorite ? "#ff3b30" : "text.secondary",
-          boxShadow: floating ? "0 2px 6px rgba(0,0,0,0.12)" : "none",
-          "&:hover": {
-            bgcolor: floating ? "white" : "rgba(0,0,0,0.04)",
-            color: "#ff3b30",
-          },
-          transition: "all 0.2s ease",
-        }}
-      >
-        {isFavorite ? (
-          <FavoriteRoundedIcon fontSize={size === "small" ? "small" : "medium"} />
-        ) : (
-          <FavoriteBorderRoundedIcon fontSize={size === "small" ? "small" : "medium"} />
-        )}
-      </IconButton>
-    </Tooltip>
+    <button
+      onClick={handleClick}
+      aria-label={label}
+      aria-pressed={isFavorite}
+      title={label}
+      className={cn(
+        "flex items-center justify-center rounded-full transition-all duration-200",
+        size === "small" ? "w-8 h-8" : "w-10 h-10",
+        floating
+          ? "bg-white/90 shadow-md hover:bg-white"
+          : "hover:bg-black/5",
+        isFavorite ? "text-red-500" : "text-gray-400 hover:text-red-500"
+      )}
+    >
+      <Heart
+        size={iconSize}
+        fill={isFavorite ? "currentColor" : "none"}
+      />
+    </button>
   );
 }

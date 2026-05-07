@@ -1,21 +1,14 @@
 "use client";
 
-import { Box, Card, Stack, Typography } from "@mui/material";
-
 export interface ChartCardProps {
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
   height?: number | string;
   children: React.ReactNode;
-  /** When true, removes inner padding around the chart so it fills the card */
   flush?: boolean;
 }
 
-/**
- * Standard wrapper for analytics charts on dashboards.
- * Gives every chart a consistent header, padding and surface treatment.
- */
 export default function ChartCard({
   title,
   subtitle,
@@ -25,55 +18,20 @@ export default function ChartCard({
   flush,
 }: ChartCardProps) {
   return (
-    <Card
-      elevation={0}
-      sx={{
-        borderRadius: 3,
-        border: "1px solid",
-        borderColor: "divider",
-        bgcolor: "background.paper",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        p: { xs: 2, sm: 2.5 },
-      }}
-    >
-      <Stack
-        direction="row"
-        spacing={2}
-        sx={{
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          mb: 2,
-        }}
-      >
-        <Box sx={{ minWidth: 0 }}>
-          <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 800, lineHeight: 1.2, letterSpacing: "-0.01em" }}
-            noWrap
-          >
-            {title}
-          </Typography>
-          {subtitle && (
-            <Typography variant="caption" color="text.secondary">
-              {subtitle}
-            </Typography>
-          )}
-        </Box>
-        {action && <Box sx={{ flexShrink: 0 }}>{action}</Box>}
-      </Stack>
-      <Box
-        sx={{
-          flex: 1,
-          minHeight: 0,
-          height,
-          mx: flush ? -2 : 0,
-          mb: flush ? -2 : 0,
-        }}
+    <div className="flex flex-col h-full rounded-2xl border border-gray-200 bg-white p-5">
+      <div className="flex items-start justify-between gap-4 mb-5">
+        <div className="min-w-0">
+          <p className="font-extrabold text-base leading-tight truncate">{title}</p>
+          {subtitle && <span className="text-xs text-gray-500">{subtitle}</span>}
+        </div>
+        {action && <div className="shrink-0">{action}</div>}
+      </div>
+      <div
+        className={`flex-1 min-h-0 ${flush ? "-mx-5 -mb-5" : ""}`}
+        style={{ height }}
       >
         {children}
-      </Box>
-    </Card>
+      </div>
+    </div>
   );
 }

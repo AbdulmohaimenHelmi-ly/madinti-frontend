@@ -10,17 +10,12 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Box, Button, Stack, Typography } from "@mui/material";
-import MyLocationIcon from "@mui/icons-material/MyLocation";
+import { MapPin, Crosshair } from "lucide-react";
 
-// Fix the broken default marker icon paths in bundlers (Next.js)
 const defaultIcon = L.icon({
-  iconUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
@@ -28,7 +23,6 @@ const defaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = defaultIcon;
 
-// Default center: Tripoli, Libya
 const DEFAULT_CENTER: [number, number] = [32.8872, 13.1913];
 const DEFAULT_ZOOM = 12;
 const PICKED_ZOOM = 16;
@@ -45,9 +39,7 @@ interface LocationPickerProps {
 
 function ClickHandler({ onChange }: { onChange: (v: LatLng) => void }) {
   useMapEvents({
-    click(e) {
-      onChange({ lat: e.latlng.lat, lng: e.latlng.lng });
-    },
+    click(e) { onChange({ lat: e.latlng.lat, lng: e.latlng.lng }); },
   });
   return null;
 }
@@ -55,11 +47,7 @@ function ClickHandler({ onChange }: { onChange: (v: LatLng) => void }) {
 function FlyTo({ position }: { position: [number, number] | null }) {
   const map = useMap();
   useEffect(() => {
-    if (position) {
-      map.flyTo(position, Math.max(map.getZoom(), PICKED_ZOOM), {
-        duration: 0.6,
-      });
-    }
+    if (position) map.flyTo(position, Math.max(map.getZoom(), PICKED_ZOOM), { duration: 0.6 });
   }, [position, map]);
   return null;
 }
@@ -75,12 +63,12 @@ export default function LocationPicker({
   const markerRef = useRef<L.Marker>(null);
 
   const initialCenter: [number, number] = useMemo(() => {
-    if (value && value.lat && value.lng) return [value.lat, value.lng];
+    if (value?.lat && value?.lng) return [value.lat, value.lng];
     return DEFAULT_CENTER;
   }, [value]);
 
   const markerPosition: [number, number] | null =
-    value && value.lat && value.lng ? [value.lat, value.lng] : null;
+    value?.lat && value?.lng ? [value.lat, value.lng] : null;
 
   const useMyLocation = () => {
     if (!("geolocation" in navigator)) return;
@@ -96,20 +84,10 @@ export default function LocationPicker({
   };
 
   return (
-    <Stack spacing={1}>
-      <Box
-        sx={{
-          height,
-          width: "100%",
-          borderRadius: 2,
-          overflow: "hidden",
-          border: "1px solid",
-          borderColor: "divider",
-          "& .leaflet-container": {
-            height: "100%",
-            width: "100%",
-          },
-        }}
+    <div className="flex flex-col gap-2">
+      <div
+        className="overflow-hidden rounded-xl border border-gray-200"
+        style={{ height, width: "100%" }}
       >
         <MapContainer
           center={initialCenter}
@@ -118,7 +96,7 @@ export default function LocationPicker({
           style={{ height: "100%", width: "100%" }}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <ClickHandler onChange={onChange} />
@@ -139,29 +117,23 @@ export default function LocationPicker({
           )}
           <FlyTo position={markerPosition} />
         </MapContainer>
-      </Box>
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{ alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" }}
-      >
-        <Typography variant="caption" color="text.secondary">
+      </div>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <span className="text-xs text-gray-500 flex items-center gap-1">
+          {markerPosition && <MapPin size={12} />}
           {hintText}
-          {markerPosition
-            ? `  ·  ${markerPosition[0].toFixed(5)}, ${markerPosition[1].toFixed(5)}`
-            : ""}
-        </Typography>
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<MyLocationIcon fontSize="small" />}
+          {markerPosition && `  ·  ${markerPosition[0].toFixed(5)}, ${markerPosition[1].toFixed(5)}`}
+        </span>
+        <button
+          type="button"
           onClick={useMyLocation}
           disabled={locating}
-          sx={{ textTransform: "none", borderRadius: 2 }}
+          className="inline-flex items-center gap-1.5 text-sm font-medium border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 disabled:opacity-50 transition"
         >
+          <Crosshair size={14} />
           {myLocationLabel}
-        </Button>
-      </Stack>
-    </Stack>
+        </button>
+      </div>
+    </div>
   );
 }

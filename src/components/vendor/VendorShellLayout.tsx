@@ -1,52 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  AppBar,
-  Avatar,
-  Box,
-  CircularProgress,
-  Divider,
-  Drawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Toolbar,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import StorefrontIcon from "@mui/icons-material/Storefront";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import PetsIcon from "@mui/icons-material/Pets";
-import MenuIcon from "@mui/icons-material/Menu";
-import LogoutIcon from "@mui/icons-material/Logout";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-
+import { LayoutDashboard, Package, Receipt, Truck, Store, PawPrint, Menu, LogOut, ExternalLink } from "lucide-react";
 import { useAuthStore } from "@/lib/store/authStore";
+import { cn } from "@/lib/utils";
 
 const DRAWER_WIDTH = 264;
-const APPBAR_HEIGHT = 64;
 
-const SIDEBAR_BG = "#0F172A";
-const SIDEBAR_HOVER = "rgba(255,255,255,0.06)";
-const SIDEBAR_FG = "rgba(255,255,255,0.72)";
-
-export default function VendorShellLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function VendorShellLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations("vendor");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -61,324 +25,126 @@ export default function VendorShellLayout({
   const logout = useAuthStore((s) => s.logout);
 
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!isInitialized) initialize();
-  }, [isInitialized, initialize]);
-
+  useEffect(() => { if (!isInitialized) initialize(); }, [isInitialized, initialize]);
   useEffect(() => {
     if (!isInitialized || isLoading) return;
-    if (!token) {
-      router.replace(`/${locale}/auth/login`);
-      return;
-    }
-    if (user && !user.is_vendor && !user.is_admin) {
-      router.replace(`/${locale}`);
-    }
+    if (!token) { router.replace(`/${locale}/auth/login`); return; }
+    if (user && !user.is_vendor && !user.is_admin) router.replace(`/${locale}`);
   }, [isInitialized, isLoading, user, token, locale, router]);
 
-  const links = useMemo(
-    () => [
-      { label: t("dashboard"), href: `/${locale}/vendor`, icon: <DashboardIcon />, exact: true },
-      { label: t("myProducts"), href: `/${locale}/vendor/products`, icon: <InventoryIcon /> },
-      { label: t("myOrders"), href: `/${locale}/vendor/orders`, icon: <ReceiptLongIcon /> },
-      { label: t("trustedCarriers"), href: `/${locale}/vendor/carriers`, icon: <LocalShippingIcon /> },
-    ],
-    [t, locale]
-  );
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handle = (e: MouseEvent) => { if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false); };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [menuOpen]);
 
-  const isActive = (href: string, exact?: boolean) =>
-    exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+  const links = useMemo(() => [
+    { label: t("dashboard"), href: `/${locale}/vendor`, icon: LayoutDashboard, exact: true },
+    { label: t("myProducts"), href: `/${locale}/vendor/products`, icon: Package },
+    { label: t("myOrders"), href: `/${locale}/vendor/orders`, icon: Receipt },
+    { label: t("trustedCarriers"), href: `/${locale}/vendor/carriers`, icon: Truck },
+  ], [t, locale]);
 
+  const isActive = (href: string, exact?: boolean) => exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
   const currentPage = links.find((l) => isActive(l.href, l.exact));
-
-  const handleLogout = async () => {
-    setMenuAnchor(null);
-    try {
-      await logout();
-    } finally {
-      router.replace(`/${locale}/auth/login`);
-    }
-  };
+  const handleLogout = async () => { setMenuOpen(false); try { await logout(); } finally { router.replace(`/${locale}/auth/login`); } };
 
   if (!user || (!user.is_vendor && !user.is_admin)) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          bgcolor: "#F4F6FA",
-        }}
-      >
-        <CircularProgress />
-      </Box>
+      <div className="min-h-screen flex items-center justify-center bg-[#F4F6FA]">
+        <div className="w-10 h-10 border-4 border-gray-200 border-t-[var(--color-primary)] rounded-full animate-spin" />
+      </div>
     );
   }
 
-  const sidebarContent = (
-    <Box
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        bgcolor: SIDEBAR_BG,
-        color: SIDEBAR_FG,
-      }}
-    >
-      <Box
-        sx={{
-          height: APPBAR_HEIGHT,
-          display: "flex",
-          alignItems: "center",
-          px: 2.5,
-          gap: 1.5,
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        <Box
-          sx={(theme) => ({
-            width: 36,
-            height: 36,
-            borderRadius: 1.5,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-            color: "white",
-          })}
-        >
-          <StorefrontIcon fontSize="small" />
-        </Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography
-            sx={{
-              color: "white",
-              fontWeight: 800,
-              lineHeight: 1.1,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 0.75,
-            }}
-            noWrap
-          >
-            <PetsIcon sx={{ fontSize: 16, transform: "rotate(-15deg)" }} />
-            {tCommon("appName")}
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{ color: "rgba(255,255,255,0.5)", letterSpacing: 0.5 }}
-          >
-            {t("vendorPanel")}
-          </Typography>
-        </Box>
-      </Box>
-
-      <Box sx={{ px: 2, py: 2, flex: 1, overflowY: "auto" }}>
-        <Typography
-          variant="caption"
-          sx={{
-            color: "rgba(255,255,255,0.4)",
-            fontWeight: 700,
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            px: 1.5,
-          }}
-        >
-          {t("vendorPanel")}
-        </Typography>
-        <List sx={{ mt: 0.5 }} disablePadding>
+  const SidebarContent = () => (
+    <div className="h-full flex flex-col" style={{ background: "#0F172A", color: "rgba(255,255,255,0.72)" }}>
+      <div className="flex items-center gap-3 px-6 border-b border-white/5" style={{ height: 64 }}>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)" }}>
+          <Store size={18} className="text-white" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-white font-extrabold text-sm flex items-center gap-1.5 whitespace-nowrap">
+            <PawPrint size={14} className="-rotate-[15deg]" /> {tCommon("appName")}
+          </p>
+          <p className="text-[0.7rem] text-white/40 tracking-wide">{t("vendorPanel")}</p>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto px-3 py-3">
+        <p className="px-3 text-[0.68rem] font-bold tracking-widest uppercase text-white/35 mb-2">{t("vendorPanel")}</p>
+        <ul className="space-y-0.5">
           {links.map((link) => {
             const active = isActive(link.href, link.exact);
             return (
-              <ListItem key={link.href} disablePadding sx={{ mb: 0.5 }}>
-                <ListItemButton
-                  component={Link}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  sx={(theme) => ({
-                    borderRadius: 2,
-                    py: 1.1,
-                    color: active ? theme.palette.primary.light : SIDEBAR_FG,
-                    bgcolor: active ? `${theme.palette.primary.main}24` : "transparent",
-                    "&:hover": {
-                      bgcolor: active ? `${theme.palette.primary.main}24` : SIDEBAR_HOVER,
-                      color: active ? theme.palette.primary.light : "white",
-                    },
-                  })}
-                >
-                  <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>
-                    {link.icon}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={link.label}
-                    slotProps={{
-                      primary: {
-                        sx: {
-                          fontWeight: active ? 700 : 500,
-                          fontSize: "0.9rem",
-                        },
-                      },
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
+              <li key={link.href}>
+                <Link href={link.href} onClick={() => setMobileOpen(false)}
+                  className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm no-underline transition-all", active ? "font-bold" : "font-medium hover:bg-white/5 hover:text-white")}
+                  style={active ? { color: "var(--color-primary-light)", background: "rgba(255,255,255,0.08)" } : {}}>
+                  <link.icon size={16} /> {link.label}
+                </Link>
+              </li>
             );
           })}
-        </List>
-      </Box>
-
-      <Divider sx={{ borderColor: "rgba(255,255,255,0.06)" }} />
-      <Box sx={{ p: 2 }}>
-        <ListItemButton
-          component={Link}
-          href={`/${locale}`}
-          sx={{
-            borderRadius: 2,
-            color: SIDEBAR_FG,
-            "&:hover": { bgcolor: SIDEBAR_HOVER, color: "white" },
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 36, color: "inherit" }}>
-            <OpenInNewIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText
-            primary={t("visitSite")}
-            slotProps={{ primary: { sx: { fontSize: "0.85rem" } } }}
-          />
-        </ListItemButton>
-      </Box>
-    </Box>
+        </ul>
+      </div>
+      <div className="p-3 border-t border-white/5">
+        <Link href={`/${locale}`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm no-underline transition hover:bg-white/5 hover:text-white" style={{ color: "rgba(255,255,255,0.72)" }}>
+          <ExternalLink size={15} /> {t("visitSite")}
+        </Link>
+      </div>
+    </div>
   );
 
-  const isRtl = locale === "ar";
-
   return (
-    <Box
-      sx={{
-        display: "flex",
-        minHeight: "100vh",
-        bgcolor: "#F4F6FA",
-      }}
-    >
-      <Box
-        sx={{
-          display: { xs: "none", md: "block" },
-          width: DRAWER_WIDTH,
-          flexShrink: 0,
-          position: "sticky",
-          top: 0,
-          alignSelf: "flex-start",
-          height: "100vh",
-          overflow: "hidden",
-        }}
-      >
-        {sidebarContent}
-      </Box>
-
-      <Drawer
-        variant="temporary"
-        anchor={isRtl ? "right" : "left"}
-        open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-        ModalProps={{ keepMounted: true }}
-        sx={{
-          display: { xs: "block", md: "none" },
-          "& .MuiDrawer-paper": {
-            width: DRAWER_WIDTH,
-            boxSizing: "border-box",
-            border: "none",
-          },
-        }}
-      >
-        {sidebarContent}
-      </Drawer>
-
-      <Box
-        sx={{
-          flex: 1,
-          minWidth: 0,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <AppBar
-          position="sticky"
-          color="inherit"
-          elevation={0}
-          sx={{
-            bgcolor: "white",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Toolbar sx={{ height: APPBAR_HEIGHT, gap: 1 }}>
-            <IconButton
-              onClick={() => setMobileOpen(true)}
-              edge="start"
-              sx={{ display: { md: "none" } }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: 700, color: "text.primary" }}
-            >
-              {currentPage?.label ?? t("dashboard")}
-            </Typography>
-            <Box sx={{ flex: 1 }} />
-            <Tooltip title={user.name}>
-              <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}>
-                <Avatar
-                  sx={{
-                    width: 36,
-                    height: 36,
-                    bgcolor: "primary.main",
-                    color: "white",
-                    fontWeight: 700,
-                  }}
-                >
-                  {user.name?.[0]?.toUpperCase()}
-                </Avatar>
-              </IconButton>
-            </Tooltip>
-            <Menu
-              anchorEl={menuAnchor}
-              open={!!menuAnchor}
-              onClose={() => setMenuAnchor(null)}
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              transformOrigin={{ vertical: "top", horizontal: "right" }}
-              slotProps={{ paper: { sx: { minWidth: 220, mt: 1, borderRadius: 2 } } }}
-            >
-              <Box sx={{ px: 2, py: 1.5 }}>
-                <Typography sx={{ fontWeight: 700 }}>{user.name}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {user.email}
-                </Typography>
-              </Box>
-              <Divider />
-              <MenuItem component={Link} href={`/${locale}`}>
-                <ListItemIcon>
-                  <OpenInNewIcon fontSize="small" />
-                </ListItemIcon>
-                {t("visitSite")}
-              </MenuItem>
-              <MenuItem onClick={handleLogout}>
-                <ListItemIcon>
-                  <LogoutIcon fontSize="small" />
-                </ListItemIcon>
-                {tCommon("logout")}
-              </MenuItem>
-            </Menu>
-          </Toolbar>
-        </AppBar>
-
-        <Box component="main" sx={{ flex: 1, p: { xs: 2, md: 4 }, maxWidth: "100%" }}>
-          {children}
-        </Box>
-      </Box>
-    </Box>
+    <div className="flex min-h-screen bg-[#F4F6FA]">
+      <aside className="hidden md:block shrink-0 sticky top-0 self-start h-screen overflow-hidden" style={{ width: DRAWER_WIDTH }}>
+        <SidebarContent />
+      </aside>
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
+          <div className={`relative z-10 h-full ${locale === "ar" ? "ms-auto" : "me-auto"}`} style={{ width: DRAWER_WIDTH }}>
+            <SidebarContent />
+          </div>
+        </div>
+      )}
+      <div className="flex-1 min-w-0 flex flex-col">
+        <header className="sticky top-0 z-30 flex items-center gap-3 px-4 border-b border-gray-100 bg-white" style={{ height: 64 }}>
+          <button type="button" className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition" onClick={() => setMobileOpen(true)}>
+            <Menu size={20} />
+          </button>
+          <h1 className="font-bold text-gray-900 text-base">{currentPage?.label ?? t("dashboard")}</h1>
+          <div className="flex-1" />
+          <div ref={menuRef} className="relative">
+            <button type="button" onClick={() => setMenuOpen((v) => !v)}
+              className="flex h-9 w-9 items-center justify-center rounded-full font-bold text-white text-sm"
+              style={{ background: "var(--color-primary)" }}>
+              {user.name?.[0]?.toUpperCase()}
+            </button>
+            {menuOpen && (
+              <div className="absolute end-0 top-full mt-2 min-w-[220px] rounded-xl border border-gray-100 bg-white shadow-2xl overflow-hidden z-50">
+                <div className="px-4 py-3 border-b border-gray-100">
+                  <p className="font-bold text-sm">{user.name}</p>
+                  <p className="text-xs text-gray-400">{user.email}</p>
+                </div>
+                <Link href={`/${locale}`} onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm no-underline text-gray-700 hover:bg-gray-50 transition">
+                  <ExternalLink size={14} /> {t("visitSite")}
+                </Link>
+                <button type="button" onClick={handleLogout}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition">
+                  <LogOut size={14} /> {tCommon("logout")}
+                </button>
+              </div>
+            )}
+          </div>
+        </header>
+        <main className="flex-1 p-4 md:p-8">{children}</main>
+      </div>
+    </div>
   );
 }

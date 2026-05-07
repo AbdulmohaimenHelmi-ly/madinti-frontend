@@ -1,20 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Container,
-  Typography,
-  Button,
-  Box,
-  Stack,
-  Card,
-  CardContent,
-  Avatar,
-  Divider,
-} from "@mui/material";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import DeleteSweepIcon from "@mui/icons-material/DeleteSweep";
-import StorefrontIcon from "@mui/icons-material/Storefront";
+import { ShoppingCart, Trash2, Store } from "lucide-react";
 import Link from "next/link";
 import CartItem from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
@@ -23,10 +10,6 @@ import EmptyState from "@/components/common/EmptyState";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useAuthStore } from "@/lib/store/authStore";
 
-/**
- * Cart page renders one card per vendor — each card is its own mini cart
- * with its own checkout button, since each cart turns into a single order.
- */
 export default function CartPage() {
   const t = useTranslations();
   const locale = useLocale();
@@ -37,9 +20,7 @@ export default function CartPage() {
   const clearVendorCart = useCartStore((s) => s.clearVendorCart);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
-  useEffect(() => {
-    if (isAuthenticated) fetchCarts();
-  }, [isAuthenticated, fetchCarts]);
+  useEffect(() => { if (isAuthenticated) fetchCarts(); }, [isAuthenticated, fetchCarts]);
 
   const handleClearAll = () => {
     if (typeof window !== "undefined" && !window.confirm(t("cart.confirmClear"))) return;
@@ -47,164 +28,79 @@ export default function CartPage() {
   };
 
   const handleClearVendor = (vendorId: number) => {
-    if (
-      typeof window !== "undefined" &&
-      !window.confirm(t("cart.confirmClearVendor"))
-    ) {
-      return;
-    }
+    if (typeof window !== "undefined" && !window.confirm(t("cart.confirmClearVendor"))) return;
     clearVendorCart(vendorId);
   };
 
   if (isLoading && carts.length === 0) {
     return (
-      <Container maxWidth="lg" sx={{ py: 5 }}>
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
-            {t("cart.title")}
-          </Typography>
-        </Box>
+      <div className="max-w-[1200px] mx-auto px-4 py-10">
+        <h1 className="text-3xl font-extrabold mb-6">{t("cart.title")}</h1>
         <CartSkeleton />
-      </Container>
+      </div>
     );
   }
 
   if (carts.length === 0) {
     return (
-      <Container maxWidth="lg" sx={{ py: 6 }}>
+      <div className="max-w-[1200px] mx-auto px-4 py-12">
         <EmptyState message={t("cart.empty")} />
-        <Box sx={{ textAlign: "center", mt: 3 }}>
-          <Button
-            component={Link}
-            href={`/${locale}/products`}
-            variant="contained"
-            startIcon={<ShoppingCartIcon />}
-            sx={{ borderRadius: 100, px: 4, py: 1.2 }}
-          >
-            {t("cart.continueShopping")}
-          </Button>
-        </Box>
-      </Container>
+        <div className="text-center mt-6">
+          <Link href={`/${locale}/products`} className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-white font-bold no-underline" style={{ background: "var(--color-primary)" }}>
+            <ShoppingCart size={18} />{t("cart.continueShopping")}
+          </Link>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 5 }}>
-      <Box
-        sx={{
-          mb: 4,
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: 2,
-          flexWrap: "wrap",
-        }}
-      >
-        <Box>
-          <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
-            {t("cart.title")}
-          </Typography>
-          <Typography color="text.secondary">
-            {t("cart.vendorSubtitle", { count: carts.length })}
-          </Typography>
-          <Box
-            sx={(theme) => ({
-              mt: 1.5,
-              width: 48,
-              height: 4,
-              borderRadius: 2,
-              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-            })}
-          />
-        </Box>
-        <Button
-          onClick={handleClearAll}
-          variant="outlined"
-          color="error"
-          startIcon={<DeleteSweepIcon />}
-          sx={{ borderRadius: 2, fontWeight: 700, textTransform: "none" }}
-        >
-          {t("cart.clearAll")}
-        </Button>
-      </Box>
+    <div className="max-w-[1200px] mx-auto px-4 py-10">
+      <div className="flex items-start justify-between gap-4 flex-wrap mb-8">
+        <div>
+          <h1 className="text-3xl font-extrabold mb-1">{t("cart.title")}</h1>
+          <p className="text-gray-500">{t("cart.vendorSubtitle", { count: carts.length })}</p>
+          <div className="mt-2 w-12 h-1 rounded-full" style={{ background: "linear-gradient(90deg, var(--color-primary), var(--color-primary-light))" }} />
+        </div>
+        <button onClick={handleClearAll} className="flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 rounded-xl font-bold text-sm hover:bg-red-50 transition-colors">
+          <Trash2 size={16} />{t("cart.clearAll")}
+        </button>
+      </div>
 
-      <Stack spacing={3}>
+      <div className="flex flex-col gap-6">
         {carts.map((cart) => {
-          const vendorName =
-            (locale === "en" && cart.vendor?.store_name_en) ||
-            cart.vendor?.store_name ||
-            "";
+          const vendorName = (locale === "en" && cart.vendor?.store_name_en) || cart.vendor?.store_name || "";
           return (
-            <Card key={cart.id} sx={{ overflow: "hidden" }}>
-              <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={1.5}
-                  sx={{
-                    alignItems: { xs: "stretch", sm: "center" },
-                    justifyContent: "space-between",
-                    mb: 2,
-                  }}
-                >
-                  <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-                    <Avatar
-                      src={cart.vendor?.logo ?? undefined}
-                      sx={{ width: 44, height: 44, bgcolor: "primary.main" }}
-                    >
-                      <StorefrontIcon />
-                    </Avatar>
-                    <Box>
-                      <Typography
-                        component={cart.vendor?.slug ? Link : "div"}
-                        href={
-                          cart.vendor?.slug
-                            ? `/${locale}/vendors/${cart.vendor.slug}`
-                            : undefined
-                        }
-                        sx={{
-                          fontWeight: 800,
-                          fontSize: "1.05rem",
-                          color: "text.primary",
-                          textDecoration: "none",
-                          "&:hover": cart.vendor?.slug
-                            ? { color: "primary.main" }
-                            : {},
-                        }}
-                      >
-                        {vendorName || t("cart.unknownVendor")}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {t("cart.itemsCount", { count: cart.items_count })}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                  <Button
-                    onClick={() => handleClearVendor(cart.vendor_id)}
-                    variant="text"
-                    color="error"
-                    size="small"
-                    startIcon={<DeleteSweepIcon />}
-                    sx={{ borderRadius: 2, fontWeight: 700, textTransform: "none", alignSelf: { xs: "flex-end", sm: "center" } }}
-                  >
-                    {t("cart.clearVendor")}
-                  </Button>
-                </Stack>
-
-                <Divider sx={{ mb: 2 }} />
-
-                <Box sx={{ mb: 2 }}>
-                  {cart.items.map((item) => (
-                    <CartItem key={item.id} item={item} />
-                  ))}
-                </Box>
-
+            <div key={cart.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="p-4 md:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-full flex items-center justify-center text-white shrink-0 overflow-hidden" style={{ background: "var(--color-primary)" }}>
+                      {cart.vendor?.logo ? <img src={cart.vendor.logo} alt="" className="w-full h-full object-cover" /> : <Store size={20} />}
+                    </div>
+                    <div>
+                      {cart.vendor?.slug ? (
+                        <Link href={`/${locale}/vendors/${cart.vendor.slug}`} className="font-extrabold text-base text-gray-900 no-underline hover:text-[var(--color-primary)] transition-colors">
+                          {vendorName || t("cart.unknownVendor")}
+                        </Link>
+                      ) : (
+                        <span className="font-extrabold text-base text-gray-900">{vendorName || t("cart.unknownVendor")}</span>
+                      )}
+                      <p className="text-xs text-gray-400">{t("cart.itemsCount", { count: cart.items_count })}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => handleClearVendor(cart.vendor_id)} className="flex items-center gap-1.5 px-3 py-1.5 text-red-500 text-sm font-bold rounded-xl hover:bg-red-50 transition-colors self-end sm:self-center">
+                    <Trash2 size={14} />{t("cart.clearVendor")}
+                  </button>
+                </div>
+                <hr className="border-gray-100 mb-4" />
+                <div className="mb-4">{cart.items.map((item) => <CartItem key={item.id} item={item} />)}</div>
                 <CartSummary cart={cart} />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           );
         })}
-      </Stack>
-    </Container>
+      </div>
+    </div>
   );
 }
-

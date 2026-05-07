@@ -5,39 +5,8 @@ import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
-  Badge,
-  Button,
-  Box,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-  Container,
-} from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import PersonIcon from "@mui/icons-material/Person";
-import CloseIcon from "@mui/icons-material/Close";
-import InventoryIcon from "@mui/icons-material/Inventory";
-import CategoryIcon from "@mui/icons-material/Category";
-import StorefrontIcon from "@mui/icons-material/Storefront";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import LoginIcon from "@mui/icons-material/Login";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import AddBusinessIcon from "@mui/icons-material/AddBusiness";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import LogoutIcon from "@mui/icons-material/Logout";
-import PetsIcon from "@mui/icons-material/Pets";
-import TranslateRoundedIcon from "@mui/icons-material/TranslateRounded";
-import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded";
+  ShoppingCart, User, X, Package, Layers, Store, Receipt, LogIn, UserPlus, PlusCircle, Shield, Truck, LogOut, PawPrint, Languages, Heart
+} from "lucide-react";
 import Navbar from "./Navbar";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ProfileMenu from "./ProfileMenu";
@@ -46,10 +15,10 @@ import { useAuthStore } from "@/lib/store/authStore";
 import { useCartStore } from "@/lib/store/cartStore";
 
 const mobileNavItems = [
-  { key: "categories", path: "/categories", icon: CategoryIcon },
-  { key: "products", path: "/products", icon: InventoryIcon },
-  { key: "vendors", path: "/vendors", icon: StorefrontIcon },
-  { key: "orders", path: "/orders", icon: ReceiptLongIcon },
+  { key: "categories", path: "/categories", Icon: Layers },
+  { key: "products", path: "/products", Icon: Package },
+  { key: "vendors", path: "/vendors", Icon: Store },
+  { key: "orders", path: "/orders", Icon: Receipt },
 ] as const;
 
 export default function Header() {
@@ -57,7 +26,6 @@ export default function Header() {
   const locale = useLocale();
   const pathname = usePathname();
   const router = useRouter();
-  const theme = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isInitialized = useAuthStore((s) => s.isInitialized);
@@ -67,382 +35,198 @@ export default function Header() {
 
   const switchLocale = () => {
     const newLocale = locale === "ar" ? "en" : "ar";
-    const pathWithoutLocale = pathname.replace(/^\/(ar|en)/, "");
-    router.push(`/${newLocale}${pathWithoutLocale}`);
+    router.push(`/${newLocale}${pathname.replace(/^\/(ar|en)/, "")}`);
   };
 
-  // The admin/vendor/delivery areas have their own full-screen dashboard chrome.
   if (
     pathname?.startsWith(`/${locale}/admin`) ||
     pathname?.startsWith(`/${locale}/vendor`) ||
     pathname?.startsWith(`/${locale}/delivery`)
-  ) {
-    return null;
-  }
+  ) return null;
 
   return (
     <>
-      <AppBar
-        position="sticky"
-        elevation={0}
-        sx={{
-          background: "#FAF7F8",
-          backdropFilter: "blur(20px)",
-          borderBottom: "1px solid #EDE7E9",
-        }}
-      >
-        {/* ── MOBILE APPBAR (Flutter-style: audience pill + translate + favorites) ── */}
-        <Box sx={{ display: { xs: "block", md: "none" } }}>
-          <Toolbar sx={{ px: 1.5, gap: 0.5, minHeight: 56 }}>
-            <MobileAudienceIconBar />
-            <Box sx={{ flexGrow: 1 }} />
-            <IconButton
-              onClick={switchLocale}
-              aria-label={locale === "ar" ? "Switch to English" : "التبديل إلى العربية"}
-              sx={{
-                color: "#1A1A1A",
-                "&:hover": { bgcolor: "rgba(0,0,0,0.05)" },
-              }}
-            >
-              <TranslateRoundedIcon />
-            </IconButton>
-            <IconButton
-              component={Link}
-              href={`/${locale}/favorites`}
-              aria-label={t("favorites")}
-              sx={{
-                color: "#1A1A1A",
-                "&:hover": { bgcolor: "rgba(0,0,0,0.05)" },
-              }}
-            >
-              <FavoriteBorderRoundedIcon />
-            </IconButton>
-          </Toolbar>
-        </Box>
+      <header className="sticky top-0 z-40 bg-[#FAF7F8]/95 backdrop-blur-xl border-b border-[#EDE7E9]">
+        {/* Mobile toolbar */}
+        <div className="flex md:hidden items-center gap-1 px-3 min-h-[56px]">
+          <MobileAudienceIconBar />
+          <div className="flex-1" />
+          <button type="button" onClick={switchLocale} aria-label={locale === "ar" ? "Switch to English" : "التبديل إلى العربية"} className="p-2 text-[#1A1A1A] hover:bg-black/5 rounded-full">
+            <Languages size={20} />
+          </button>
+          <Link href={`/${locale}/favorites`} aria-label={t("favorites")} className="p-2 text-[#1A1A1A] hover:bg-black/5 rounded-full">
+            <Heart size={20} />
+          </Link>
+        </div>
 
-        {/* ── DESKTOP APPBAR (mobile-inspired light header, full nav) ── */}
-        <Box sx={{ display: { xs: "none", md: "block" } }}>
-        <Container maxWidth="lg">
-          <Toolbar disableGutters sx={{ gap: 1.25, minHeight: { xs: 64, md: 64 } }}>
-
-            <Typography
-              variant="h5"
-              component={Link}
+        {/* Desktop toolbar */}
+        <div className="hidden md:block">
+          <div className="max-w-[1200px] mx-auto px-4 flex items-center gap-3 min-h-[64px]">
+            <Link
               href={`/${locale}`}
-              sx={{
-                fontWeight: 800,
-                color: "#1A1A1A",
-                textDecoration: "none",
-                flexShrink: 0,
-                letterSpacing: "0.02em",
-                fontSize: { xs: "1.3rem", md: "1.5rem" },
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 1,
-              }}
+              className="shrink-0 inline-flex items-center gap-2 no-underline"
             >
-              <PetsIcon
-                sx={{
-                  color: theme.palette.primary.main,
-                  fontSize: { xs: 22, md: 26 },
-                  transform: "rotate(-15deg)",
-                  filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.08))",
-                }}
+              <PawPrint
+                size={24}
+                className="-rotate-[15deg]"
+                style={{ color: "var(--color-primary)", filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.08))" }}
               />
-              {t("appName")}
-            </Typography>
+              <span className="text-[1.4rem] font-extrabold tracking-wide text-[#1A1A1A]">{t("appName")}</span>
+            </Link>
 
             <Navbar />
+            <div className="flex-1" />
 
-            <Box sx={{ flexGrow: 1 }} />
-
-            <Box sx={{ display: { xs: "none", md: "flex" }, mr: 1.5 }}>
+            <div className="flex items-center me-3">
               <MobileAudienceIconBar />
-            </Box>
+            </div>
 
             <LanguageSwitcher />
 
-            <IconButton
-              component={Link}
+            <Link
               href={`/${locale}/cart`}
-              sx={{
-                color: "#1A1A1A",
-                position: "relative",
-                // Cart lives in the mobile bottom nav on phones — hide here
-                // to avoid a duplicate entry point.
-                display: { xs: "none", md: "inline-flex" },
-                width: 40,
-                height: 40,
-                borderRadius: 100,
-                border: "1px solid #EDE7E9",
-                bgcolor: "white",
-                "&:hover": { bgcolor: "#F5F0F2" },
-              }}
+              className="relative flex h-10 w-10 items-center justify-center rounded-full border border-[#EDE7E9] bg-white text-[#1A1A1A] hover:bg-[#F5F0F2] transition"
             >
-              <Badge
-                badgeContent={itemCount}
-                color="secondary"
-                sx={{
-                  "& .MuiBadge-badge": {
-                    fontWeight: 700,
-                    fontSize: "0.7rem",
-                    minWidth: 18,
-                    height: 18,
-                  },
-                }}
-              >
-                <ShoppingCartIcon />
-              </Badge>
-            </IconButton>
+              <ShoppingCart size={18} />
+              {itemCount > 0 && (
+                <span className="absolute -top-1 -end-1 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[0.6rem] font-bold text-white">
+                  {itemCount > 9 ? "9+" : itemCount}
+                </span>
+              )}
+            </Link>
 
             {isAuthenticated && !user?.is_admin && !user?.is_vendor && !user?.is_delivery && (
-              <Button
-                component={Link}
+              <Link
                 href={`/${locale}/become-vendor`}
-                startIcon={<AddBusinessIcon />}
-                sx={{
-                  display: { xs: "none", md: "inline-flex" },
-                  color: "#1A1A1A",
-                  borderRadius: 100,
-                  px: 2,
-                  border: "1px solid #EDE7E9",
-                  bgcolor: "white",
-                  "&:hover": { bgcolor: "#F5F0F2" },
-                  fontWeight: 600,
-                }}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#EDE7E9] bg-white px-4 py-1.5 text-sm font-semibold text-[#1A1A1A] no-underline hover:bg-[#F5F0F2] transition"
               >
+                <PlusCircle size={15} />
                 {t("becomeVendor")}
-              </Button>
+              </Link>
             )}
 
             {!isInitialized ? (
-              <Box
-                sx={{
-                  width: 110,
-                  height: 40,
-                  borderRadius: 100,
-                  bgcolor: "white",
-                  border: "1px solid #EDE7E9",
-                  display: { xs: "none", sm: "block" },
-                }}
-              />
+              <div className="hidden sm:block h-10 w-28 rounded-full bg-white border border-[#EDE7E9]" />
             ) : isAuthenticated ? (
               <ProfileMenu />
             ) : (
-              <Button
-                component={Link}
+              <Link
                 href={`/${locale}/auth/login`}
-                color="inherit"
-                startIcon={<PersonIcon />}
-                sx={{
-                  display: { xs: "none", sm: "flex" },
-                  borderRadius: 100,
-                  px: 2.5,
-                  color: "#1A1A1A",
-                  border: "1px solid #EDE7E9",
-                  bgcolor: "white",
-                  "&:hover": { bgcolor: "#F5F0F2" },
-                }}
+                className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-[#EDE7E9] bg-white px-5 py-1.5 text-sm text-[#1A1A1A] no-underline hover:bg-[#F5F0F2] transition"
               >
+                <User size={15} />
                 {t("login")}
-              </Button>
+              </Link>
             )}
-          </Toolbar>
-        </Container>
-        </Box>
-      </AppBar>
+          </div>
+        </div>
+      </header>
 
-      <Drawer
-        anchor={locale === "ar" ? "right" : "left"}
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        slotProps={{
-          paper: {
-            sx: {
-              width: 300,
-              bgcolor: "background.paper",
-            },
-          },
-        }}
-      >
-        <Box>
-          <Box
-            style={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-            }}
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              p: 2.5,
-              color: "white",
-            }}
+      {/* Mobile Drawer */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 flex">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setDrawerOpen(false)} />
+          <aside
+            className={`relative z-10 w-[300px] bg-white h-full flex flex-col shadow-2xl ${locale === "ar" ? "ms-auto" : "me-auto"}`}
           >
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 1 }}
+            <div
+              className="flex items-center justify-between p-5 text-white"
+              style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)" }}
             >
-              <PetsIcon sx={{ fontSize: 22, transform: "rotate(-15deg)" }} />
-              {t("appName")}
-            </Typography>
-            <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: "white" }}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-          <List sx={{ px: 1, pt: 1 }}>
-            {mobileNavItems.map((item) => (
-              <ListItem key={item.key} disablePadding sx={{ mb: 0.5 }}>
-                <ListItemButton
-                  component={Link}
-                  href={`/${locale}${item.path}`}
-                  onClick={() => setDrawerOpen(false)}
-                  sx={{
-                    borderRadius: 2,
-                    "&:hover": { bgcolor: "primary.main", color: "white",
-                      "& .MuiListItemIcon-root": { color: "white" },
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
-                    <item.icon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={t(item.key)}
-                    slotProps={{ primary: { sx: { fontWeight: 500 } } }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-          <Divider sx={{ mx: 2 }} />
-          <List sx={{ px: 1, pt: 1 }}>
-            {isAuthenticated ? (
-              <>
-                {user?.is_admin && (
-                  <ListItem disablePadding sx={{ mb: 0.5 }}>
-                    <ListItemButton
-                      component={Link}
-                      href={`/${locale}/admin`}
+              <span className="inline-flex items-center gap-2 text-lg font-extrabold">
+                <PawPrint size={20} className="-rotate-[15deg]" />
+                {t("appName")}
+              </span>
+              <button type="button" onClick={() => setDrawerOpen(false)} className="p-1 rounded-full hover:bg-white/20">
+                <X size={20} />
+              </button>
+            </div>
+
+            <nav className="flex-1 overflow-y-auto">
+              <ul className="px-3 pt-2">
+                {mobileNavItems.map((item) => (
+                  <li key={item.key} className="mb-1">
+                    <Link
+                      href={`/${locale}${item.path}`}
                       onClick={() => setDrawerOpen(false)}
-                      sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
+                      className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 no-underline hover:bg-[var(--color-primary)] hover:text-white transition"
                     >
-                      <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
-                        <AdminPanelSettingsIcon fontSize="small" />
-                      </ListItemIcon>
-                      <ListItemText primary={t("adminPanel")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
-                    </ListItemButton>
-                  </ListItem>
+                      <item.Icon size={16} />
+                      {t(item.key)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <hr className="mx-4 my-2 border-gray-100" />
+              <ul className="px-3">
+                {isAuthenticated ? (
+                  <>
+                    {user?.is_admin && (
+                      <li className="mb-1">
+                        <Link href={`/${locale}/admin`} onClick={() => setDrawerOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 no-underline hover:bg-[var(--color-primary)] hover:text-white transition">
+                          <Shield size={16} /> {t("adminPanel")}
+                        </Link>
+                      </li>
+                    )}
+                    {user?.is_vendor && (
+                      <li className="mb-1">
+                        <Link href={`/${locale}/vendor`} onClick={() => setDrawerOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 no-underline hover:bg-[var(--color-primary)] hover:text-white transition">
+                          <Store size={16} /> {t("vendorDashboard")}
+                        </Link>
+                      </li>
+                    )}
+                    {user?.is_delivery && (
+                      <li className="mb-1">
+                        <Link href={`/${locale}/delivery`} onClick={() => setDrawerOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 no-underline hover:bg-[var(--color-primary)] hover:text-white transition">
+                          <Truck size={16} /> {t("deliveryDashboard")}
+                        </Link>
+                      </li>
+                    )}
+                    <li className="mb-1">
+                      <Link href={`/${locale}/profile`} onClick={() => setDrawerOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 no-underline hover:bg-[var(--color-primary)] hover:text-white transition">
+                        <User size={16} /> {t("myProfile")}
+                      </Link>
+                    </li>
+                    {!user?.is_vendor && !user?.is_admin && !user?.is_delivery && (
+                      <li className="mb-1">
+                        <Link href={`/${locale}/become-vendor`} onClick={() => setDrawerOpen(false)}
+                          className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 no-underline hover:bg-[var(--color-primary)] hover:text-white transition">
+                          <PlusCircle size={16} /> {t("becomeVendor")}
+                        </Link>
+                      </li>
+                    )}
+                    <li className="mb-1">
+                      <button type="button" onClick={async () => { setDrawerOpen(false); await logout(); }}
+                        className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-500 hover:text-white transition">
+                        <LogOut size={16} /> {t("logout")}
+                      </button>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li className="mb-1">
+                      <Link href={`/${locale}/auth/login`} onClick={() => setDrawerOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 no-underline hover:bg-[var(--color-primary)] hover:text-white transition">
+                        <LogIn size={16} /> {t("login")}
+                      </Link>
+                    </li>
+                    <li className="mb-1">
+                      <Link href={`/${locale}/auth/register`} onClick={() => setDrawerOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 no-underline hover:bg-[var(--color-primary)] hover:text-white transition">
+                        <UserPlus size={16} /> {t("register")}
+                      </Link>
+                    </li>
+                  </>
                 )}
-                {user?.is_vendor && (
-                  <ListItem disablePadding sx={{ mb: 0.5 }}>
-                    <ListItemButton
-                      component={Link}
-                      href={`/${locale}/vendor`}
-                      onClick={() => setDrawerOpen(false)}
-                      sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
-                        <StorefrontIcon fontSize="small" />
-                      </ListItemIcon>
-                      <ListItemText primary={t("vendorDashboard")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
-                    </ListItemButton>
-                  </ListItem>
-                )}
-                {user?.is_delivery && (
-                  <ListItem disablePadding sx={{ mb: 0.5 }}>
-                    <ListItemButton
-                      component={Link}
-                      href={`/${locale}/delivery`}
-                      onClick={() => setDrawerOpen(false)}
-                      sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
-                        <LocalShippingIcon fontSize="small" />
-                      </ListItemIcon>
-                      <ListItemText primary={t("deliveryDashboard")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
-                    </ListItemButton>
-                  </ListItem>
-                )}
-                <ListItem disablePadding sx={{ mb: 0.5 }}>
-                  <ListItemButton
-                    component={Link}
-                    href={`/${locale}/profile`}
-                    onClick={() => setDrawerOpen(false)}
-                    sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
-                      <PersonIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary={t("myProfile")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
-                  </ListItemButton>
-                </ListItem>
-                {!user?.is_vendor && !user?.is_admin && !user?.is_delivery && (
-                  <ListItem disablePadding sx={{ mb: 0.5 }}>
-                    <ListItemButton
-                      component={Link}
-                      href={`/${locale}/become-vendor`}
-                      onClick={() => setDrawerOpen(false)}
-                      sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
-                        <AddBusinessIcon fontSize="small" />
-                      </ListItemIcon>
-                      <ListItemText primary={t("becomeVendor")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
-                    </ListItemButton>
-                  </ListItem>
-                )}
-                <ListItem disablePadding sx={{ mb: 0.5 }}>
-                  <ListItemButton
-                    onClick={async () => {
-                      setDrawerOpen(false);
-                      await logout();
-                    }}
-                    sx={{ borderRadius: 2, "&:hover": { bgcolor: "error.main", color: "white", "& .MuiListItemIcon-root": { color: "white" } } }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 40, color: "error.main" }}>
-                      <LogoutIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary={t("logout")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
-                  </ListItemButton>
-                </ListItem>
-              </>
-            ) : (
-              <>
-                <ListItem disablePadding sx={{ mb: 0.5 }}>
-                  <ListItemButton
-                    component={Link}
-                    href={`/${locale}/auth/login`}
-                    onClick={() => setDrawerOpen(false)}
-                    sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white",
-                      "& .MuiListItemIcon-root": { color: "white" },
-                    } }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
-                      <LoginIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary={t("login")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
-                  </ListItemButton>
-                </ListItem>
-                <ListItem disablePadding sx={{ mb: 0.5 }}>
-                  <ListItemButton
-                    component={Link}
-                    href={`/${locale}/auth/register`}
-                    onClick={() => setDrawerOpen(false)}
-                    sx={{ borderRadius: 2, "&:hover": { bgcolor: "primary.main", color: "white",
-                      "& .MuiListItemIcon-root": { color: "white" },
-                    } }}
-                  >
-                    <ListItemIcon sx={{ minWidth: 40, color: "primary.main" }}>
-                      <PersonAddIcon fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText primary={t("register")} slotProps={{ primary: { sx: { fontWeight: 500 } } }} />
-                  </ListItemButton>
-                </ListItem>
-              </>
-            )}
-          </List>
-        </Box>
-      </Drawer>
+              </ul>
+            </nav>
+          </aside>
+        </div>
+      )}
     </>
   );
 }

@@ -1,10 +1,8 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { Alert, Box, Button, Container, Stack } from "@mui/material";
-import LogoutIcon from "@mui/icons-material/Logout";
+import { LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-
 import { useAuthStore } from "@/lib/store/authStore";
 
 export default function ImpersonationBanner() {
@@ -28,53 +26,18 @@ export default function ImpersonationBanner() {
   };
 
   return (
-    <Box
-      sx={{
-        position: "sticky",
-        top: 0,
-        zIndex: (theme) => theme.zIndex.appBar + 1,
-      }}
-    >
-      <Alert
-        severity="warning"
-        icon={false}
-        sx={{
-          borderRadius: 0,
-          bgcolor: "#6B21A8",
-          color: "white",
-          "& .MuiAlert-message": { width: "100%" },
-        }}
-      >
-        <Container maxWidth="lg" disableGutters>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={1.5}
-            sx={{
-              alignItems: { xs: "stretch", sm: "center" },
-              justifyContent: "space-between",
-            }}
-          >
-            <Box sx={{ fontWeight: 600 }}>
-              {t("impersonatingAs", { name: user.name })}
-            </Box>
-            <Button
-              size="small"
-              variant="contained"
-              color="inherit"
-              startIcon={<LogoutIcon />}
-              onClick={handleStop}
-              sx={{
-                bgcolor: "white",
-                color: "#6B21A8",
-                fontWeight: 700,
-                "&:hover": { bgcolor: "#F3E8FF" },
-              }}
-            >
-              {t("stopImpersonating")}
-            </Button>
-          </Stack>
-        </Container>
-      </Alert>
-    </Box>
+    <div className="sticky top-0 z-[1200] bg-purple-800 text-white">
+      <div className="max-w-[1200px] mx-auto px-4 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <span className="font-semibold text-sm">{t("impersonatingAs", { name: user.name })}</span>
+        <button
+          type="button"
+          onClick={handleStop}
+          className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-purple-800 hover:bg-purple-50 transition"
+        >
+          <LogOut size={14} />
+          {t("stopImpersonating")}
+        </button>
+      </div>
+    </div>
   );
 }

@@ -1,31 +1,10 @@
 "use client";
-
 import { startTransition, useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Container,
-  Typography,
-  Box,
-  TextField,
-  MenuItem,
-  Select,
-  FormControl,
-  Pagination,
-  Drawer,
-  Button,
-  Chip,
-  Stack,
-  IconButton,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import TuneIcon from "@mui/icons-material/Tune";
-import CloseIcon from "@mui/icons-material/Close";
+import { Search, SlidersHorizontal, X, ChevronLeft, ChevronRight } from "lucide-react";
 import ProductGrid from "@/components/products/ProductGrid";
-import ProductsFilterSidebar, {
-  FilterState,
-  emptyFilterState,
-} from "@/components/products/ProductsFilterSidebar";
+import ProductsFilterSidebar, { FilterState, emptyFilterState } from "@/components/products/ProductsFilterSidebar";
 import { ProductGridSkeleton } from "@/components/common/Skeletons";
 import EmptyState from "@/components/common/EmptyState";
 import ErrorMessage from "@/components/common/ErrorMessage";
@@ -36,19 +15,15 @@ import { brandsApi } from "@/lib/api/brands";
 import apiClient from "@/lib/api/client";
 import { useContentFilter } from "@/lib/context/ContentFilterContext";
 
-// Sidebar width — keep aligned with the SHEIN-like fixed column.
-const SIDEBAR_WIDTH = 280;
-
 export default function ProductsPage() {
   const t = useTranslations();
   const locale = useLocale();
+  const isRtl = locale === "ar";
   const searchParams = useSearchParams();
   const { apiParam: contentType, setFilter } = useContentFilter();
   const requestedCategoryId = searchParams.get("category_id") ?? "";
   const requestedBrand = searchParams.get("brand") || searchParams.get("brand_id");
-  const requestedBrandIds = requestedBrand
-    ? [Number(requestedBrand)].filter((n) => !Number.isNaN(n))
-    : [];
+  const requestedBrandIds = requestedBrand ? [Number(requestedBrand)].filter((n) => !Number.isNaN(n)) : [];
   const requestedSearch = searchParams.get("q") ?? "";
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -62,64 +37,28 @@ export default function ProductsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [filters, setFilters] = useState<FilterState>(() => ({
-    ...emptyFilterState(),
-    categoryId: requestedCategoryId,
-    brandIds: requestedBrandIds,
-  }));
+  const [filters, setFilters] = useState<FilterState>(() => ({ ...emptyFilterState(), categoryId: requestedCategoryId, brandIds: requestedBrandIds }));
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const requestedContentType = searchParams.get("content_type");
-  const effectiveContentType =
-    requestedContentType === "male" || requestedContentType === "female"
-      ? requestedContentType
-      : contentType;
+  const effectiveContentType = requestedContentType === "male" || requestedContentType === "female" ? requestedContentType : contentType;
 
-  // Seed initial filter state from the URL query string so deep links like
-  // `/products?category_id=18` open the page with the matching filter active.
-  useEffect(() => {
-    if (requestedContentType === "male" || requestedContentType === "female") {
-      setFilter(requestedContentType);
-    }
-  }, [requestedContentType, setFilter]);
+  useEffect(() => { if (requestedContentType === "male" || requestedContentType === "female") setFilter(requestedContentType); }, [requestedContentType, setFilter]);
 
-  // Compute price bounds from the current product set so the slider has a
-  // realistic range. Falls back to 0..1000 until products arrive.
   const priceBounds = useMemo(() => {
     if (products.length === 0) return { min: 0, max: 1000 };
     const prices = products.map((p) => Number(p.price));
-    const min = Math.floor(Math.min(...prices, 0));
-    const max = Math.ceil(Math.max(...prices, 1));
-    return { min, max: max > min ? max : min + 100 };
+    return { min: Math.floor(Math.min(...prices, 0)), max: Math.ceil(Math.max(...prices, 1)) };
   }, [products]);
 
-  // ---------- Initial reference data ----------
   useEffect(() => {
-    const params = effectiveContentType
-      ? { content_type: effectiveContentType }
-      : undefined;
-
-    categoriesApi
-      .getAll(params)
-      .then((res) => setCategories(res.data.data))
-      .catch(() => {});
-    brandsApi
-      .getAll(params)
-      .then((res) => setBrands(res.data.data))
-      .catch(() => {});
-    apiClient
-      .get<ApiResponse<ProductOption[]>>("/options")
-      .then((res) => setOptions(res.data.data))
-      .catch(() => {});
+    const params = effectiveContentType ? { content_type: effectiveContentType } : undefined;
+    categoriesApi.getAll(params).then((res) => setCategories(res.data.data)).catch(() => {});
+    brandsApi.getAll(params).then((res) => setBrands(res.data.data)).catch(() => {});
+    apiClient.get<ApiResponse<ProductOption[]>>("/options").then((res) => setOptions(res.data.data)).catch(() => {});
   }, [effectiveContentType]);
 
-  // ---------- Reload products whenever filters change ----------
   useEffect(() => {
-    startTransition(() => {
-      setLoading(true);
-      setError(null);
-    });
-
-    // Build query params for the unified /products endpoint.
+    startTransition(() => { setLoading(true); setError(null); });
     const params: Record<string, string | number> = { page, per_page: 12 };
     if (search.trim()) params.q = search.trim();
     if (filters.categoryId) params.category_id = filters.categoryId;
@@ -128,334 +67,129 @@ export default function ProductsPage() {
     if (filters.priceMin !== "") params.min_price = filters.priceMin;
     if (filters.priceMax !== "") params.max_price = filters.priceMax;
     if (filters.inStock) params.in_stock = 1;
-
-    // Bracket-indexed array params -> Laravel parses them as arrays.
     const arrayParams: Record<string, number[]> = {};
     if (filters.brandIds.length) arrayParams.brand_ids = filters.brandIds;
-    if (filters.optionValueIds.length)
-      arrayParams.option_value_ids = filters.optionValueIds;
-
-    productsApi
-      .getAll({ ...params, ...flattenArrays(arrayParams) })
-      .then((res) => {
-        setProducts(res.data.data);
-        if (res.data.meta) {
-          setTotalPages(res.data.meta.last_page);
-          setTotalItems(res.data.meta.total);
-        }
-      })
-      .catch(() => setError(t("common.error")))
-      .finally(() => setLoading(false));
+    if (filters.optionValueIds.length) arrayParams.option_value_ids = filters.optionValueIds;
+    productsApi.getAll({ ...params, ...flattenArrays(arrayParams) })
+      .then((res) => { setProducts(res.data.data); if (res.data.meta) { setTotalPages(res.data.meta.last_page); setTotalItems(res.data.meta.total); } })
+      .catch(() => setError(t("common.error"))).finally(() => setLoading(false));
   }, [search, sortBy, page, filters, effectiveContentType, t]);
 
-  // Reset page back to 1 whenever filters or search change.
-  useEffect(() => {
-    startTransition(() => {
-      setPage(1);
-    });
-  }, [filters, search, sortBy, effectiveContentType]);
+  useEffect(() => { startTransition(() => setPage(1)); }, [filters, search, sortBy, effectiveContentType]);
 
-  // ---------- Active filter chips for the toolbar ----------
-  const labelOf = useCallback(
-    (item: {
-      name?: string;
-      name_en?: string | null;
-      value?: string;
-      value_en?: string | null;
-    }): string => {
-      if (locale === "en")
-        return (item.name_en || item.value_en || item.name || item.value || "") as string;
-      return (item.name || item.value || item.name_en || item.value_en || "") as string;
-    },
-    [locale]
-  );
+  const labelOf = useCallback((item: { name?: string; name_en?: string | null; value?: string; value_en?: string | null }): string => {
+    if (locale === "en") return (item.name_en || item.value_en || item.name || item.value || "") as string;
+    return (item.name || item.value || item.name_en || item.value_en || "") as string;
+  }, [locale]);
 
   const activeChips = useMemo(() => {
     const chips: Array<{ key: string; label: string; onClear: () => void }> = [];
-    if (filters.categoryId) {
-      const cat = categories.find((c) => String(c.id) === filters.categoryId);
-      if (cat)
-        chips.push({
-          key: `cat-${cat.id}`,
-          label: labelOf(cat),
-          onClear: () => setFilters((f) => ({ ...f, categoryId: "" })),
-        });
-    }
-    for (const bid of filters.brandIds) {
-      const b = brands.find((x) => x.id === bid);
-      if (b)
-        chips.push({
-          key: `brand-${bid}`,
-          label: labelOf(b),
-          onClear: () =>
-            setFilters((f) => ({ ...f, brandIds: f.brandIds.filter((x) => x !== bid) })),
-        });
-    }
-    for (const vid of filters.optionValueIds) {
-      for (const opt of options) {
-        const v = opt.values.find((x) => x.id === vid);
-        if (v) {
-          chips.push({
-            key: `val-${vid}`,
-            label: labelOf(v),
-            onClear: () =>
-              setFilters((f) => ({
-                ...f,
-                optionValueIds: f.optionValueIds.filter((x) => x !== vid),
-              })),
-          });
-          break;
-        }
-      }
-    }
-    if (filters.priceMin !== "" || filters.priceMax !== "") {
-      chips.push({
-        key: "price",
-        label: `${filters.priceMin || priceBounds.min} - ${filters.priceMax || priceBounds.max}`,
-        onClear: () => setFilters((f) => ({ ...f, priceMin: "", priceMax: "" })),
-      });
-    }
-    if (filters.inStock) {
-      chips.push({
-        key: "stock",
-        label: t("product.inStockOnly") || "In stock",
-        onClear: () => setFilters((f) => ({ ...f, inStock: false })),
-      });
-    }
+    if (filters.categoryId) { const cat = categories.find((c) => String(c.id) === filters.categoryId); if (cat) chips.push({ key: `cat-${cat.id}`, label: labelOf(cat), onClear: () => setFilters((f) => ({ ...f, categoryId: "" })) }); }
+    for (const bid of filters.brandIds) { const b = brands.find((x) => x.id === bid); if (b) chips.push({ key: `brand-${bid}`, label: labelOf(b), onClear: () => setFilters((f) => ({ ...f, brandIds: f.brandIds.filter((x) => x !== bid) })) }); }
+    for (const vid of filters.optionValueIds) { for (const opt of options) { const v = opt.values.find((x) => x.id === vid); if (v) { chips.push({ key: `val-${vid}`, label: labelOf(v), onClear: () => setFilters((f) => ({ ...f, optionValueIds: f.optionValueIds.filter((x) => x !== vid) })) }); break; } } }
+    if (filters.priceMin !== "" || filters.priceMax !== "") chips.push({ key: "price", label: `${filters.priceMin || priceBounds.min} - ${filters.priceMax || priceBounds.max}`, onClear: () => setFilters((f) => ({ ...f, priceMin: "", priceMax: "" })) });
+    if (filters.inStock) chips.push({ key: "stock", label: t("product.inStockOnly") || "In stock", onClear: () => setFilters((f) => ({ ...f, inStock: false })) });
     return chips;
   }, [filters, categories, brands, options, labelOf, priceBounds, t]);
 
-  // Sidebar element shared between desktop column and mobile drawer.
-  const sidebar = (
-    <ProductsFilterSidebar
-      categories={categories}
-      brands={brands}
-      options={options}
-      value={filters}
-      onChange={setFilters}
-      priceBounds={priceBounds}
-    />
-  );
+  const sidebar = <ProductsFilterSidebar categories={categories} brands={brands} options={options} value={filters} onChange={setFilters} priceBounds={priceBounds} />;
+
+  const sortOptions = [
+    { value: "newest", label: t("product.newest") },
+    { value: "price_asc", label: t("product.priceLowHigh") },
+    { value: "price_desc", label: t("product.priceHighLow") },
+    { value: "top_rated", label: t("product.topRated") },
+  ];
 
   return (
-    <Container maxWidth="xl" sx={{ py: { xs: 3, md: 5 } }}>
-      {/* Page heading */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-          {t("common.products")}
-        </Typography>
-        <Box
-          sx={(theme) => ({
-            width: 48,
-            height: 4,
-            borderRadius: 2,
-            background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
-          })}
-        />
-      </Box>
+    <div className="max-w-[1200px] mx-auto px-4 py-6 md:py-10">
+      <div className="mb-6">
+        <h1 className="text-2xl font-extrabold mb-2">{t("common.products")}</h1>
+        <div className="w-12 h-1 rounded-full" style={{ background: "linear-gradient(90deg, var(--color-primary), var(--color-primary-light))" }} />
+      </div>
 
-      {/* 2-column layout */}
-      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 3 }}>
-        {/* Sticky filter sidebar (desktop) */}
-        <Box
-          sx={{
-            display: { xs: "none", md: "block" },
-            width: SIDEBAR_WIDTH,
-            flexShrink: 0,
-            position: "sticky",
-            top: 88,
-            maxHeight: "calc(100vh - 100px)",
-            overflowY: "auto",
-          }}
-        >
-          {sidebar}
-        </Box>
+      <div className="flex items-start gap-6">
+        {/* Desktop sidebar */}
+        <div className="hidden md:block w-[280px] shrink-0 sticky top-22 max-h-[calc(100vh-100px)] overflow-y-auto">{sidebar}</div>
 
-        {/* Right column — toolbar + grid */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
+        {/* Right column */}
+        <div className="flex-1 min-w-0">
           {/* Toolbar */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              flexWrap: "wrap",
-              mb: 2,
-              p: 1.5,
-              borderRadius: 2,
-              bgcolor: "white",
-              border: "1px solid",
-              borderColor: "grey.200",
-            }}
-          >
-            {/* Mobile filter toggle */}
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<TuneIcon />}
-              onClick={() => setMobileFiltersOpen(true)}
-              sx={{ display: { md: "none" }, fontWeight: 700 }}
-            >
-              {t("product.filter") || "Filter"}
-            </Button>
+          <div className="flex items-center gap-2 flex-wrap mb-4 p-3 bg-white rounded-2xl border border-gray-200">
+            <button className="md:hidden flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-sm font-bold" onClick={() => setMobileFiltersOpen(true)}>
+              <SlidersHorizontal size={15} />{t("product.filter") || "Filter"}
+            </button>
+            <div className="flex items-center gap-2 flex-1 min-w-[180px] border border-gray-200 rounded-xl px-3 py-2 bg-white">
+              <Search size={16} className="text-gray-400 shrink-0" />
+              <input placeholder={t("product.searchProducts")} value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 text-sm bg-transparent focus:outline-none" />
+            </div>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-white min-w-[180px]">
+              {sortOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+            <span className="text-sm text-gray-400 ms-auto">{totalItems > 0 ? t("product.totalItems", { count: totalItems }) || `${totalItems} items` : ""}</span>
+          </div>
 
-            <TextField
-              placeholder={t("product.searchProducts")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              size="small"
-              sx={{ minWidth: 220, flex: 1 }}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <SearchIcon sx={{ mr: 1, color: "text.disabled" }} />
-                  ),
-                },
-              }}
-            />
-
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <Select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                renderValue={(val) => (
-                  <Stack direction="row" sx={{ alignItems: "center" }}>
-                    <Typography
-                      component="span"
-                      sx={{ color: "text.secondary", fontSize: 13, mr: 1 }}
-                    >
-                      {t("product.sortBy")}:
-                    </Typography>
-                    <Typography component="span" sx={{ fontWeight: 600, fontSize: 14 }}>
-                      {sortLabel(val as string, t)}
-                    </Typography>
-                  </Stack>
-                )}
-              >
-                <MenuItem value="newest">{t("product.newest")}</MenuItem>
-                <MenuItem value="price_asc">{t("product.priceLowHigh")}</MenuItem>
-                <MenuItem value="price_desc">{t("product.priceHighLow")}</MenuItem>
-                <MenuItem value="top_rated">{t("product.topRated")}</MenuItem>
-              </Select>
-            </FormControl>
-
-            <Box sx={{ flexBasis: "100%", display: { sm: "none" } }} />
-            <Typography
-              variant="body2"
-              sx={{ color: "text.secondary", ml: { sm: "auto" } }}
-            >
-              {totalItems > 0
-                ? t("product.totalItems", { count: totalItems }) ||
-                  `${totalItems} items`
-                : ""}
-            </Typography>
-          </Box>
-
-          {/* Active filter chips */}
+          {/* Active chips */}
           {activeChips.length > 0 && (
-            <Stack
-              direction="row"
-              spacing={1}
-              sx={{ flexWrap: "wrap", rowGap: 1, mb: 2 }}
-            >
+            <div className="flex flex-wrap gap-2 mb-4">
               {activeChips.map((c) => (
-                <Chip
-                  key={c.key}
-                  label={c.label}
-                  onDelete={c.onClear}
-                  size="small"
-                  sx={{ bgcolor: "grey.100", fontWeight: 600 }}
-                />
+                <span key={c.key} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-gray-100">
+                  {c.label}<button onClick={c.onClear} className="text-gray-400 hover:text-gray-600"><X size={12} /></button>
+                </span>
               ))}
-              <Button
-                size="small"
-                onClick={() => setFilters(emptyFilterState())}
-                sx={{ fontWeight: 700, textTransform: "none" }}
-              >
+              <button onClick={() => setFilters(emptyFilterState())} className="text-sm font-bold px-2 py-1 rounded" style={{ color: "var(--color-primary)" }}>
                 {t("product.clearAll") || "Clear all"}
-              </Button>
-            </Stack>
+              </button>
+            </div>
           )}
 
-          {loading ? (
-            <ProductGridSkeleton count={12} />
-          ) : error ? (
-            <ErrorMessage message={error} />
-          ) : products.length === 0 ? (
-            <EmptyState message={t("product.noProducts")} />
-          ) : (
-            <>
-              <ProductGrid products={products} />
-              {totalPages > 1 && (
-                <Box sx={{ display: "flex", justifyContent: "center", mt: 6 }}>
-                  <Pagination
-                    count={totalPages}
-                    page={page}
-                    onChange={(_, val) => setPage(val)}
-                    color="primary"
-                    size="large"
-                    sx={{
-                      "& .MuiPaginationItem-root": { fontWeight: 600 },
-                    }}
-                  />
-                </Box>
-              )}
-            </>
-          )}
-        </Box>
-      </Box>
+          {loading ? <ProductGridSkeleton count={12} /> :
+            error ? <ErrorMessage message={error} /> :
+            products.length === 0 ? <EmptyState message={t("product.noProducts")} /> : (
+              <>
+                <ProductGrid products={products} />
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 mt-10">
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-2 rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50">
+                      {isRtl ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                    </button>
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      const p = Math.max(1, Math.min(totalPages - 4, page - 2)) + i;
+                      return (
+                        <button key={p} onClick={() => setPage(p)} className={`w-9 h-9 rounded-lg text-sm font-semibold transition-colors ${p === page ? "text-white" : "border border-gray-200 hover:bg-gray-50"}`} style={p === page ? { background: "var(--color-primary)" } : {}}>
+                          {p}
+                        </button>
+                      );
+                    })}
+                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-2 rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50">
+                      {isRtl ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+        </div>
+      </div>
 
       {/* Mobile filters drawer */}
-      <Drawer
-        anchor={locale === "ar" ? "right" : "left"}
-        open={mobileFiltersOpen}
-        onClose={() => setMobileFiltersOpen(false)}
-        slotProps={{ paper: { sx: { width: 320, p: 1.5 } } }}
-      >
-        <Stack
-          direction="row"
-          sx={{ alignItems: "center", justifyContent: "space-between", px: 0.5, pb: 1 }}
-        >
-          <Typography sx={{ fontWeight: 800 }}>
-            {t("product.filter") || "Filter"}
-          </Typography>
-          <IconButton onClick={() => setMobileFiltersOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        </Stack>
-        {sidebar}
-      </Drawer>
-    </Container>
+      {mobileFiltersOpen && (
+        <div className="fixed inset-0 z-50 flex" onClick={() => setMobileFiltersOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className={`relative bg-white w-80 h-full overflow-y-auto p-4 shadow-xl ${isRtl ? "ms-auto" : ""}`} onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-extrabold">{t("product.filter") || "Filter"}</span>
+              <button onClick={() => setMobileFiltersOpen(false)} className="p-1 text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            {sidebar}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
-// ---------- helpers ----------
-
-/**
- * Spread a number-array param map into bracket-indexed string entries that
- * Axios serializes as `key[0]=v0&key[1]=v1`, which Laravel parses as a real
- * array on the server side.
- */
 function flattenArrays(map: Record<string, number[]>): Record<string, string> {
   const out: Record<string, string> = {};
-  for (const [key, arr] of Object.entries(map)) {
-    arr.forEach((v, i) => {
-      out[`${key}[${i}]`] = String(v);
-    });
-  }
+  for (const [key, arr] of Object.entries(map)) arr.forEach((v, i) => { out[`${key}[${i}]`] = String(v); });
   return out;
-}
-
-function sortLabel(val: string, t: (k: string) => string): string {
-  switch (val) {
-    case "price_asc":
-      return t("product.priceLowHigh");
-    case "price_desc":
-      return t("product.priceHighLow");
-    case "top_rated":
-      return t("product.topRated");
-    case "newest":
-    default:
-      return t("product.newest");
-  }
 }

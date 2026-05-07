@@ -1,6 +1,6 @@
 "use client";
 
-import { Alert, Box } from "@mui/material";
+import { AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface ErrorMessageProps {
@@ -11,17 +11,11 @@ export default function ErrorMessage({ message }: ErrorMessageProps) {
   const t = useTranslations("common");
 
   return (
-    <Box sx={{ py: 4 }}>
-      <Alert
-        severity="error"
-        variant="outlined"
-        sx={{
-          borderRadius: 3,
-          "& .MuiAlert-icon": { fontSize: 24 },
-        }}
-      >
-        {message || t("error")}
-      </Alert>
-    </Box>
+    <div className="py-8">
+      <div className="flex items-center gap-3 p-4 rounded-2xl border border-red-200 bg-red-50 text-red-700">
+        <AlertCircle className="w-6 h-6 shrink-0" />
+        <span className="text-sm font-medium">{message || t("error")}</span>
+      </div>
+    </div>
   );
 }

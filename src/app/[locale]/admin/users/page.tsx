@@ -3,37 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  FormControlLabel,
-  IconButton,
-  MenuItem,
-  Paper,
-  Snackbar,
-  Stack,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import LoginIcon from "@mui/icons-material/Login";
-import EditIcon from "@mui/icons-material/Edit";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import BlockIcon from "@mui/icons-material/Block";
+import { Pencil, Trash2, CheckCircle, Ban, LogIn, AlertCircle } from "lucide-react";
 
 import { adminApi, type UpdateUserPayload } from "@/lib/api/admin";
 import { useAuthStore } from "@/lib/store/authStore";
@@ -46,14 +16,11 @@ import DataPagination from "@/components/common/DataPagination";
 
 const PER_PAGE = 15;
 
-const roleColor = (role: User["role"]) => {
+const roleChipClass = (role: string) => {
   switch (role) {
-    case "admin":
-      return "error" as const;
-    case "vendor":
-      return "warning" as const;
-    default:
-      return "info" as const;
+    case "admin": return "bg-red-100 text-red-700";
+    case "vendor": return "bg-yellow-100 text-yellow-700";
+    default: return "bg-blue-100 text-blue-700";
   }
 };
 
@@ -122,6 +89,12 @@ export default function AdminUsersPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!snackbar) return;
+    const timer = setTimeout(() => setSnackbar(""), 3000);
+    return () => clearTimeout(timer);
+  }, [snackbar]);
 
   const handleDelete = async () => {
     if (!toDelete) return;
@@ -213,7 +186,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <Box>
+    <div>
       <AdminPageHeader title={t("users")} subtitle={t("usersSubtitle")} />
 
       <AdminToolbar
@@ -255,9 +228,10 @@ export default function AdminUsersPage() {
       />
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-          {error}
-        </Alert>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </div>
       )}
 
       {loading ? (
@@ -266,215 +240,219 @@ export default function AdminUsersPage() {
         <EmptyState message={t("noUsers")} />
       ) : (
         <>
-        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>{t("name")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("email")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("phone")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("role")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("joinedAt")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {t("actions")}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {users.map((u) => (
-                <TableRow key={u.id} hover>
-                  <TableCell>{u.name}</TableCell>
-                  <TableCell>{u.email}</TableCell>
-                  <TableCell>{u.phone || "—"}</TableCell>
-                  <TableCell>
-                    <Chip
-                      size="small"
-                      color={roleColor(u.role)}
-                      label={t(`roles.${u.role}`)}
-                      sx={{ fontWeight: 600 }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      size="small"
-                      color={u.is_active ? "success" : "default"}
-                      label={u.is_active ? t("active") : t("inactive")}
-                      sx={{ fontWeight: 600 }}
-                    />
-                  </TableCell>
-                  <TableCell>{formatDate(u.created_at)}</TableCell>
-                  <TableCell>
-                    <Stack
-                      direction="row"
-                      spacing={0.5}
-                      sx={{ justifyContent: "flex-start" }}
-                    >
-                      <Tooltip title={tCommon("edit")}>
-                        <IconButton size="small" onClick={() => openEdit(u)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip
-                        title={u.is_active ? t("deactivate") : t("activate")}
-                      >
-                        <span>
-                          <IconButton
-                            size="small"
-                            disabled={busyId === u.id || u.is_admin}
-                            color={u.is_active ? "warning" : "success"}
-                            onClick={() => handleToggleActive(u)}
-                          >
-                            {u.is_active ? (
-                              <BlockIcon fontSize="small" />
-                            ) : (
-                              <CheckCircleIcon fontSize="small" />
-                            )}
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                      <Tooltip title={t("loginAs")}>
-                        <span>
-                          <IconButton
-                            size="small"
-                            disabled={u.is_admin}
-                            onClick={() => handleImpersonate(u)}
-                          >
-                            <LoginIcon fontSize="small" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                      <Tooltip title={tCommon("delete")}>
-                        <span>
-                          <IconButton
-                            size="small"
-                            color="error"
-                            disabled={u.is_admin}
-                            onClick={() => setToDelete(u)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <DataPagination
-          page={page}
-          lastPage={lastPage}
-          total={total}
-          perPage={PER_PAGE}
-          onChange={setPage}
-        />
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("name")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("email")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("phone")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("role")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("status")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("joinedAt")}</th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">{t("actions")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                    <td className="px-4 py-3">{u.name}</td>
+                    <td className="px-4 py-3">{u.email}</td>
+                    <td className="px-4 py-3">{u.phone || "—"}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${roleChipClass(u.role)}`}>
+                        {t(`roles.${u.role}`)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${u.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
+                        {u.is_active ? t("active") : t("inactive")}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">{formatDate(u.created_at)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          title={tCommon("edit")}
+                          className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition"
+                          onClick={() => openEdit(u)}
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          title={u.is_active ? t("deactivate") : t("activate")}
+                          disabled={busyId === u.id || u.is_admin}
+                          className={`p-1.5 rounded-lg transition disabled:opacity-40 ${u.is_active ? "text-yellow-600 hover:bg-yellow-50" : "text-green-500 hover:bg-green-50"}`}
+                          onClick={() => handleToggleActive(u)}
+                        >
+                          {u.is_active ? <Ban size={16} /> : <CheckCircle size={16} />}
+                        </button>
+                        <button
+                          type="button"
+                          title={t("loginAs")}
+                          disabled={u.is_admin}
+                          className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition disabled:opacity-40"
+                          onClick={() => handleImpersonate(u)}
+                        >
+                          <LogIn size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          title={tCommon("delete")}
+                          disabled={u.is_admin}
+                          className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition disabled:opacity-40"
+                          onClick={() => setToDelete(u)}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <DataPagination
+            page={page}
+            lastPage={lastPage}
+            total={total}
+            perPage={PER_PAGE}
+            onChange={setPage}
+          />
         </>
       )}
 
-      <Dialog
-        open={!!editing}
-        onClose={() => !saving && setEditing(null)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>{t("editUser")}</DialogTitle>
-        <DialogContent>
-          {formError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {formError}
-            </Alert>
-          )}
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label={t("name")}
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              fullWidth
-              size="small"
-            />
-            <TextField
-              label={t("email")}
-              type="email"
-              value={form.email}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, email: e.target.value }))
-              }
-              fullWidth
-              size="small"
-            />
-            <TextField
-              label={t("phone")}
-              value={form.phone}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, phone: e.target.value }))
-              }
-              fullWidth
-              size="small"
-            />
-            <TextField
-              select
-              label={t("role")}
-              value={form.role}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  role: e.target.value as User["role"],
-                }))
-              }
-              fullWidth
-              size="small"
-            >
-              <MenuItem value="customer">{t("roles.customer")}</MenuItem>
-              <MenuItem value="vendor">{t("roles.vendor")}</MenuItem>
-              <MenuItem value="admin">{t("roles.admin")}</MenuItem>
-                  <MenuItem value="delivery">{t("roles.delivery")}</MenuItem>
-            </TextField>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={form.is_active}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, is_active: e.target.checked }))
-                  }
+      {/* Edit user dialog */}
+      {!!editing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => !saving && setEditing(null)} />
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">{t("editUser")}</h2>
+            </div>
+            <div className="px-6 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              {formError && (
+                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                  <span>{formError}</span>
+                </div>
+              )}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("name")}</label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 />
-              }
-              label={form.is_active ? t("active") : t("inactive")}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditing(null)} disabled={saving}>
-            {tCommon("cancel")}
-          </Button>
-          <Button onClick={handleSave} variant="contained" disabled={saving}>
-            {tCommon("save")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("email")}</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("phone")}</label>
+                <input
+                  type="text"
+                  value={form.phone}
+                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">{t("role")}</label>
+                <select
+                  value={form.role}
+                  onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as User["role"] }))}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                >
+                  <option value="customer">{t("roles.customer")}</option>
+                  <option value="vendor">{t("roles.vendor")}</option>
+                  <option value="admin">{t("roles.admin")}</option>
+                  <option value="delivery">{t("roles.delivery")}</option>
+                </select>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={form.is_active}
+                    onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
+                  />
+                  <div className={`w-10 h-5 rounded-full transition-colors ${form.is_active ? "bg-[var(--color-primary)]" : "bg-gray-300"}`} />
+                  <div className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.is_active ? "translate-x-5" : "translate-x-0"}`} />
+                </div>
+                <span className="text-sm">{form.is_active ? t("active") : t("inactive")}</span>
+              </label>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setEditing(null)}
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:opacity-50"
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                style={{ background: "var(--color-primary)" }}
+              >
+                {tCommon("save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Dialog open={!!toDelete} onClose={() => setToDelete(null)}>
-        <DialogTitle>{t("confirmDeleteTitle")}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {t("confirmDeleteUser", { name: toDelete?.name ?? "" })}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setToDelete(null)}>{tCommon("cancel")}</Button>
-          <Button onClick={handleDelete} color="error" variant="contained">
-            {tCommon("delete")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Delete confirmation dialog */}
+      {!!toDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setToDelete(null)} />
+          <div className="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">{t("confirmDeleteTitle")}</h2>
+            </div>
+            <div className="px-6 py-4">
+              <p className="text-sm text-gray-600">{t("confirmDeleteUser", { name: toDelete.name })}</p>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setToDelete(null)}
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {tCommon("delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Snackbar
-        open={!!snackbar}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar("")}
-        message={snackbar}
-      />
-    </Box>
+      {snackbar && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {snackbar}
+        </div>
+      )}
+    </div>
   );
 }
+

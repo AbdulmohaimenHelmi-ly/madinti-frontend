@@ -2,14 +2,22 @@
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { Container, Typography, TextField, Button, Card, CardContent, Box, Alert, Grid, Divider } from "@mui/material";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import PetsIcon from "@mui/icons-material/Pets";
+import { LockKeyhole, PawPrint } from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/lib/store/authStore";
 import AltchaWidget from "@/components/AltchaWidget";
 import { GoogleLogin } from "@react-oauth/google";
 import { googleClientId } from "@/components/providers/GoogleAuthProvider";
+
+function InputField({ label, type = "text", value, onChange, required }: { label: string; type?: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; required?: boolean }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <input type={type} value={value} onChange={onChange} required={required}
+        className="border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] bg-white" />
+    </div>
+  );
+}
 
 export default function LoginPage() {
   const t = useTranslations();
@@ -21,20 +29,16 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [_hp, setHp] = useState(""); // honeypot — must stay empty
-  const [_altcha, setAltcha] = useState(""); // Altcha PoW solution
+  const [_hp, setHp] = useState("");
+  const [_altcha, setAltcha] = useState("");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (_hp) return; // bot filled the hidden field — silently abort
+    if (_hp) return;
     if (!_altcha) { setError(t("common.error")); return; }
-    // Verify Altcha PoW server-side before calling auth
     try {
-      const vRes = await fetch("/api/altcha", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ payload: _altcha }),
-      });
+      const vRes = await fetch("/api/altcha", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ payload: _altcha }) });
       if (!vRes.ok) { setError(t("common.error")); return; }
     } catch { setError(t("common.error")); return; }
     try {
@@ -58,201 +62,79 @@ export default function LoginPage() {
   const handleGoogleSuccess = async (credentialResponse: { credential?: string }) => {
     if (!credentialResponse.credential) return;
     setError("");
-    try {
-      await loginWithGoogle(credentialResponse.credential);
-      redirectAfterAuth();
-    } catch { setError(t("common.error")); }
+    try { await loginWithGoogle(credentialResponse.credential); redirectAfterAuth(); }
+    catch { setError(t("common.error")); }
   };
+
+  const formContent = (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <input type="text" name="website" value={_hp} onChange={(e) => setHp(e.target.value)} tabIndex={-1} aria-hidden="true" autoComplete="off" className="hidden" />
+      <InputField label={t("auth.email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+      <InputField label={t("auth.password")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+      <AltchaWidget onSolve={setAltcha} />
+      <button type="submit" disabled={isLoading} className="w-full py-3.5 rounded-xl text-white font-bold text-base transition-opacity disabled:opacity-60" style={{ background: "var(--color-primary)" }}>
+        {t("auth.loginTitle")}
+      </button>
+    </form>
+  );
+
+  const googleSection = googleClientId && (
+    <>
+      <div className="flex items-center gap-3 my-5">
+        <div className="flex-1 h-px bg-gray-200" />
+        <span className="text-sm text-gray-400">{t("auth.orContinueWith")}</span>
+        <div className="flex-1 h-px bg-gray-200" />
+      </div>
+      <div className="flex justify-center">
+        <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError(t("common.error"))} useOneTap={false} width="100%" />
+      </div>
+    </>
+  );
+
   return (
     <>
-      {/* ── MOBILE LAYOUT ── full-screen native-app feel */}
-      <Box sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", minHeight: "100dvh" }}>
-        {/* Brand header */}
-        <Box
-          sx={(theme) => ({
-            background: `linear-gradient(160deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-            pt: 7,
-            pb: 6,
-            px: 3,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            color: "white",
-          })}
-        >
-          <PetsIcon sx={{ fontSize: 64, mb: 1.5, opacity: 0.95 }} />
-          <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: 0.5 }}>
-            {t("common.appName")}
-          </Typography>
-          <Typography variant="body2" sx={{ opacity: 0.75, mt: 0.5, textAlign: "center" }}>
-            {t("home.heroSubtitle")}
-          </Typography>
-        </Box>
+      {/* Mobile */}
+      <div className="flex md:hidden flex-col min-h-dvh">
+        <div className="flex flex-col items-center pt-16 pb-12 px-6 text-white" style={{ background: "linear-gradient(160deg, var(--color-primary-dark) 0%, var(--color-primary) 100%)" }}>
+          <PawPrint size={56} className="mb-3 opacity-95" />
+          <h1 className="text-xl font-extrabold tracking-wide">{t("common.appName")}</h1>
+          <p className="text-sm opacity-75 mt-1 text-center">{t("home.heroSubtitle")}</p>
+        </div>
+        <div className="flex-1 bg-white rounded-t-[24px] -mt-6 px-6 pt-8 pb-10 flex flex-col">
+          <h2 className="text-xl font-extrabold mb-1">{t("auth.loginTitle")}</h2>
+          <p className="text-sm text-gray-500 mb-5">{t("auth.noAccount")}{" "}
+            <Link href={`/${locale}/auth/register`} className="font-bold no-underline" style={{ color: "var(--color-primary)" }}>{t("common.register")}</Link>
+          </p>
+          {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">{error}</div>}
+          {formContent}
+          {googleSection}
+        </div>
+      </div>
 
-        {/* Form sheet — slides up over the header */}
-        <Box
-          sx={{
-            flex: 1,
-            bgcolor: "background.paper",
-            borderRadius: "24px 24px 0 0",
-            mt: -3,
-            px: 3,
-            pt: 4,
-            pb: 5,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
-            {t("auth.loginTitle")}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            {t("auth.noAccount")}{" "}
-            <Box
-              component={Link}
-              href={`/${locale}/auth/register`}
-              sx={{ color: "primary.main", fontWeight: 700, textDecoration: "none" }}
-            >
-              {t("common.register")}
-            </Box>
-          </Typography>
-
-          {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
-
-          <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <input type="text" name="website" value={_hp} onChange={(e) => setHp(e.target.value)} tabIndex={-1} aria-hidden="true" autoComplete="off" style={{ display: "none" }} />
-            <TextField
-              label={t("auth.email")}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              fullWidth
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
-            />
-            <TextField
-              label={t("auth.password")}
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              fullWidth
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
-            />
-            <AltchaWidget onSolve={setAltcha} />
-            <Button
-              type="submit"
-              variant="contained"
-              size="large"
-              fullWidth
-              disabled={isLoading}
-              sx={{ py: 1.75, borderRadius: 3, fontSize: "1rem", fontWeight: 700, mt: 0.5 }}
-            >
-              {t("auth.loginTitle")}
-            </Button>
-          </Box>
-
-          {googleClientId && (
-            <>
-              <Divider sx={{ my: 2.5 }}>{t("auth.orContinueWith")}</Divider>
-              <Box sx={{ display: "flex", justifyContent: "center" }}>
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => setError(t("common.error"))}
-                  useOneTap={false}
-                  width="100%"
-                />
-              </Box>
-            </>
-          )}
-        </Box>
-      </Box>
-
-      {/* ── DESKTOP LAYOUT ── unchanged */}
-      <Container maxWidth="md" sx={{ display: { xs: "none", md: "block" }, py: 8 }}>
-        <Grid container spacing={0} sx={{ minHeight: 500 }}>
-          {/* Decorative side panel */}
-          <Grid
-            size={{ md: 5 }}
-            sx={(theme) => ({
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 50%, ${theme.palette.primary.light} 100%)`,
-              borderRadius: "16px 0 0 16px",
-              color: "white",
-              p: 4,
-              position: "relative",
-              overflow: "hidden",
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                top: "-50%",
-                right: "-30%",
-                width: "200px",
-                height: "200px",
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.06)",
-              },
-              "&::after": {
-                content: '""',
-                position: "absolute",
-                bottom: "-20%",
-                left: "-20%",
-                width: "150px",
-                height: "150px",
-                borderRadius: "50%",
-                background: "rgba(255,255,255,0.04)",
-              },
-            })}
-          >
-            <LockOutlinedIcon sx={{ fontSize: 56, mb: 2, opacity: 0.9 }} />
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, textAlign: "center", display: "inline-flex", alignItems: "center", gap: 1 }}>
-              <PetsIcon sx={{ fontSize: 24, transform: "rotate(-15deg)" }} />
-              {t("common.appName")}
-            </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.8, textAlign: "center" }}>
-              {t("home.heroSubtitle")}
-            </Typography>
-          </Grid>
-
-          {/* Form */}
-          <Grid size={{ md: 7 }}>
-            <Card sx={{ height: "100%", borderRadius: "0 16px 16px 0" }}>
-              <CardContent sx={{ p: 5, height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                <Typography variant="h4" gutterBottom sx={{ fontWeight: 800, mb: 3 }}>
-                  {t("auth.loginTitle")}
-                </Typography>
-                {error && <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>{error}</Alert>}
-                <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-                  <input type="text" name="website" value={_hp} onChange={(e) => setHp(e.target.value)} tabIndex={-1} aria-hidden="true" autoComplete="off" style={{ display: "none" }} />
-                  <TextField label={t("auth.email")} type="email" value={email} onChange={(e) => setEmail(e.target.value)} required fullWidth />
-                  <TextField label={t("auth.password")} type="password" value={password} onChange={(e) => setPassword(e.target.value)} required fullWidth />
-                  <AltchaWidget onSolve={setAltcha} />
-                  <Button type="submit" variant="contained" size="large" fullWidth disabled={isLoading} sx={{ py: 1.5, borderRadius: 3, fontSize: "1rem" }}>
-                    {t("auth.loginTitle")}
-                  </Button>
-                </Box>
-                {googleClientId && (
-                  <>
-                    <Divider sx={{ my: 2 }}>{t("auth.orContinueWith")}</Divider>
-                    <Box sx={{ display: "flex", justifyContent: "center" }}>
-                      <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setError(t("common.error"))} useOneTap={false} width="100%" />
-                    </Box>
-                  </>
-                )}
-                <Typography sx={{ mt: 3, textAlign: "center", color: "text.secondary" }}>
-                  {t("auth.noAccount")}{" "}
-                  <Box component={Link} href={`/${locale}/auth/register`} sx={{ color: "primary.main", fontWeight: 700, textDecoration: "none" }}>
-                    {t("common.register")}
-                  </Box>
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Container>
+      {/* Desktop */}
+      <div className="hidden md:flex items-center justify-center min-h-screen py-12 px-4">
+        <div className="flex w-full max-w-2xl min-h-[500px] rounded-2xl overflow-hidden shadow-lg">
+          <div className="flex flex-col justify-center items-center w-5/12 text-white p-8 relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 50%, var(--color-primary-light) 100%)" }}>
+            <div className="absolute -top-1/2 -end-1/3 w-48 h-48 rounded-full bg-white/5" />
+            <div className="absolute -bottom-1/5 -start-1/5 w-36 h-36 rounded-full bg-white/4" />
+            <LockKeyhole size={52} className="mb-4 opacity-90" />
+            <h2 className="text-xl font-bold mb-1 text-center flex items-center gap-2">
+              <PawPrint size={22} style={{ transform: "rotate(-15deg)" }} />{t("common.appName")}
+            </h2>
+            <p className="text-sm opacity-80 text-center">{t("home.heroSubtitle")}</p>
+          </div>
+          <div className="flex-1 bg-white p-10 flex flex-col justify-center rounded-e-2xl">
+            <h2 className="text-3xl font-extrabold mb-6">{t("auth.loginTitle")}</h2>
+            {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl">{error}</div>}
+            {formContent}
+            {googleSection}
+            <p className="mt-6 text-center text-sm text-gray-500">
+              {t("auth.noAccount")}{" "}
+              <Link href={`/${locale}/auth/register`} className="font-bold no-underline" style={{ color: "var(--color-primary)" }}>{t("common.register")}</Link>
+            </p>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

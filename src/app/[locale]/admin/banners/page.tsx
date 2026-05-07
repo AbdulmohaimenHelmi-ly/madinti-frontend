@@ -2,32 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Select,
-  Snackbar,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
+import { Plus, Pencil, Trash2, ImageOff, AlertCircle } from "lucide-react";
 
 import { adminApi, type BannerPayload } from "@/lib/api/admin";
 import type { Banner, BannerPosition, ContentType } from "@/lib/types";
@@ -104,6 +79,12 @@ export default function AdminBannersPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!snack) return;
+    const timer = setTimeout(() => setSnack(null), 3000);
+    return () => clearTimeout(timer);
+  }, [snack]);
 
   const openCreate = (position: BannerPosition) => {
     setEditing(null);
@@ -191,390 +172,358 @@ export default function AdminBannersPage() {
   );
 
   return (
-    <Box>
-      <AdminPageHeader
-        title={t("banners")}
-        subtitle={t("bannersSubtitle")}
-      />
+    <div>
+      <AdminPageHeader title={t("banners")} subtitle={t("bannersSubtitle")} />
 
-      <Paper
-        sx={{
-          p: 2,
-          mb: 3,
-          borderRadius: 3,
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        <Stack direction="row" spacing={2} sx={{ alignItems: "center", flexWrap: "wrap" }}>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>{tContent("contentType")}</InputLabel>
-            <Select
+      {/* Filter bar */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 mb-6">
+        <div className="flex items-center gap-4 flex-wrap">
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
+              {tContent("contentType")}
+            </label>
+            <select
               value={audience}
-              label={tContent("contentType")}
               onChange={(e) => setAudience(e.target.value)}
+              className="h-9 rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             >
               {audienceOptions.map((o) => (
-                <MenuItem key={o.value || "all"} value={o.value}>
+                <option key={o.value || "all"} value={o.value}>
                   {o.label}
-                </MenuItem>
+                </option>
               ))}
-            </Select>
-          </FormControl>
-        </Stack>
-      </Paper>
+            </select>
+          </div>
+        </div>
+      </div>
 
       {POSITION_ORDER.map((pos) => {
         const list = grouped[pos];
         const isSlider = pos === "slider";
         return (
-          <Paper
-            key={pos}
-            sx={{
-              p: 3,
-              mb: 3,
-              borderRadius: 3,
-              border: "1px solid",
-              borderColor: "divider",
-            }}
-          >
-            <Stack
-              direction="row"
-              sx={{
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 2,
-              }}
-            >
-              <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  {t(`position_${pos}`)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
+          <div key={pos} className="rounded-2xl border border-gray-200 bg-white p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-bold">{t(`position_${pos}`)}</h2>
+                <p className="text-sm text-gray-600">
                   {isSlider ? t("sliderHint") : t("singleTileHint")}
-                </Typography>
-              </Box>
-              <Button
-                startIcon={<AddIcon />}
-                variant="contained"
+                </p>
+              </div>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+                style={{ background: "var(--color-primary)" }}
                 onClick={() => openCreate(pos)}
               >
-                {t("addBanner")}
-              </Button>
-            </Stack>
+                <Plus size={16} /> {t("addBanner")}
+              </button>
+            </div>
 
             {list.length === 0 ? (
-              <Box
-                sx={{
-                  p: 4,
-                  textAlign: "center",
-                  color: "text.secondary",
-                  bgcolor: "grey.50",
-                  borderRadius: 2,
-                  border: "1px dashed",
-                  borderColor: "divider",
-                }}
-              >
-                <ImageNotSupportedIcon sx={{ fontSize: 40, mb: 1, opacity: 0.4 }} />
-                <Typography variant="body2">{t("noBannerInSlot")}</Typography>
-              </Box>
+              <div className="p-8 text-center text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200 flex flex-col items-center">
+                <ImageOff size={40} className="opacity-40 mb-2" />
+                <p className="text-sm">{t("noBannerInSlot")}</p>
+              </div>
             ) : (
-              <Stack
-                direction="row"
-                spacing={2}
-                sx={{ flexWrap: "wrap" }}
-                useFlexGap
-              >
+              <div className="flex flex-wrap gap-4">
                 {list.map((b) => (
-                  <Paper
+                  <div
                     key={b.id}
-                    variant="outlined"
-                    sx={{
-                      width: 260,
-                      overflow: "hidden",
-                      borderRadius: 2,
-                      position: "relative",
-                    }}
+                    className="w-64 rounded-xl border border-gray-200 bg-white overflow-hidden"
                   >
-                    <Box
-                      sx={{
-                        position: "relative",
-                        height: 140,
-                        bgcolor: "grey.100",
-                      }}
-                    >
+                    <div className="relative h-36 bg-gray-100">
                       {b.image ? (
-                        <Box
-                          component="img"
+                        <img
                           src={b.image}
                           alt={b.title ?? ""}
-                          sx={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
+                          className="w-full h-full object-cover"
                         />
                       ) : (
-                        <Box
-                          sx={{
-                            width: "100%",
-                            height: "100%",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "grey.400",
-                          }}
-                        >
-                          <ImageNotSupportedIcon />
-                        </Box>
+                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                          <ImageOff size={32} />
+                        </div>
                       )}
                       {!b.is_active && (
-                        <Chip
-                          label={t("inactive")}
-                          size="small"
-                          color="default"
-                          sx={{
-                            position: "absolute",
-                            top: 8,
-                            left: 8,
-                            bgcolor: "rgba(0,0,0,0.7)",
-                            color: "white",
-                          }}
-                        />
+                        <span className="absolute top-2 start-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-black/70 text-white">
+                          {t("inactive")}
+                        </span>
                       )}
-                    </Box>
-                    <Box sx={{ p: 1.5 }}>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ fontWeight: 700 }}
-                        noWrap
-                      >
+                    </div>
+                    <div className="p-3">
+                      <p className="text-sm font-bold truncate">
                         {locale === "en" && b.title_en
                           ? b.title_en
                           : b.title || t("untitled")}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        noWrap
-                        sx={{ display: "block" }}
-                      >
-                        {b.link || "—"}
-                      </Typography>
-                      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                        <IconButton
-                          size="small"
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">{b.link || "—"}</p>
+                      <div className="flex items-center gap-1 mt-2">
+                        <button
+                          type="button"
+                          title={tCommon("edit")}
+                          className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition"
                           onClick={() => openEdit(b)}
                         >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          title={tCommon("delete")}
+                          className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition"
                           onClick={() => setDeletingId(b.id)}
                         >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                        <Box sx={{ flex: 1 }} />
+                          <Trash2 size={16} />
+                        </button>
+                        <div className="flex-1" />
                         <AudienceChip value={b.content_type} />
-                        <Chip
-                          size="small"
-                          label={`#${b.sort_order}`}
-                          variant="outlined"
-                        />
-                      </Stack>
-                    </Box>
-                  </Paper>
+                        <span className="inline-flex items-center rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
+                          #{b.sort_order}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </Stack>
+              </div>
             )}
-          </Paper>
+          </div>
         );
       })}
 
       {/* Edit/Create Dialog */}
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          {editing ? t("editBanner") : t("newBanner")}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>{t("position")}</InputLabel>
-              <Select
-                value={form.position}
-                label={t("position")}
-                onChange={(e) =>
-                  setForm({ ...form, position: e.target.value as BannerPosition })
-                }
-              >
-                {POSITION_ORDER.map((p) => (
-                  <MenuItem key={p} value={p}>
-                    {t(`position_${p}`)}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <TextField
-              label={t("imageUrl")}
-              value={form.image}
-              onChange={(e) => setForm({ ...form, image: e.target.value })}
-              fullWidth
-              size="small"
-              required
-              helperText={t("imageHint")}
-            />
-            {form.image && (
-              <Box
-                sx={{
-                  borderRadius: 2,
-                  overflow: "hidden",
-                  maxHeight: 180,
-                  bgcolor: "grey.100",
-                }}
-              >
-                <Box
-                  component="img"
-                  src={form.image}
-                  alt="preview"
-                  sx={{
-                    width: "100%",
-                    maxHeight: 180,
-                    objectFit: "cover",
-                    display: "block",
-                  }}
-                />
-              </Box>
-            )}
-
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <TextField
-                label={t("bannerTitle")}
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                fullWidth
-                size="small"
-              />
-              <TextField
-                label={t("bannerTitleEn")}
-                value={form.title_en}
-                onChange={(e) =>
-                  setForm({ ...form, title_en: e.target.value })
-                }
-                fullWidth
-                size="small"
-              />
-            </Stack>
-
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <TextField
-                label={t("subtitle")}
-                value={form.subtitle}
-                onChange={(e) =>
-                  setForm({ ...form, subtitle: e.target.value })
-                }
-                fullWidth
-                size="small"
-              />
-              <TextField
-                label={t("subtitleEn")}
-                value={form.subtitle_en}
-                onChange={(e) =>
-                  setForm({ ...form, subtitle_en: e.target.value })
-                }
-                fullWidth
-                size="small"
-              />
-            </Stack>
-
-            <TextField
-              label={t("link")}
-              value={form.link}
-              onChange={(e) => setForm({ ...form, link: e.target.value })}
-              fullWidth
-              size="small"
-              helperText={t("linkHint")}
-            />
-
-            <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-              <TextField
-                label={t("sortOrder")}
-                type="number"
-                value={form.sort_order}
-                onChange={(e) =>
-                  setForm({ ...form, sort_order: e.target.value })
-                }
-                size="small"
-                sx={{ maxWidth: 140 }}
-              />
-              <FormControl size="small" sx={{ minWidth: 160 }}>
-                <InputLabel>{tContent("contentType")}</InputLabel>
-                <Select
-                  label={tContent("contentType")}
-                  value={form.content_type}
+      {dialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setDialogOpen(false)}
+          />
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">
+                {editing ? t("editBanner") : t("newBanner")}
+              </h2>
+            </div>
+            <div className="px-6 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {t("position")}
+                </label>
+                <select
+                  value={form.position}
                   onChange={(e) =>
-                    setForm({
-                      ...form,
-                      content_type: e.target.value as ContentType,
-                    })
+                    setForm({ ...form, position: e.target.value as BannerPosition })
                   }
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                 >
-                  <MenuItem value="unisex">{tContent("unisex")}</MenuItem>
-                  <MenuItem value="female">{tContent("female")}</MenuItem>
-                  <MenuItem value="male">{tContent("male")}</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={form.is_active}
-                    onChange={(e) =>
-                      setForm({ ...form, is_active: e.target.checked })
-                    }
-                  />
-                }
-                label={t("active")}
-              />
-            </Stack>
+                  {POSITION_ORDER.map((p) => (
+                    <option key={p} value={p}>
+                      {t(`position_${p}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            {error && <Alert severity="error">{error}</Alert>}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)} disabled={saving}>
-            {tCommon("cancel")}
-          </Button>
-          <Button variant="contained" onClick={save} disabled={saving}>
-            {tCommon("save")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {t("imageUrl")} *
+                </label>
+                <input
+                  type="text"
+                  value={form.image}
+                  onChange={(e) => setForm({ ...form, image: e.target.value })}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+                <p className="text-xs text-gray-400 mt-1">{t("imageHint")}</p>
+              </div>
+
+              {form.image && (
+                <div className="rounded-xl overflow-hidden max-h-44 bg-gray-100">
+                  <img
+                    src={form.image}
+                    alt="preview"
+                    className="w-full max-h-44 object-cover block"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    {t("bannerTitle")}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    {t("bannerTitleEn")}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.title_en}
+                    onChange={(e) => setForm({ ...form, title_en: e.target.value })}
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    {t("subtitle")}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.subtitle}
+                    onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    {t("subtitleEn")}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.subtitle_en}
+                    onChange={(e) => setForm({ ...form, subtitle_en: e.target.value })}
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {t("link")}
+                </label>
+                <input
+                  type="text"
+                  value={form.link}
+                  onChange={(e) => setForm({ ...form, link: e.target.value })}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+                <p className="text-xs text-gray-400 mt-1">{t("linkHint")}</p>
+              </div>
+
+              <div className="flex items-end gap-4 flex-wrap">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    {t("sortOrder")}
+                  </label>
+                  <input
+                    type="number"
+                    value={form.sort_order}
+                    onChange={(e) => setForm({ ...form, sort_order: e.target.value })}
+                    className="h-9 w-28 rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    {tContent("contentType")}
+                  </label>
+                  <select
+                    value={form.content_type}
+                    onChange={(e) =>
+                      setForm({ ...form, content_type: e.target.value as ContentType })
+                    }
+                    className="h-9 rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  >
+                    <option value="unisex">{tContent("unisex")}</option>
+                    <option value="female">{tContent("female")}</option>
+                    <option value="male">{tContent("male")}</option>
+                  </select>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={form.is_active}
+                      onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+                    />
+                    <div
+                      className={`w-10 h-5 rounded-full transition-colors ${
+                        form.is_active ? "bg-[var(--color-primary)]" : "bg-gray-300"
+                      }`}
+                    />
+                    <div
+                      className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                        form.is_active ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </div>
+                  <span className="text-sm">{t("active")}</span>
+                </label>
+              </div>
+
+              {error && (
+                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                onClick={() => setDialogOpen(false)}
+                disabled={saving}
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                style={{ background: "var(--color-primary)" }}
+                onClick={save}
+                disabled={saving}
+              >
+                {tCommon("save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Delete confirm */}
-      <Dialog open={deletingId !== null} onClose={() => setDeletingId(null)}>
-        <DialogTitle>{t("confirmDeleteBanner")}</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setDeletingId(null)}>
-            {tCommon("cancel")}
-          </Button>
-          <Button color="error" variant="contained" onClick={remove}>
-            {tCommon("delete")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {deletingId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setDeletingId(null)}
+          />
+          <div className="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">{t("confirmDeleteBanner")}</h2>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                onClick={() => setDeletingId(null)}
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-700"
+                onClick={remove}
+              >
+                {tCommon("delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Snackbar
-        open={snack !== null}
-        autoHideDuration={2500}
-        onClose={() => setSnack(null)}
-        message={snack ?? ""}
-      />
-    </Box>
+      {snack && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {snack}
+        </div>
+      )}
+    </div>
   );
 }

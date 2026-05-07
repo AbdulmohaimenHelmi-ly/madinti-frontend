@@ -1,11 +1,9 @@
 "use client";
 
-import { Box, Button, Stack, Typography, Breadcrumbs } from "@mui/material";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import HomeIcon from "@mui/icons-material/Home";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import { Home, ChevronRight, ChevronLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface AdminPageHeaderProps {
   title: string;
@@ -20,74 +18,47 @@ export interface AdminPageHeaderProps {
   };
 }
 
-export default function AdminPageHeader({
-  title,
-  subtitle,
-  breadcrumb,
-  action,
-}: AdminPageHeaderProps) {
+export default function AdminPageHeader({ title, subtitle, breadcrumb, action }: AdminPageHeaderProps) {
   const locale = useLocale();
   const t = useTranslations("admin");
-  const Chevron = locale === "ar" ? ChevronLeftIcon : ChevronRightIcon;
+  const Chevron = locale === "ar" ? ChevronLeft : ChevronRight;
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Breadcrumbs
-        separator={<Chevron fontSize="small" />}
-        sx={{ mb: 1, "& a": { color: "text.secondary", textDecoration: "none" } }}
-      >
-        <Link href={`/${locale}/admin`}>
-          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
-            <HomeIcon sx={{ fontSize: 16 }} />
-            <Typography variant="body2">{t("adminPanel")}</Typography>
-          </Stack>
+    <div className="mb-6">
+      <nav className="flex items-center gap-1 text-sm text-gray-500 mb-2">
+        <Link href={`/${locale}/admin`} className="flex items-center gap-1 no-underline text-gray-500 hover:text-gray-800 transition">
+          <Home size={14} /> {t("adminPanel")}
         </Link>
-        <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-          {breadcrumb ?? title}
-        </Typography>
-      </Breadcrumbs>
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        spacing={2}
-        sx={{
-          alignItems: { xs: "flex-start", sm: "center" },
-          justifyContent: "space-between",
-        }}
-      >
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
-            {title}
-          </Typography>
-          {subtitle && (
-            <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-              {subtitle}
-            </Typography>
-          )}
-        </Box>
-        {action &&
-          (action.href ? (
-            <Button
-              component={Link}
+        <Chevron size={14} className="text-gray-400" />
+        <span className="font-semibold text-gray-800">{breadcrumb ?? title}</span>
+      </nav>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-extrabold leading-tight text-gray-900">{title}</h1>
+          {subtitle && <p className="text-gray-500 mt-1">{subtitle}</p>}
+        </div>
+        {action && (
+          action.href ? (
+            <Link
               href={action.href}
-              variant="contained"
-              startIcon={action.icon}
-              disabled={action.disabled}
-              sx={{ borderRadius: 2, px: 2.5, py: 1, flexShrink: 0 }}
+              className={cn("inline-flex shrink-0 items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white no-underline transition", action.disabled ? "opacity-50 pointer-events-none" : "hover:opacity-90")}
+              style={{ background: "var(--color-primary)" }}
             >
-              {action.label}
-            </Button>
+              {action.icon}{action.label}
+            </Link>
           ) : (
-            <Button
-              variant="contained"
+            <button
+              type="button"
               onClick={action.onClick}
-              startIcon={action.icon}
               disabled={action.disabled}
-              sx={{ borderRadius: 2, px: 2.5, py: 1, flexShrink: 0 }}
+              className={cn("inline-flex shrink-0 items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition", action.disabled ? "opacity-50 cursor-not-allowed" : "hover:opacity-90")}
+              style={{ background: "var(--color-primary)" }}
             >
-              {action.label}
-            </Button>
-          ))}
-      </Stack>
-    </Box>
+              {action.icon}{action.label}
+            </button>
+          )
+        )}
+      </div>
+    </div>
   );
 }

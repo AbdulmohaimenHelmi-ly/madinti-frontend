@@ -2,11 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useLocale } from "next-intl";
-import { Box, IconButton } from "@mui/material";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import CategoryCard from "@/components/categories/CategoryCard";
 import type { Category } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface CategoriesCarouselProps {
   categories: Category[];
@@ -14,7 +13,7 @@ interface CategoriesCarouselProps {
 
 const COLS = 8;
 const ROWS = 2;
-const PAGE_SIZE = COLS * ROWS; // 16
+const PAGE_SIZE = COLS * ROWS;
 
 export default function CategoriesCarousel({ categories }: CategoriesCarouselProps) {
   const locale = useLocale();
@@ -33,128 +32,79 @@ export default function CategoriesCarousel({ categories }: CategoriesCarouselPro
   const canPrev = page > 0;
   const canNext = page < pageCount - 1;
 
-  const handlePrev = () => canPrev && setPage((p) => p - 1);
-  const handleNext = () => canNext && setPage((p) => p + 1);
-
   if (categories.length === 0) return null;
 
   return (
     <>
-      {/* ── MOBILE: horizontal-scroll strip matching Flutter's CategoryChip row ── */}
-      <Box
-        sx={{
-          display: { xs: "flex", md: "none" },
-          overflowX: "auto",
-          gap: 2,
-          px: 2,
-          py: 1,
-          mb: 3,
-          scrollSnapType: "x mandatory",
-          WebkitOverflowScrolling: "touch",
-          scrollbarWidth: "none",
-          "&::-webkit-scrollbar": { display: "none" },
-        }}
-      >
+      {/* Mobile: horizontal scroll */}
+      <div className="md:hidden flex overflow-x-auto gap-4 px-4 py-2 mb-6 scroll-smooth [scroll-snap-type:x_mandatory] [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {categories.map((c) => (
-          <Box key={c.id} sx={{ flexShrink: 0, scrollSnapAlign: "start" }}>
+          <div key={c.id} className="shrink-0 [scroll-snap-align:start]">
             <CategoryCard category={c} />
-          </Box>
+          </div>
         ))}
-      </Box>
+      </div>
 
-      {/* ── DESKTOP: paginated grid ─────────────────────────────────────────── */}
-      <Box
-        sx={{
-          display: { xs: "none", md: "block" },
-          position: "relative",
-          mb: 8,
-          px: 5,
-          py: 2,
-        }}
-      >
-        {/* Force LTR on the rail so the translate math is identical regardless
-            of page direction. stylis-plugin-rtl otherwise flips translateX signs
-            and hides the first page. */}
-        <Box sx={{ overflow: "hidden", direction: "ltr" }}>
-          <Box
-            sx={{
-              display: "flex",
+      {/* Desktop: paginated grid */}
+      <div className="hidden md:block relative mb-16 px-10 py-4">
+        <div className="overflow-hidden" dir="ltr">
+          <div
+            className="flex transition-transform duration-[450ms] cubic-bezier-[0.4,0,0.2,1]"
+            style={{
               width: `${pageCount * 100}%`,
               transform: `translateX(-${(page * 100) / pageCount}%)`,
-              transition: "transform 0.45s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
             {pages.map((chunk, idx) => (
-              <Box
+              <div
                 key={idx}
-                sx={{
+                className="px-1"
+                style={{
                   flex: `0 0 ${100 / pageCount}%`,
                   display: "grid",
                   gridTemplateColumns: `repeat(${COLS}, 1fr)`,
-                  gridAutoRows: "auto",
-                  rowGap: 4,
-                  columnGap: 2,
-                  px: 1,
-                  // Restore locale direction so child content reads correctly in Arabic.
+                  rowGap: "1rem",
+                  columnGap: "0.5rem",
                   direction: isRtl ? "rtl" : "ltr",
                 }}
               >
                 {chunk.map((c) => (
-                  <Box key={c.id} sx={{ display: "flex", justifyContent: "center" }}>
+                  <div key={c.id} className="flex justify-center">
                     <CategoryCard category={c} />
-                  </Box>
+                  </div>
                 ))}
-              </Box>
+              </div>
             ))}
-          </Box>
-        </Box>
+          </div>
+        </div>
 
         {pageCount > 1 && (
           <>
-            <IconButton
-              onClick={handlePrev}
+            <button
+              type="button"
+              onClick={() => canPrev && setPage((p) => p - 1)}
               disabled={!canPrev}
-              sx={{
-                position: "absolute",
-                top: "50%",
-                left: 0,
-                transform: "translateY(-50%)",
-                bgcolor: "white",
-                color: "text.primary",
-                boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
-                opacity: canPrev ? 1 : 0,
-                pointerEvents: canPrev ? "auto" : "none",
-                transition: "opacity 0.2s ease",
-                "&:hover": { bgcolor: "white", boxShadow: "0 6px 20px rgba(0,0,0,0.22)" },
-                zIndex: 2,
-              }}
+              className={cn(
+                "absolute top-1/2 start-0 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg transition-all duration-200",
+                canPrev ? "opacity-100 hover:shadow-xl" : "opacity-0 pointer-events-none"
+              )}
             >
-              <ChevronLeftIcon sx={{ transform: isRtl ? "scaleX(-1)" : "none" }} />
-            </IconButton>
-
-            <IconButton
-              onClick={handleNext}
+              <ChevronLeft size={20} className={isRtl ? "scale-x-[-1]" : ""} />
+            </button>
+            <button
+              type="button"
+              onClick={() => canNext && setPage((p) => p + 1)}
               disabled={!canNext}
-              sx={{
-                position: "absolute",
-                top: "50%",
-                right: 0,
-                transform: "translateY(-50%)",
-                bgcolor: "white",
-                color: "text.primary",
-                boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
-                opacity: canNext ? 1 : 0,
-                pointerEvents: canNext ? "auto" : "none",
-                transition: "opacity 0.2s ease",
-                "&:hover": { bgcolor: "white", boxShadow: "0 6px 20px rgba(0,0,0,0.22)" },
-                zIndex: 2,
-              }}
+              className={cn(
+                "absolute top-1/2 end-0 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-lg transition-all duration-200",
+                canNext ? "opacity-100 hover:shadow-xl" : "opacity-0 pointer-events-none"
+              )}
             >
-              <ChevronRightIcon sx={{ transform: isRtl ? "scaleX(-1)" : "none" }} />
-            </IconButton>
+              <ChevronRight size={20} className={isRtl ? "scale-x-[-1]" : ""} />
+            </button>
           </>
         )}
-      </Box>
+      </div>
     </>
   );
 }

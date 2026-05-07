@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * ProductRail — matches Flutter's _ProductRail exactly.
- *
- * Mobile (xs/sm): horizontal scroll carousel
- *   height 280, cards 160px wide, square image (1:1), white card w/ rounded corners
- *   12px gap, 16px side padding, scroll-snap
- * Desktop (md+): standard ProductGrid
- */
-
-import { Box, Skeleton } from "@mui/material";
 import { useLocale } from "next-intl";
 import type { Product } from "@/lib/types";
 import ProductRailCard from "./ProductRailCard";
@@ -22,8 +12,6 @@ interface ProductRailProps {
 }
 
 const CARD_WIDTH = 160;
-// Square image = 160px + text padding top+bottom 22px + name ~34px + rating ~18px + price ~22px ≈ 256px
-// Flutter rail height is 290, use 280 to match
 const RAIL_HEIGHT = 280;
 const GAP = 12;
 
@@ -37,77 +25,46 @@ export default function ProductRail({
 
   return (
     <>
-      {/* ── MOBILE: horizontal scroll rail (xs/sm) ── */}
-      <Box sx={{ display: { xs: "block", md: "none" } }}>
-        <Box
+      {/* Mobile: horizontal scroll rail */}
+      <div className="block md:hidden">
+        <div
           dir={isRtl ? "rtl" : "ltr"}
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            overflowX: "auto",
-            overflowY: "hidden",
+          className="flex flex-row overflow-x-auto overflow-y-hidden"
+          style={{
             height: RAIL_HEIGHT,
-            gap: `${GAP}px`,
-            px: 2,
-            py: 0.5,
+            gap: GAP,
+            paddingLeft: 16,
+            paddingRight: 16,
+            paddingBottom: 4,
             scrollSnapType: "x mandatory",
             WebkitOverflowScrolling: "touch",
             scrollbarWidth: "none",
-            "&::-webkit-scrollbar": { display: "none" },
-            alignItems: "stretch",
           }}
         >
           {loading
             ? Array.from({ length: skeletonCount }).map((_, i) => (
-                <Box
+                <div
                   key={i}
-                  sx={{
-                    flex: `0 0 ${CARD_WIDTH}px`,
-                    height: RAIL_HEIGHT - 8,
-                    scrollSnapAlign: "start",
-                    borderRadius: "18px",
-                    overflow: "hidden",
-                    bgcolor: "white",
-                    border: "1px solid #EDE7E9",
-                    display: "flex",
-                    flexDirection: "column",
-                  }}
-                >
-                  <Skeleton
-                    variant="rectangular"
-                    width={CARD_WIDTH}
-                    height={CARD_WIDTH}
-                    sx={{ flexShrink: 0 }}
-                  />
-                  <Box sx={{ p: "10px", display: "flex", flexDirection: "column", gap: 1 }}>
-                    <Skeleton width="85%" height={14} />
-                    <Skeleton width="60%" height={14} />
-                    <Skeleton width="50%" height={18} />
-                  </Box>
-                </Box>
+                  className="shrink-0 rounded-[18px] bg-gray-200 animate-pulse border border-[#EDE7E9]"
+                  style={{ flex: `0 0 ${CARD_WIDTH}px`, height: RAIL_HEIGHT - 8, scrollSnapAlign: "start" }}
+                />
               ))
             : products.map((product) => (
-                <Box
+                <div
                   key={product.id}
-                  sx={{
-                    flex: `0 0 ${CARD_WIDTH}px`,
-                    scrollSnapAlign: "start",
-                    /* Let the card fill the rail height */
-                    alignSelf: "stretch",
-                    overflow: "hidden",
-                  }}
+                  className="shrink-0 overflow-hidden"
+                  style={{ flex: `0 0 ${CARD_WIDTH}px`, scrollSnapAlign: "start", alignSelf: "stretch" }}
                 >
                   <ProductRailCard product={product} />
-                </Box>
+                </div>
               ))}
-        </Box>
-      </Box>
+        </div>
+      </div>
 
-      {/* ── DESKTOP: standard grid (md+) ── */}
-      <Box sx={{ display: { xs: "none", md: "block" } }}>
+      {/* Desktop: standard grid */}
+      <div className="hidden md:block">
         <ProductGrid products={products} />
-      </Box>
+      </div>
     </>
   );
 }
-

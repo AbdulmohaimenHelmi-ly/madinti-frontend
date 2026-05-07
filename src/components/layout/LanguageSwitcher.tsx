@@ -2,8 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
-import { IconButton } from "@mui/material";
-import TranslateRoundedIcon from "@mui/icons-material/TranslateRounded";
+import { Languages } from "lucide-react";
 
 export default function LanguageSwitcher() {
   const locale = useLocale();
@@ -17,21 +16,13 @@ export default function LanguageSwitcher() {
   };
 
   return (
-    <IconButton
+    <button
+      type="button"
       onClick={switchLocale}
       aria-label={locale === "ar" ? "Switch to English" : "التبديل إلى العربية"}
-      sx={{
-        color: "#1A1A1A",
-        width: 40,
-        height: 40,
-        borderRadius: 100,
-        border: "1px solid #EDE7E9",
-        bgcolor: "white",
-        transition: "all 0.2s ease",
-        "&:hover": { bgcolor: "#F5F0F2" },
-      }}
+      className="flex h-10 w-10 items-center justify-center rounded-full border border-[#EDE7E9] bg-white text-[#1A1A1A] transition hover:bg-[#F5F0F2]"
     >
-      <TranslateRoundedIcon />
-    </IconButton>
+      <Languages size={20} />
+    </button>
   );
 }

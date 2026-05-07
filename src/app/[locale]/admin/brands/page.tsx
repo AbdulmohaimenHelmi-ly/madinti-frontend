@@ -2,38 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Alert,
-  Avatar,
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  FormControlLabel,
-  IconButton,
-  Paper,
-  Snackbar,
-  Stack,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import MenuItem from "@mui/material/MenuItem";
-import Autocomplete from "@mui/material/Autocomplete";
+import { Plus, Pencil, Trash2, AlertCircle } from "lucide-react";
 
 import { adminApi, type BrandPayload } from "@/lib/api/admin";
 import type { Brand, Category, ContentType } from "@/lib/types";
@@ -144,6 +113,12 @@ export default function AdminBrandsPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!snackbar) return;
+    const timer = setTimeout(() => setSnackbar(""), 3000);
+    return () => clearTimeout(timer);
+  }, [snackbar]);
+
   const openCreate = () => {
     setEditing(null);
     setForm(emptyForm);
@@ -223,63 +198,75 @@ export default function AdminBrandsPage() {
     uiLocale === "en" && b.name_en ? b.name_en : b.name;
 
   return (
-    <Box>
+    <div>
       <AdminPageHeader
         title={t("brands")}
         subtitle={t("brandsSubtitle")}
         action={{
           label: t("newBrand"),
-          icon: <AddIcon />,
+          icon: <Plus size={16} />,
           onClick: openCreate,
         }}
       />
 
-      <Paper sx={{ p: 2, mb: 2, borderRadius: 3 }}>
-        <Stack direction="row" spacing={2} sx={{ alignItems: "center", flexWrap: "wrap" }}>
-          <TextField
-            label={tCommon("search")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            size="small"
-            sx={{ minWidth: 260 }}
-          />
-          <TextField
-            select
-            label={tContent("contentType")}
-            value={audience}
-            onChange={(e) => setAudience(e.target.value)}
-            size="small"
-            sx={{ minWidth: 160 }}
-          >
-            {audienceOptions.map((o) => (
-              <MenuItem key={o.value || "all"} value={o.value}>
-                {o.label}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            select
-            label={t("category")}
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            size="small"
-            sx={{ minWidth: 220 }}
-          >
-            <MenuItem value="">{tCommon("all")}</MenuItem>
-            {flatCategories.map(({ category, depth }) => (
-              <MenuItem key={category.id} value={String(category.id)}>
-                {"\u00A0\u00A0".repeat(depth)}
-                {categoryLabel(category)}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Stack>
-      </Paper>
+      {/* Filter bar */}
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 mb-4">
+        <div className="flex items-center gap-4 flex-wrap">
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
+              {tCommon("search")}
+            </label>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-9 rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              style={{ minWidth: 260 }}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
+              {tContent("contentType")}
+            </label>
+            <select
+              value={audience}
+              onChange={(e) => setAudience(e.target.value)}
+              className="h-9 rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            >
+              {audienceOptions.map((o) => (
+                <option key={o.value || "all"} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
+              {t("category")}
+            </label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="h-9 rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              style={{ minWidth: 220 }}
+            >
+              <option value="">{tCommon("all")}</option>
+              {flatCategories.map(({ category, depth }) => (
+                <option key={category.id} value={String(category.id)}>
+                  {"\u00A0\u00A0".repeat(depth)}
+                  {categoryLabel(category)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-          {error}
-        </Alert>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </div>
       )}
 
       {loading ? (
@@ -295,330 +282,399 @@ export default function AdminBrandsPage() {
             return <EmptyState message={t("noBrands")} />;
           }
           return (
-        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>{t("logo")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("name")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("nameEn")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("slug")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {t("productsCount")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("categories")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {t("sortOrder")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {tContent("contentType")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("featured")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {t("actions")}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredBrands.map((b) => (
-                <TableRow key={b.id} hover>
-                  <TableCell>
-                    <Avatar
-                      src={b.logo || undefined}
-                      variant="rounded"
-                      sx={{ width: 40, height: 40, bgcolor: "grey.100" }}
+            <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {t("logo")}
+                    </th>
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {t("name")}
+                    </th>
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {t("nameEn")}
+                    </th>
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {t("slug")}
+                    </th>
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {t("productsCount")}
+                    </th>
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {t("categories")}
+                    </th>
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {t("sortOrder")}
+                    </th>
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {tContent("contentType")}
+                    </th>
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {t("featured")}
+                    </th>
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {t("status")}
+                    </th>
+                    <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                      {t("actions")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredBrands.map((b) => (
+                    <tr
+                      key={b.id}
+                      className="border-b border-gray-100 hover:bg-gray-50 transition"
                     >
-                      {brandLabel(b).charAt(0).toUpperCase()}
-                    </Avatar>
-                  </TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>
-                    {brandLabel(b)}
-                  </TableCell>
-                  <TableCell>{b.name_en || "—"}</TableCell>
-                  <TableCell>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontFamily: "monospace", color: "text.secondary" }}
-                    >
-                      {b.slug}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>{b.products_count ?? 0}</TableCell>
-                  <TableCell>
-                    {b.categories && b.categories.length > 0 ? (
-                      <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap", gap: 0.5 }}>
-                        {b.categories.map((c) => (
-                          <Chip
-                            key={c.id}
-                            size="small"
-                            variant="outlined"
-                            label={uiLocale === "en" && c.name_en ? c.name_en : c.name}
-                          />
-                        ))}
-                      </Stack>
-                    ) : (
-                      "\u2014"
-                    )}
-                  </TableCell>
-                  <TableCell>{b.sort_order}</TableCell>
-                  <TableCell>
-                    <AudienceChip value={b.content_type} />
-                  </TableCell>
-                  <TableCell>
-                    {b.is_featured ? (
-                      <Chip
-                        size="small"
-                        color="warning"
-                        label={t("featured")}
-                        sx={{ fontWeight: 600 }}
-                      />
-                    ) : (
-                      "—"
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      size="small"
-                      color={b.is_active ? "success" : "default"}
-                      label={b.is_active ? t("active") : t("inactive")}
-                      sx={{ fontWeight: 600 }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Stack
-                      direction="row"
-                      spacing={0.5}
-                      sx={{ justifyContent: "flex-start" }}
-                    >
-                      <Tooltip title={tCommon("edit")}>
-                        <IconButton size="small" onClick={() => openEdit(b)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={tCommon("delete")}>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => setToDelete(b)}
+                      <td className="px-4 py-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-sm font-bold text-gray-600 overflow-hidden shrink-0">
+                          {b.logo ? (
+                            <img
+                              src={b.logo}
+                              className="h-full w-full object-cover"
+                              alt=""
+                            />
+                          ) : (
+                            brandLabel(b)[0]?.toUpperCase()
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 font-semibold">{brandLabel(b)}</td>
+                      <td className="px-4 py-3">{b.name_en || "—"}</td>
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-xs text-gray-500">{b.slug}</span>
+                      </td>
+                      <td className="px-4 py-3">{b.products_count ?? 0}</td>
+                      <td className="px-4 py-3">
+                        {b.categories && b.categories.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {b.categories.map((c) => (
+                              <span
+                                key={c.id}
+                                className="inline-flex items-center rounded-full border border-gray-200 px-2.5 py-0.5 text-xs font-semibold text-gray-600"
+                              >
+                                {uiLocale === "en" && c.name_en ? c.name_en : c.name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          "\u2014"
+                        )}
+                      </td>
+                      <td className="px-4 py-3">{b.sort_order}</td>
+                      <td className="px-4 py-3">
+                        <AudienceChip value={b.content_type} />
+                      </td>
+                      <td className="px-4 py-3">
+                        {b.is_featured ? (
+                          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-yellow-100 text-yellow-700">
+                            {t("featured")}
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                            b.is_active
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
                         >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                          {b.is_active ? t("active") : t("inactive")}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            title={tCommon("edit")}
+                            className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition"
+                            onClick={() => openEdit(b)}
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            title={tCommon("delete")}
+                            className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition"
+                            onClick={() => setToDelete(b)}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           );
         })()
       )}
 
-      <Dialog
-        open={dialogOpen}
-        onClose={() => !saving && setDialogOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>{editing ? t("editBrand") : t("newBrand")}</DialogTitle>
-        <DialogContent>
-          {formError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {formError}
-            </Alert>
-          )}
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <TextField
-                label={t("name")}
-                value={form.name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
-                fullWidth
-                size="small"
-              />
-              <TextField
-                label={t("nameEn")}
-                value={form.name_en}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name_en: e.target.value }))
-                }
-                fullWidth
-                size="small"
-              />
-            </Stack>
-            <TextField
-              label={t("logoUrl")}
-              value={form.logo}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, logo: e.target.value }))
-              }
-              fullWidth
-              size="small"
-              placeholder="https://..."
-            />
-            {form.logo && (
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: 1,
-                  borderRadius: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
+      {/* Create/Edit Dialog */}
+      {dialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => !saving && setDialogOpen(false)}
+          />
+          <div className="relative z-10 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">
+                {editing ? t("editBrand") : t("newBrand")}
+              </h2>
+            </div>
+            <div className="px-6 py-4 space-y-4 max-h-[60vh] overflow-y-auto">
+              {formError && (
+                <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                  <span>{formError}</span>
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    {t("name")}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">
+                    {t("nameEn")}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.name_en}
+                    onChange={(e) => setForm((f) => ({ ...f, name_en: e.target.value }))}
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {t("logoUrl")}
+                </label>
+                <input
+                  type="text"
+                  value={form.logo}
+                  onChange={(e) => setForm((f) => ({ ...f, logo: e.target.value }))}
+                  placeholder="https://..."
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              {form.logo && (
+                <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 overflow-hidden shrink-0">
+                    <img src={form.logo} className="h-full w-full object-cover" alt="" />
+                  </div>
+                  <span className="text-xs text-gray-500">{t("logoPreview")}</span>
+                </div>
+              )}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {t("description")}
+                </label>
+                <textarea
+                  rows={2}
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {t("descriptionEn")}
+                </label>
+                <textarea
+                  rows={2}
+                  value={form.description_en}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, description_en: e.target.value }))
+                  }
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {t("sortOrder")}
+                </label>
+                <input
+                  type="number"
+                  value={form.sort_order}
+                  onChange={(e) => setForm((f) => ({ ...f, sort_order: e.target.value }))}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {tContent("contentType")}
+                </label>
+                <select
+                  value={form.content_type}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      content_type: e.target.value as ContentType,
+                    }))
+                  }
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                >
+                  <option value="unisex">{tContent("unisex")}</option>
+                  <option value="female">{tContent("female")}</option>
+                  <option value="male">{tContent("male")}</option>
+                </select>
+                <p className="text-xs text-gray-400 mt-1">{tContent("contentTypeHint")}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {t("categories")}
+                </label>
+                <div className="rounded-lg border border-gray-200 max-h-48 overflow-y-auto">
+                  {flatCategories.map(({ category, depth }) => (
+                    <label
+                      key={category.id}
+                      className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        className="rounded"
+                        checked={form.category_ids.includes(category.id)}
+                        onChange={(e) => {
+                          const ids = e.target.checked
+                            ? [...form.category_ids, category.id]
+                            : form.category_ids.filter((id) => id !== category.id);
+                          setForm((f) => ({ ...f, category_ids: ids }));
+                        }}
+                      />
+                      <span className="text-sm">
+                        {"\u00A0\u00A0".repeat(depth)}
+                        {categoryLabel(category)}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={form.is_active}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, is_active: e.target.checked }))
+                      }
+                    />
+                    <div
+                      className={`w-10 h-5 rounded-full transition-colors ${
+                        form.is_active ? "bg-[var(--color-primary)]" : "bg-gray-300"
+                      }`}
+                    />
+                    <div
+                      className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                        form.is_active ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </div>
+                  <span className="text-sm">
+                    {form.is_active ? t("active") : t("inactive")}
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={form.is_featured}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, is_featured: e.target.checked }))
+                      }
+                    />
+                    <div
+                      className={`w-10 h-5 rounded-full transition-colors ${
+                        form.is_featured ? "bg-[var(--color-primary)]" : "bg-gray-300"
+                      }`}
+                    />
+                    <div
+                      className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                        form.is_featured ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </div>
+                  <span className="text-sm">{t("featured")}</span>
+                </label>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                onClick={() => setDialogOpen(false)}
+                disabled={saving}
               >
-                <Avatar
-                  src={form.logo}
-                  variant="rounded"
-                  sx={{ width: 48, height: 48 }}
-                />
-                <Typography variant="caption" color="text.secondary">
-                  {t("logoPreview")}
-                </Typography>
-              </Paper>
-            )}
-            <TextField
-              label={t("description")}
-              value={form.description}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description: e.target.value }))
-              }
-              fullWidth
-              size="small"
-              multiline
-              minRows={2}
-            />
-            <TextField
-              label={t("descriptionEn")}
-              value={form.description_en}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, description_en: e.target.value }))
-              }
-              fullWidth
-              size="small"
-              multiline
-              minRows={2}
-            />
-            <TextField
-              label={t("sortOrder")}
-              type="number"
-              value={form.sort_order}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, sort_order: e.target.value }))
-              }
-              fullWidth
-              size="small"
-            />
-            <TextField
-              label={tContent("contentType")}
-              select
-              value={form.content_type}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  content_type: e.target.value as ContentType,
-                }))
-              }
-              helperText={tContent("contentTypeHint")}
-              fullWidth
-              size="small"
-            >
-              <MenuItem value="unisex">{tContent("unisex")}</MenuItem>
-              <MenuItem value="female">{tContent("female")}</MenuItem>
-              <MenuItem value="male">{tContent("male")}</MenuItem>
-            </TextField>
-            <Autocomplete
-              multiple
-              size="small"
-              options={flatCategories}
-              value={flatCategories.filter(({ category }) =>
-                form.category_ids.includes(category.id)
-              )}
-              onChange={(_, value) =>
-                setForm((f) => ({
-                  ...f,
-                  category_ids: value.map((v) => v.category.id),
-                }))
-              }
-              isOptionEqualToValue={(opt, val) => opt.category.id === val.category.id}
-              getOptionLabel={({ category }) => categoryLabel(category)}
-              renderOption={(props, { category, depth }) => (
-                <li {...props} key={category.id}>
-                  {"\u00A0\u00A0".repeat(depth)}
-                  {categoryLabel(category)}
-                </li>
-              )}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label={t("categories")}
-                  placeholder={t("selectCategories")}
-                />
-              )}
-            />
-            <Stack direction="row" spacing={3}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={form.is_active}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, is_active: e.target.checked }))
-                    }
-                  />
-                }
-                label={form.is_active ? t("active") : t("inactive")}
-              />
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={form.is_featured}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, is_featured: e.target.checked }))
-                    }
-                  />
-                }
-                label={t("featured")}
-              />
-            </Stack>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)} disabled={saving}>
-            {tCommon("cancel")}
-          </Button>
-          <Button onClick={handleSave} variant="contained" disabled={saving}>
-            {tCommon("save")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+                style={{ background: "var(--color-primary)" }}
+                onClick={handleSave}
+                disabled={saving}
+              >
+                {tCommon("save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Dialog open={!!toDelete} onClose={() => setToDelete(null)}>
-        <DialogTitle>{t("confirmDeleteTitle")}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {t("confirmDeleteBrand", {
-              name: toDelete ? brandLabel(toDelete) : "",
-            })}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setToDelete(null)}>{tCommon("cancel")}</Button>
-          <Button onClick={handleDelete} color="error" variant="contained">
-            {tCommon("delete")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Delete confirm */}
+      {toDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setToDelete(null)} />
+          <div className="relative z-10 w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">{t("confirmDeleteTitle")}</h2>
+            </div>
+            <div className="px-6 py-4">
+              <p className="text-sm text-gray-600">
+                {t("confirmDeleteBrand", { name: brandLabel(toDelete) })}
+              </p>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                onClick={() => setToDelete(null)}
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-red-700"
+                onClick={handleDelete}
+              >
+                {tCommon("delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Snackbar
-        open={!!snackbar}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar("")}
-        message={snackbar}
-      />
-    </Box>
+      {snackbar && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {snackbar}
+        </div>
+      )}
+    </div>
   );
 }

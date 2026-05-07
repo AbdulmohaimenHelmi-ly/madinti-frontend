@@ -1,29 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import {
-  Avatar,
-  Box,
-  Button,
-  Divider,
-  ListItemIcon,
-  Menu,
-  MenuItem,
-  Typography,
-} from "@mui/material";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import StorefrontIcon from "@mui/icons-material/Storefront";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import PersonIcon from "@mui/icons-material/Person";
-import AddBusinessIcon from "@mui/icons-material/AddBusiness";
-import LogoutIcon from "@mui/icons-material/Logout";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
+  Settings, Truck, Store, ShoppingCart, Receipt, User, PlusCircle, LogOut, ChevronDown, Heart, Shield
+} from "lucide-react";
 import { useAuthStore } from "@/lib/store/authStore";
 
 export default function ProfileMenu() {
@@ -32,158 +15,104 @@ export default function ProfileMenu() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const open = Boolean(anchorEl);
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: MouseEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
 
   if (!user) return null;
 
-  const close = () => setAnchorEl(null);
-  const handleLogout = async () => {
-    close();
-    await logout();
-    router.push(`/${locale}`);
-  };
-
+  const close = () => setOpen(false);
+  const handleLogout = async () => { close(); await logout(); router.push(`/${locale}`); };
   const p = `/${locale}`;
 
+  const menuItems = [
+    ...(user.is_admin ? [{ href: `${p}/admin`, icon: <Shield size={15} style={{ color: "var(--color-primary)" }} />, label: t("adminPanel") }] : []),
+    ...(user.is_vendor ? [{ href: `${p}/vendor`, icon: <Store size={15} style={{ color: "var(--color-primary)" }} />, label: t("vendorDashboard") }] : []),
+    ...(user.is_delivery ? [{ href: `${p}/delivery`, icon: <Truck size={15} style={{ color: "var(--color-primary)" }} />, label: t("deliveryDashboard") }] : []),
+  ];
+  const hasDash = menuItems.length > 0;
+  const customerItems = [
+    { href: `${p}/profile`, icon: <User size={15} className="text-gray-500" />, label: t("myProfile") },
+    { href: `${p}/orders`, icon: <Receipt size={15} className="text-gray-500" />, label: t("myOrders") },
+    { href: `${p}/cart`, icon: <ShoppingCart size={15} className="text-gray-500" />, label: t("myCart") },
+    { href: `${p}/favorites`, icon: <Heart size={15} className="text-red-400" />, label: t("myFavorites") },
+    ...(!user.is_vendor && !user.is_admin && !user.is_delivery
+      ? [{ href: `${p}/become-vendor`, icon: <PlusCircle size={15} className="text-gray-500" />, label: t("becomeVendor") }]
+      : []),
+  ];
+
   return (
-    <>
-      <Button
-        onClick={(event) => {
-          setAnchorEl((current) => current ? null : event.currentTarget);
-        }}
-        color="inherit"
-        endIcon={<KeyboardArrowDownIcon />}
-        sx={{
-          display: { xs: "none", sm: "flex" },
-          gap: 1,
-          borderRadius: 100,
-          pl: 0.5,
-          pr: 1.5,
-          py: 0.5,
-          color: "#1A1A1A",
-          border: "1px solid #EDE7E9",
-          bgcolor: "white",
-          "&:hover": { bgcolor: "#F5F0F2" },
-        }}
+    <div ref={menuRef} className="relative hidden sm:block">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 rounded-full border border-[#EDE7E9] bg-white py-1 ps-1.5 pe-3 text-[#1A1A1A] transition hover:bg-[#F5F0F2]"
       >
-        <Avatar
-          sx={{
-            width: 30,
-            height: 30,
-            bgcolor: "#F5F0F2",
-            color: "#1A1A1A",
-            fontSize: "0.85rem",
-            fontWeight: 700,
-          }}
-        >
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#F5F0F2] text-sm font-bold">
           {user.name?.[0]?.toUpperCase()}
-        </Avatar>
-        {user.name?.split(" ")[0]}
-      </Button>
+        </div>
+        <span className="text-sm font-medium">{user.name?.split(" ")[0]}</span>
+        <ChevronDown size={14} className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
 
-      <Menu
-        anchorEl={anchorEl}
-        open={open}
-        onClose={close}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{
-          paper: {
-            sx: {
-              mt: 1,
-              minWidth: 260,
-              borderRadius: 2,
-              boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-            },
-          },
-        }}
-      >
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography sx={{ fontWeight: 700 }} noWrap>
-            {user.name}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" noWrap>
-            {user.email}
-          </Typography>
-        </Box>
-        <Divider />
+      {open && (
+        <div className="absolute end-0 top-full z-50 mt-2 min-w-[260px] rounded-xl border border-gray-100 bg-white shadow-2xl overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-100">
+            <p className="font-bold text-sm truncate">{user.name}</p>
+            <p className="text-xs text-gray-400 truncate">{user.email}</p>
+          </div>
 
-        {/* Elevated roles first, but clearly separated so user can also act as customer below. */}
-        {user.is_admin && (
-          <MenuItem component={Link} href={`${p}/admin`} onClick={close}>
-            <ListItemIcon>
-              <AdminPanelSettingsIcon fontSize="small" color="primary" />
-            </ListItemIcon>
-            {t("adminPanel")}
-          </MenuItem>
-        )}
-        {user.is_vendor && (
-          <MenuItem component={Link} href={`${p}/vendor`} onClick={close}>
-            <ListItemIcon>
-              <StorefrontIcon fontSize="small" color="primary" />
-            </ListItemIcon>
-            {t("vendorDashboard")}
-          </MenuItem>
-        )}
-        {user.is_delivery && (
-          <MenuItem component={Link} href={`${p}/delivery`} onClick={close}>
-            <ListItemIcon>
-              <LocalShippingIcon fontSize="small" color="primary" />
-            </ListItemIcon>
-            {t("deliveryDashboard")}
-          </MenuItem>
-        )}
-        {(user.is_admin || user.is_vendor || user.is_delivery) && <Divider />}
+          {hasDash && (
+            <>
+              <div className="py-1">
+                {menuItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={close}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 no-underline hover:bg-gray-50 transition"
+                  >
+                    {item.icon} {item.label}
+                  </Link>
+                ))}
+              </div>
+              <hr className="border-gray-100" />
+            </>
+          )}
 
-        {/* Customer-facing options — available to every logged-in user, including admin/vendor. */}
-        <MenuItem component={Link} href={`${p}/profile`} onClick={close}>
-          <ListItemIcon>
-            <PersonIcon fontSize="small" />
-          </ListItemIcon>
-          {t("myProfile")}
-        </MenuItem>
-        <MenuItem component={Link} href={`${p}/orders`} onClick={close}>
-          <ListItemIcon>
-            <ReceiptLongIcon fontSize="small" />
-          </ListItemIcon>
-          {t("myOrders")}
-        </MenuItem>
-        <MenuItem component={Link} href={`${p}/cart`} onClick={close}>
-          <ListItemIcon>
-            <ShoppingCartIcon fontSize="small" />
-          </ListItemIcon>
-          {t("myCart")}
-        </MenuItem>
-        <MenuItem component={Link} href={`${p}/favorites`} onClick={close}>
-          <ListItemIcon>
-            <FavoriteRoundedIcon fontSize="small" sx={{ color: "#ff3b30" }} />
-          </ListItemIcon>
-          {t("myFavorites")}
-        </MenuItem>
+          <div className="py-1">
+            {customerItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={close}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 no-underline hover:bg-gray-50 transition"
+              >
+                {item.icon} {item.label}
+              </Link>
+            ))}
+          </div>
 
-        {!user.is_vendor && !user.is_admin && !user.is_delivery && (
-          <MenuItem
-            component={Link}
-            href={`${p}/become-vendor`}
-            onClick={close}
-          >
-            <ListItemIcon>
-              <AddBusinessIcon fontSize="small" />
-            </ListItemIcon>
-            {t("becomeVendor")}
-          </MenuItem>
-        )}
-
-        <Divider />
-        <MenuItem onClick={handleLogout}>
-          <ListItemIcon>
-            <LogoutIcon fontSize="small" color="error" />
-          </ListItemIcon>
-          {t("logout")}
-        </MenuItem>
-      </Menu>
-    </>
+          <hr className="border-gray-100" />
+          <div className="py-1">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+            >
+              <LogOut size={15} /> {t("logout")}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

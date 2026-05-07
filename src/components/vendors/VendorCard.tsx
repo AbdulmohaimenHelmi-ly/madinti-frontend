@@ -1,46 +1,24 @@
 "use client";
 
 import { useState, MouseEvent } from "react";
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Rating,
-  Avatar,
-  Button,
-  IconButton,
-  Tooltip,
-  Stack,
-  CircularProgress,
-} from "@mui/material";
-import StorefrontIcon from "@mui/icons-material/Storefront";
-import GroupIcon from "@mui/icons-material/Group";
-import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
-import FavoriteIcon from "@mui/icons-material/Favorite";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import BlockIcon from "@mui/icons-material/Block";
-import LockOpenIcon from "@mui/icons-material/LockOpen";
+import { ShoppingBag, Heart, Lock, LockOpen, Star, Ban, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import type { Vendor } from "@/lib/types";
 import { vendorsApi } from "@/lib/api/vendors";
 import { useAuthStore } from "@/lib/store/authStore";
+import { cn } from "@/lib/utils";
 
 interface VendorCardProps {
   vendor: Vendor;
-  /** Optional callback so the parent list can react to a block toggle. */
   onBlockChange?: (vendorId: number, blocked: boolean) => void;
 }
 
 const BANNER_HEIGHT = 110;
 const LOGO_SIZE = 84;
-// How much of the logo overlaps the banner; the rest sits inside the body so
-// the entire avatar (and its border) is always fully visible.
 const LOGO_OVERLAP = 28;
 
-/** Compact a number like 12_345 -> "12.3k". */
 function fmtCount(n: number): string {
   if (n < 1000) return String(n);
   if (n < 10000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
@@ -61,32 +39,17 @@ export default function VendorCard({ vendor, onBlockChange }: VendorCardProps) {
   const [followBusy, setFollowBusy] = useState(false);
   const [blockBusy, setBlockBusy] = useState(false);
 
-  const name =
-    locale === "en" && vendor.store_name_en
-      ? vendor.store_name_en
-      : vendor.store_name;
-  const description =
-    locale === "en" && vendor.description_en
-      ? vendor.description_en
-      : vendor.description;
-
+  const name = locale === "en" && vendor.store_name_en ? vendor.store_name_en : vendor.store_name;
+  const description = locale === "en" && vendor.description_en ? vendor.description_en : vendor.description;
   const sold = Number(vendor.total_sales) || 0;
   const productsCount = vendor.products_count ?? 0;
   const ratingValue = Number(vendor.rating) || 0;
 
-  // Both action buttons live inside a Card that's also a Link. Stop the click
-  // from bubbling up so the user stays on the listing page.
-  const stop = (e: MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+  const stop = (e: MouseEvent) => { e.preventDefault(); e.stopPropagation(); };
 
   const handleFollow = async (e: MouseEvent) => {
     stop(e);
-    if (!isAuthenticated) {
-      router.push(`/${locale}/login`);
-      return;
-    }
+    if (!isAuthenticated) { router.push(`/${locale}/login`); return; }
     if (followBusy) return;
     setFollowBusy(true);
     try {
@@ -94,378 +57,180 @@ export default function VendorCard({ vendor, onBlockChange }: VendorCardProps) {
       const data = res.data.data;
       setIsFollowing(data.is_following);
       setFollowers(data.followers_count);
-      // Following implicitly unblocks server-side too.
       if (data.is_following && isBlocked) setIsBlocked(false);
-    } catch {
-      // ignore – keep current state
-    } finally {
-      setFollowBusy(false);
-    }
+    } catch { /* ignore */ } finally { setFollowBusy(false); }
   };
 
   const handleBlock = async (e: MouseEvent) => {
     stop(e);
-    if (!isAuthenticated) {
-      router.push(`/${locale}/login`);
-      return;
-    }
+    if (!isAuthenticated) { router.push(`/${locale}/login`); return; }
     if (blockBusy) return;
     setBlockBusy(true);
     try {
       const res = await vendorsApi.toggleBlock(vendor.id);
       const blocked = res.data.data.is_blocked;
       setIsBlocked(blocked);
-      // The server unfollows when blocking; mirror that locally.
-      if (blocked && isFollowing) {
-        setIsFollowing(false);
-        setFollowers((c) => Math.max(0, c - 1));
-      }
+      if (blocked && isFollowing) { setIsFollowing(false); setFollowers((c) => Math.max(0, c - 1)); }
       onBlockChange?.(vendor.id, blocked);
-    } catch {
-      // ignore
-    } finally {
-      setBlockBusy(false);
-    }
+    } catch { /* ignore */ } finally { setBlockBusy(false); }
   };
 
   return (
-    <Card
-      component={Link}
+    <Link
       href={`/${locale}/vendors/${vendor.id}`}
-      sx={(theme) => ({
-        textDecoration: "none",
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-        borderRadius: 3,
-        border: "1px solid",
-        borderColor: isBlocked ? "error.light" : "grey.200",
-        bgcolor: "white",
-        position: "relative",
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-        boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-        opacity: isBlocked ? 0.85 : 1,
-        "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: "0 18px 40px rgba(0,0,0,0.10)",
-          borderColor: isBlocked ? theme.palette.error.main : theme.palette.primary.main,
-          "& .vendor-banner-img": { transform: "scale(1.06)" },
-          "& .vendor-logo": {
-            borderColor: isBlocked ? theme.palette.error.main : theme.palette.primary.main,
-            transform: "scale(1.04)",
-          },
-        },
-      })}
+      className={cn(
+        "group relative flex flex-col h-full rounded-2xl border bg-white overflow-hidden no-underline transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl",
+        isBlocked ? "border-red-200 opacity-85" : "border-gray-200"
+      )}
+      style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
     >
-      {/* Block toggle — top-right corner. Visible always so unblocking is easy. */}
-      <Tooltip title={isBlocked ? t("unblockShop") : t("blockShop")} placement="left">
-        <IconButton
-          onClick={handleBlock}
-          disabled={blockBusy}
-          size="small"
-          sx={{
-            position: "absolute",
-            top: 8,
-            right: 8,
-            zIndex: 2,
-            bgcolor: "rgba(255,255,255,0.92)",
-            color: isBlocked ? "error.main" : "text.secondary",
-            backdropFilter: "blur(4px)",
-            "&:hover": {
-              bgcolor: "white",
-              color: "error.main",
-            },
-          }}
-        >
-          {blockBusy ? (
-            <CircularProgress size={16} color="inherit" />
-          ) : isBlocked ? (
-            <LockOpenIcon sx={{ fontSize: 18 }} />
-          ) : (
-            <BlockIcon sx={{ fontSize: 18 }} />
-          )}
-        </IconButton>
-      </Tooltip>
+      {/* Block toggle */}
+      <button
+        type="button"
+        onClick={handleBlock}
+        disabled={blockBusy}
+        title={isBlocked ? t("unblockShop") : t("blockShop")}
+        className={cn(
+          "absolute top-2 end-2 z-10 w-8 h-8 rounded-full flex items-center justify-center bg-white/90 backdrop-blur-sm transition",
+          isBlocked ? "text-red-500" : "text-gray-400 hover:text-red-500"
+        )}
+        style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.12)" }}
+      >
+        {blockBusy ? (
+          <Loader2 size={14} className="animate-spin" />
+        ) : isBlocked ? (
+          <LockOpen size={14} />
+        ) : (
+          <Ban size={14} />
+        )}
+      </button>
 
       {/* Banner */}
-      <Box sx={{ position: "relative", overflow: "hidden", height: BANNER_HEIGHT }}>
+      <div className="relative overflow-hidden" style={{ height: BANNER_HEIGHT }}>
         {vendor.banner ? (
-          <Box
-            className="vendor-banner-img"
-            component="img"
+          <img
             src={vendor.banner}
             alt={name}
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transition: "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-            }}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <Box
-            sx={(theme) => ({
-              width: "100%",
-              height: "100%",
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            })}
+          <div
+            className="w-full h-full flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%)" }}
           >
-            <StorefrontIcon sx={{ fontSize: 48, color: "white", opacity: 0.55 }} />
-          </Box>
+            <Storefront size={48} className="text-white opacity-55" />
+          </div>
         )}
-        {/* Gradient so the avatar on top has consistent contrast. */}
-        <Box
-          sx={{
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%)",
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* "Blocked" overlay badge */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/35 pointer-events-none" />
         {isBlocked && (
-          <Box
-            sx={{
-              position: "absolute",
-              left: 8,
-              top: 8,
-              px: 1,
-              py: 0.25,
-              borderRadius: 1,
-              bgcolor: "error.main",
-              color: "white",
-              fontSize: "0.7rem",
-              fontWeight: 800,
-              letterSpacing: 0.4,
-              textTransform: "uppercase",
-            }}
-          >
+          <span className="absolute start-2 top-2 bg-red-500 text-white text-[0.7rem] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded">
             {t("blocked")}
-          </Box>
+          </span>
         )}
-      </Box>
+      </div>
 
-      {/* Logo lane — reserves space so the avatar is entirely visible. */}
-      <Box
-        sx={{
-          position: "relative",
-          height: LOGO_SIZE - LOGO_OVERLAP,
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <Avatar
-          src={vendor.logo || undefined}
-          alt={name}
-          className="vendor-logo"
-          sx={(theme) => ({
+      {/* Logo lane */}
+      <div className="relative flex justify-center" style={{ height: LOGO_SIZE - LOGO_OVERLAP }}>
+        <div
+          className="absolute rounded-full border-4 border-white overflow-hidden transition-all duration-300 group-hover:scale-105 flex items-center justify-center font-extrabold text-white text-2xl"
+          style={{
             width: LOGO_SIZE,
             height: LOGO_SIZE,
-            position: "absolute",
             top: -LOGO_OVERLAP,
-            border: "4px solid white",
+            backgroundColor: "var(--color-primary)",
             boxShadow: "0 6px 20px rgba(0,0,0,0.18)",
-            bgcolor: theme.palette.primary.main,
-            color: "white",
-            fontSize: "1.6rem",
-            fontWeight: 800,
-            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-          })}
+          }}
         >
-          {name[0]}
-        </Avatar>
-      </Box>
+          {vendor.logo ? (
+            <img src={vendor.logo} alt={name} className="w-full h-full object-cover" />
+          ) : name[0]}
+        </div>
+      </div>
 
       {/* Body */}
-      <CardContent
-        sx={{
-          pt: 1,
-          pb: 2.25,
-          px: 2.25,
-          textAlign: "center",
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-        }}
-      >
-        <Typography
-          variant="subtitle1"
-          color="text.primary"
-          sx={{ fontWeight: 800, fontSize: "1rem", lineHeight: 1.25 }}
-        >
-          {name}
-        </Typography>
+      <div className="flex flex-col gap-2 px-5 pt-2 pb-5 flex-1 text-center">
+        <p className="font-extrabold text-base leading-tight text-gray-900">{name}</p>
 
         {description && (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              lineHeight: 1.55,
-              fontSize: "0.825rem",
-              minHeight: "2.6em",
-            }}
-          >
+          <p className="text-[0.825rem] text-gray-500 line-clamp-2 leading-snug min-h-[2.6em]">
             {description}
-          </Typography>
+          </p>
         )}
 
-        {/* Rating row */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 0.75,
-          }}
-        >
-          <Rating
-            value={ratingValue}
-            readOnly
-            size="small"
-            precision={0.5}
-            sx={{ fontSize: "1rem" }}
-          />
-          {ratingValue > 0 && (
-            <Typography
-              variant="caption"
-              sx={{ fontWeight: 700, color: "text.secondary" }}
-            >
-              {ratingValue.toFixed(1)}
-            </Typography>
-          )}
-        </Box>
-
-        {/* Stats — 3 mini metrics: sold, followers, products */}
-        <Stack
-          direction="row"
-          divider={
-            <Box
-              sx={{
-                width: "1px",
-                bgcolor: "divider",
-                alignSelf: "stretch",
-              }}
+        {/* Stars */}
+        <div className="flex items-center justify-center gap-1.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star
+              key={i}
+              size={14}
+              className={i < Math.round(ratingValue) ? "text-amber-400 fill-amber-400" : "text-gray-200 fill-gray-200"}
             />
-          }
-          sx={{
-            mt: 0.5,
-            justifyContent: "space-around",
-            bgcolor: "grey.50",
-            borderRadius: 2,
-            py: 1,
-            px: 1,
-          }}
-        >
-          <MetricBlock
-            icon={<ShoppingBagIcon sx={{ fontSize: 16 }} />}
-            value={fmtCount(sold)}
-            label={t("sold")}
-          />
-          <MetricBlock
-            icon={<GroupIcon sx={{ fontSize: 16 }} />}
-            value={fmtCount(followers)}
-            label={t("followers")}
-          />
-          <MetricBlock
-            icon={<StorefrontIcon sx={{ fontSize: 16 }} />}
-            value={fmtCount(productsCount)}
-            label={tCommon("products")}
-          />
-        </Stack>
+          ))}
+          {ratingValue > 0 && (
+            <span className="text-xs font-bold text-gray-400">{ratingValue.toFixed(1)}</span>
+          )}
+        </div>
 
-        {/* Follow / Unfollow */}
-        <Button
+        {/* Stats */}
+        <div className="flex items-stretch gap-0 bg-gray-50 rounded-xl py-2.5 px-2 mt-1">
+          {[
+            { icon: <ShoppingBag size={14} />, value: fmtCount(sold), label: t("sold") },
+            { icon: <Group size={14} />, value: fmtCount(followers), label: t("followers") },
+            { icon: <Storefront size={14} />, value: fmtCount(productsCount), label: tCommon("products") },
+          ].map((metric, idx) => (
+            <div key={idx} className="flex-1 flex flex-col items-center gap-0.5 px-1" style={{ borderRight: idx < 2 ? "1px solid #e5e7eb" : "none" }}>
+              <div className="flex items-center gap-0.5" style={{ color: "var(--color-primary)" }}>
+                {metric.icon}
+                <span className="text-[0.85rem] font-extrabold text-gray-800">{metric.value}</span>
+              </div>
+              <span className="text-[0.62rem] text-gray-400 font-semibold uppercase tracking-wide leading-none">{metric.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Follow button */}
+        <button
+          type="button"
           onClick={handleFollow}
-          variant={isFollowing ? "outlined" : "contained"}
-          color={isFollowing ? "inherit" : "primary"}
-          size="small"
-          fullWidth
           disabled={followBusy}
-          startIcon={
-            followBusy ? (
-              <CircularProgress size={14} color="inherit" />
-            ) : isFollowing ? (
-              <FavoriteIcon sx={{ fontSize: 16 }} />
-            ) : (
-              <FavoriteBorderIcon sx={{ fontSize: 16 }} />
-            )
-          }
-          sx={{
-            mt: 0.5,
-            fontWeight: 700,
-            textTransform: "none",
-            borderRadius: 2,
-            ...(isFollowing && {
-              borderColor: "grey.300",
-              color: "text.primary",
-              "&:hover": { borderColor: "primary.main", color: "primary.main" },
-            }),
-          }}
+          className={cn(
+            "w-full flex items-center justify-center gap-2 mt-1 rounded-xl py-2 text-sm font-bold border transition",
+            isFollowing
+              ? "border-gray-200 text-gray-700 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+              : "text-white border-transparent hover:opacity-90"
+          )}
+          style={!isFollowing ? { backgroundColor: "var(--color-primary)" } : {}}
         >
+          {followBusy ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : isFollowing ? (
+            <Heart size={14} className="fill-current" />
+          ) : (
+            <Heart size={14} />
+          )}
           {isFollowing ? t("following") : t("follow")}
-        </Button>
-      </CardContent>
-    </Card>
+        </button>
+      </div>
+    </Link>
   );
 }
 
-function MetricBlock({
-  icon,
-  value,
-  label,
-}: {
-  icon: React.ReactNode;
-  value: string;
-  label: string;
-}) {
+// Fix icon imports - lucide doesn't have Storefront/Group, use alternatives
+function Storefront(props: { size?: number; className?: string }) {
   return (
-    <Box
-      sx={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 0.25,
-        minWidth: 0,
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 0.25,
-          color: "primary.main",
-        }}
-      >
-        {icon}
-        <Typography sx={{ fontSize: "0.85rem", fontWeight: 800, color: "text.primary" }}>
-          {value}
-        </Typography>
-      </Box>
-      <Typography
-        sx={{
-          fontSize: "0.65rem",
-          color: "text.secondary",
-          fontWeight: 600,
-          letterSpacing: 0.2,
-          textTransform: "uppercase",
-          lineHeight: 1,
-        }}
-      >
-        {label}
-      </Typography>
-    </Box>
+    <svg width={props.size ?? 24} height={props.size ?? 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}>
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
+function Group(props: { size?: number; className?: string }) {
+  return (
+    <svg width={props.size ?? 24} height={props.size ?? 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={props.className}>
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+    </svg>
   );
 }

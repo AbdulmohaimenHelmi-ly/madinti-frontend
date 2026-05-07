@@ -1,18 +1,12 @@
 "use client";
 
-import { Box, ToggleButton, ToggleButtonGroup } from "@mui/material";
-import FemaleIcon from "@mui/icons-material/Female";
-import MaleIcon from "@mui/icons-material/Male";
-import AllInclusiveIcon from "@mui/icons-material/AllInclusive";
+import { Infinity, Venus, Mars } from "lucide-react";
 import { useTranslations } from "next-intl";
-import {
-  useContentFilter,
-  type ContentFilter,
-} from "@/lib/context/ContentFilterContext";
+import { useContentFilter, type ContentFilter } from "@/lib/context/ContentFilterContext";
+import { cn } from "@/lib/utils";
 
 export default function ContentFilterSwitch({
   size = "medium",
-  sx,
 }: {
   size?: "small" | "medium" | "large";
   sx?: object;
@@ -20,52 +14,37 @@ export default function ContentFilterSwitch({
   const { filter, setFilter } = useContentFilter();
   const t = useTranslations("content");
 
-  const handle = (_: unknown, value: ContentFilter | null) => {
-    if (value) setFilter(value);
-  };
+  const options: { value: ContentFilter; label: string; icon: React.ReactNode }[] = [
+    { value: "all", label: t("all"), icon: <Infinity size={size === "small" ? 14 : 16} /> },
+    { value: "female", label: t("female"), icon: <Venus size={size === "small" ? 14 : 16} /> },
+    { value: "male", label: t("male"), icon: <Mars size={size === "small" ? 14 : 16} /> },
+  ];
+
+  const btnPy = size === "small" ? "py-1 px-3 text-xs" : "py-2 px-4 text-sm";
 
   return (
-    <Box sx={sx}>
-      <ToggleButtonGroup
-        value={filter}
-        exclusive
-        onChange={handle}
-        size={size}
-        sx={{
-          borderRadius: 100,
-          bgcolor: "white",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-          p: 0.5,
-          "& .MuiToggleButton-root": {
-            border: "none",
-            borderRadius: "100px !important",
-            px: 2.5,
-            py: 1,
-            textTransform: "none",
-            fontWeight: 700,
-            color: "text.secondary",
-            gap: 0.75,
-            "&.Mui-selected": {
-              bgcolor: "primary.main",
-              color: "white",
-              "&:hover": { bgcolor: "primary.dark" },
-            },
-          },
-        }}
-      >
-        <ToggleButton value="all">
-          <AllInclusiveIcon fontSize="small" />
-          {t("all")}
-        </ToggleButton>
-        <ToggleButton value="female">
-          <FemaleIcon fontSize="small" />
-          {t("female")}
-        </ToggleButton>
-        <ToggleButton value="male">
-          <MaleIcon fontSize="small" />
-          {t("male")}
-        </ToggleButton>
-      </ToggleButtonGroup>
-    </Box>
+    <div className="inline-flex items-center gap-1 rounded-full bg-white shadow-md p-1.5">
+      {options.map((opt) => {
+        const active = filter === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => setFilter(opt.value)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full font-bold transition-all duration-200",
+              btnPy,
+              active
+                ? "text-white shadow"
+                : "text-gray-500 hover:text-gray-800"
+            )}
+            style={active ? { backgroundColor: "var(--color-primary)" } : {}}
+          >
+            {opt.icon}
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }

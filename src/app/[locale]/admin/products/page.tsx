@@ -3,25 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  IconButton,
-  Paper,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tooltip,
-} from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import AddIcon from "@mui/icons-material/Add";
-import ImageNotSupportedIcon from "@mui/icons-material/ImageNotSupported";
+import { Pencil, Plus, ImageOff, AlertCircle } from "lucide-react";
 
 import { adminApi } from "@/lib/api/admin";
 import type { Product } from "@/lib/types";
@@ -34,11 +16,19 @@ import DataPagination from "@/components/common/DataPagination";
 
 const PER_PAGE = 15;
 
+function stockClass(quantity: number) {
+  if (quantity > 10) return "border-green-400 bg-green-50 text-green-700";
+  if (quantity > 0) return "border-yellow-400 bg-yellow-50 text-yellow-700";
+  return "border-red-400 bg-red-50 text-red-700";
+}
+
 export default function AdminProductsPage() {
   const t = useTranslations("admin");
   const tProduct = useTranslations("product");
   const tCommon = useTranslations("common");
   const locale = useLocale();
+  const tContent = useTranslations("content");
+  const audienceOptions = useAudienceOptions(true);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,10 +36,7 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [audience, setAudience] = useState("");
-  const tContent = useTranslations("content");
-  const audienceOptions = useAudienceOptions(true);
 
-  // Server-side pagination state.
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -76,19 +63,6 @@ export default function AdminProductsPage() {
   const productName = (p: Product) =>
     locale === "en" && p.name_en ? p.name_en : p.name;
 
-  const filteredProducts = products.filter((p) => {
-    if (status === "1" && !p.is_active) return false;
-    if (status === "0" && p.is_active) return false;
-    if (audience && (p.content_type ?? "unisex") !== audience) return false;
-    if (search) {
-      const q = search.toLowerCase();
-      const n = (productName(p) || "").toLowerCase();
-      const v = (p.vendor?.store_name || "").toLowerCase();
-      if (!n.includes(q) && !v.includes(q)) return false;
-    }
-    return true;
-  });
-
   const vendorName = (p: Product) =>
     p.vendor
       ? locale === "en" && p.vendor.store_name_en
@@ -109,14 +83,27 @@ export default function AdminProductsPage() {
     p.image ??
     null;
 
+  const filteredProducts = products.filter((p) => {
+    if (status === "1" && !p.is_active) return false;
+    if (status === "0" && p.is_active) return false;
+    if (audience && (p.content_type ?? "unisex") !== audience) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const n = (productName(p) || "").toLowerCase();
+      const v = (p.vendor?.store_name || "").toLowerCase();
+      if (!n.includes(q) && !v.includes(q)) return false;
+    }
+    return true;
+  });
+
   return (
-    <Box>
+    <div>
       <AdminPageHeader
         title={t("products")}
         subtitle={t("productsSubtitle")}
         action={{
           label: t("addProduct"),
-          icon: <AddIcon />,
+          icon: <Plus size={16} />,
           href: `/${locale}/admin/products/new`,
         }}
       />
@@ -148,9 +135,10 @@ export default function AdminProductsPage() {
       />
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-          {error}
-        </Alert>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </div>
       )}
 
       {loading ? (
@@ -159,135 +147,107 @@ export default function AdminProductsPage() {
         <EmptyState message={tProduct("noProducts")} />
       ) : (
         <>
-          <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>{t("name")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {tProduct("vendor")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {tProduct("category")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {tCommon("price")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {tCommon("quantity")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {tContent("contentType")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
-                  {t("actions")}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredProducts.map((p) => (
-                <TableRow key={p.id} hover>
-                  <TableCell sx={{ fontWeight: 600 }}>
-                    <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-                      <Box
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 2,
-                          overflow: "hidden",
-                          bgcolor: "grey.100",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "grey.400",
-                          flexShrink: 0,
-                        }}
+          <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                    {tProduct("product")}
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                    {tCommon("vendor")}
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                    {tCommon("category")}
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                    {tCommon("price")}
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                    {tCommon("quantity")}
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                    {tContent("contentType")}
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                    {t("status")}
+                  </th>
+                  <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                    {t("actions")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProducts.map((p) => (
+                  <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50 transition">
+                    <td className="px-4 py-3 font-semibold">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center text-gray-400 shrink-0">
+                          {primaryImage(p) ? (
+                            <img
+                              src={primaryImage(p) ?? undefined}
+                              alt={productName(p)}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <ImageOff size={18} />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold truncate">{productName(p)}</p>
+                          {p.sku && (
+                            <p className="text-xs text-gray-500">{p.sku}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">{vendorName(p)}</td>
+                    <td className="px-4 py-3">{categoryName(p)}</td>
+                    <td className="px-4 py-3">
+                      {p.price} {tCommon("currency")}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${stockClass(p.quantity)}`}
                       >
-                        {primaryImage(p) ? (
-                          <Box
-                            component="img"
-                            src={primaryImage(p) ?? undefined}
-                            alt={productName(p)}
-                            sx={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                        ) : (
-                          <ImageNotSupportedIcon fontSize="small" />
+                        {p.quantity}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <AudienceChip value={p.content_type} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                            p.is_active
+                              ? "bg-green-100 text-green-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {p.is_active ? t("active") : t("inactive")}
+                        </span>
+                        {p.is_featured && (
+                          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-yellow-100 text-yellow-700">
+                            {tProduct("featured")}
+                          </span>
                         )}
-                      </Box>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Box sx={{ fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {productName(p)}
-                        </Box>
-                        {p.sku ? (
-                          <Box sx={{ color: "text.secondary", fontSize: 12 }}>
-                            {p.sku}
-                          </Box>
-                        ) : null}
-                      </Box>
-                    </Stack>
-                  </TableCell>
-                  <TableCell>{vendorName(p)}</TableCell>
-                  <TableCell>{categoryName(p)}</TableCell>
-                  <TableCell>
-                    {p.price} {tCommon("currency")}
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      size="small"
-                      label={p.quantity}
-                      color={
-                        p.quantity > 10
-                          ? "success"
-                          : p.quantity > 0
-                            ? "warning"
-                            : "error"
-                      }
-                      variant="outlined"
-                      sx={{ fontWeight: 600 }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <AudienceChip value={p.content_type} />
-                  </TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={0.5}>
-                      <Chip
-                        size="small"
-                        color={p.is_active ? "success" : "default"}
-                        label={p.is_active ? t("active") : t("inactive")}
-                        sx={{ fontWeight: 600 }}
-                      />
-                      {p.is_featured && (
-                        <Chip
-                          size="small"
-                          color="warning"
-                          label={tProduct("featured")}
-                          sx={{ fontWeight: 600 }}
-                        />
-                      )}
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
-                    <Tooltip title={tCommon("edit")}>
-                      <IconButton
-                        size="small"
-                        component={Link}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
                         href={`/${locale}/admin/products/${p.id}/edit`}
+                        title={tCommon("edit")}
+                        className="inline-flex p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition"
                       >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                        <Pencil size={16} />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <DataPagination
             page={page}
             lastPage={lastPage}
@@ -297,6 +257,6 @@ export default function AdminProductsPage() {
           />
         </>
       )}
-    </Box>
+    </div>
   );
 }

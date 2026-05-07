@@ -4,18 +4,10 @@ import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
-import {
-  Box,
-  Button,
-  Paper,
-  Popper,
-  Typography,
-  ClickAwayListener,
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import CategoryIcon from "@mui/icons-material/Category";
+import { ChevronDown, Layers } from "lucide-react";
 import type { Category } from "@/lib/types";
 import { categoriesApi } from "@/lib/api/categories";
+import { cn } from "@/lib/utils";
 
 export default function CategoriesMegaMenu() {
   const t = useTranslations("common");
@@ -24,284 +16,117 @@ export default function CategoriesMegaMenu() {
   const pathname = usePathname();
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [open, setOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [tree, setTree] = useState<Category[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
 
   const active = pathname.startsWith(`/${locale}/categories`);
 
   useEffect(() => {
-    categoriesApi
-      .getTree()
-      .then((res) => {
-        const data = res.data.data ?? [];
-        setTree(data);
-        if (data.length > 0) setActiveId(data[0].id);
-      })
-      .catch(() => {
-        setTree([]);
-      });
+    categoriesApi.getTree().then((res) => {
+      const data = res.data.data ?? [];
+      setTree(data);
+      if (data.length > 0) setActiveId(data[0].id);
+    }).catch(() => setTree([]));
   }, []);
 
   const cancelClose = () => {
-    if (closeTimer.current) {
-      clearTimeout(closeTimer.current);
-      closeTimer.current = null;
-    }
+    if (closeTimer.current) { clearTimeout(closeTimer.current); closeTimer.current = null; }
   };
-
   const scheduleClose = () => {
     cancelClose();
     closeTimer.current = setTimeout(() => setOpen(false), 180);
   };
+  const handleOpen = () => { cancelClose(); setOpen(true); };
 
-  const handleOpen = (event: SyntheticEvent<HTMLElement>) => {
-    cancelClose();
-    setAnchorEl(event.currentTarget);
-    setOpen(true);
-  };
-
-  const name = (c: Category) =>
-    locale === "en" && c.name_en ? c.name_en : c.name;
-
+  const name = (c: Category) => locale === "en" && c.name_en ? c.name_en : c.name;
   const activeNode = tree.find((c) => c.id === activeId) ?? tree[0] ?? null;
   const children = activeNode?.children ?? [];
 
   return (
-    <Box
-      onMouseEnter={handleOpen}
-      onMouseLeave={scheduleClose}
-      sx={{ position: "relative" }}
-    >
-      <Button
-        component={Link}
+    <div className="relative" onMouseEnter={handleOpen} onMouseLeave={scheduleClose}>
+      <Link
         href={`/${locale}/categories`}
-        size="small"
         onFocus={handleOpen}
-        endIcon={
-          <ExpandMoreIcon
-            sx={{
-              transition: "transform 0.2s ease",
-              transform: open ? "rotate(180deg)" : "none",
-            }}
-          />
-        }
-        sx={{
-          color: "#1A1A1A",
-          fontWeight: active ? 700 : 500,
-          borderRadius: 100,
-          px: 2,
-          py: 0.75,
-          minWidth: "auto",
-          fontSize: "0.875rem",
-          bgcolor: active ? "white" : "transparent",
-          boxShadow: active ? "0 4px 10px rgba(10, 37, 64, 0.08)" : "none",
-          "&:hover": { bgcolor: active ? "white" : "rgba(255,255,255,0.55)" },
-          transition: "all 0.2s ease",
-        }}
+        className={cn(
+          "inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-[0.875rem] text-[#1A1A1A] no-underline transition-all duration-200",
+          active ? "bg-white font-bold shadow-sm" : "font-medium hover:bg-white/55"
+        )}
       >
         {t("categories")}
-      </Button>
+        <ChevronDown
+          size={14}
+          className={cn("transition-transform duration-200", open && "rotate-180")}
+        />
+      </Link>
 
-      <Popper
-        open={open && tree.length > 0}
-        anchorEl={anchorEl}
-        placement="bottom-start"
-        modifiers={[{ name: "offset", options: { offset: [0, 8] } }]}
-        sx={{ zIndex: (theme) => theme.zIndex.appBar + 1 }}
-      >
-        <ClickAwayListener onClickAway={() => setOpen(false)}>
-          <Paper
-            onMouseEnter={cancelClose}
-            onMouseLeave={scheduleClose}
-            elevation={8}
-            sx={{
-              display: "flex",
-              width: { md: 780, lg: 880 },
-              maxWidth: "calc(100vw - 32px)",
-              borderRadius: 3,
-              overflow: "hidden",
-            }}
-          >
-            {/* LEFT: parent categories list */}
-            <Box
-              sx={{
-                width: 220,
-                bgcolor: "grey.50",
-                py: 1,
-                maxHeight: 420,
-                overflowY: "auto",
-                borderRight: "1px solid",
-                borderColor: "divider",
-              }}
-            >
+      {open && tree.length > 0 && (
+        <div
+          className="absolute start-0 top-full z-50 mt-2"
+          onMouseEnter={cancelClose}
+          onMouseLeave={scheduleClose}
+        >
+          <div className="flex rounded-2xl shadow-2xl overflow-hidden border border-gray-100 bg-white"
+            style={{ width: "min(880px, calc(100vw - 32px))" }}>
+            {/* Left: parent categories */}
+            <div className="w-[220px] shrink-0 border-e border-gray-100 bg-gray-50 py-2 max-h-[420px] overflow-y-auto">
               {tree.map((c) => {
                 const isActive = c.id === activeNode?.id;
                 return (
-                  <Box
+                  <Link
                     key={c.id}
-                    onMouseEnter={() => setActiveId(c.id)}
-                    component={Link}
                     href={`/${locale}/products?category_id=${c.id}`}
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.25,
-                      px: 2,
-                      py: 1.25,
-                      textDecoration: "none",
-                      color: isActive ? "primary.main" : "text.primary",
-                      bgcolor: isActive ? "white" : "transparent",
-                      borderLeft: isActive ? "3px solid" : "3px solid transparent",
-                      borderLeftColor: isActive ? "primary.main" : "transparent",
-                      fontWeight: isActive ? 700 : 500,
-                      fontSize: "0.875rem",
-                      transition: "all 0.15s ease",
-                      "&:hover": { bgcolor: "white", color: "primary.main" },
-                    }}
+                    onMouseEnter={() => setActiveId(c.id)}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 text-sm no-underline border-s-[3px] transition-all duration-150",
+                      isActive
+                        ? "bg-white font-bold border-s-[var(--color-primary)]"
+                        : "border-s-transparent font-medium hover:bg-white"
+                    )}
+                    style={isActive ? { color: "var(--color-primary)" } : { color: "#1A1A1A" }}
                   >
-                    <Box
-                      sx={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: "50%",
-                        overflow: "hidden",
-                        flexShrink: 0,
-                        bgcolor: "grey.200",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      {c.image ? (
-                        <Box
-                          component="img"
-                          src={c.image}
-                          alt={name(c)}
-                          sx={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        />
-                      ) : (
-                        <CategoryIcon sx={{ fontSize: 16, color: "grey.500" }} />
-                      )}
-                    </Box>
-                    <Box component="span" sx={{ flex: 1 }}>
-                      {name(c)}
-                    </Box>
-                  </Box>
+                    <div className="w-7 h-7 rounded-full overflow-hidden shrink-0 bg-gray-200 flex items-center justify-center">
+                      {c.image
+                        ? <img src={c.image} alt={name(c)} className="w-full h-full object-cover" />
+                        : <Layers size={14} className="text-gray-400" />}
+                    </div>
+                    <span className="flex-1">{name(c)}</span>
+                  </Link>
                 );
               })}
-            </Box>
-
-            {/* RIGHT: children grid */}
-            <Box sx={{ flex: 1, p: 3, maxHeight: 420, overflowY: "auto" }}>
+            </div>
+            {/* Right: children grid */}
+            <div className="flex-1 p-6 max-h-[420px] overflow-y-auto">
               {activeNode && (
                 <>
-                  <Typography
-                    sx={{
-                      fontWeight: 800,
-                      letterSpacing: "0.1em",
-                      fontSize: "0.75rem",
-                      color: "text.secondary",
-                      textTransform: "uppercase",
-                      mb: 2,
-                    }}
-                  >
+                  <p className="text-[0.72rem] font-bold uppercase tracking-widest text-gray-400 mb-4">
                     {tHome("newIn")} {name(activeNode)}
-                  </Typography>
+                  </p>
                   {children.length > 0 ? (
-                    <Box
-                      sx={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(4, 1fr)",
-                        gap: 2,
-                      }}
-                    >
+                    <div className="grid grid-cols-4 gap-4">
                       {children.map((child) => (
-                        <Box
+                        <Link
                           key={child.id}
-                          component={Link}
                           href={`/${locale}/products?category_id=${child.id}`}
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: 1,
-                            textDecoration: "none",
-                            color: "text.primary",
-                            p: 1,
-                            borderRadius: 2,
-                            transition: "all 0.2s ease",
-                            "&:hover": {
-                              bgcolor: "grey.50",
-                              "& .mm-img": {
-                                borderColor: "primary.main",
-                                transform: "scale(1.05)",
-                              },
-                            },
-                          }}
+                          className="group flex flex-col items-center gap-2 p-2 rounded-xl no-underline text-gray-800 transition hover:bg-gray-50"
                         >
-                          <Box
-                            className="mm-img"
-                            sx={{
-                              width: 56,
-                              height: 56,
-                              borderRadius: "50%",
-                              overflow: "hidden",
-                              border: "2px solid",
-                              borderColor: "grey.200",
-                              bgcolor: "grey.100",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              transition: "all 0.2s ease",
-                            }}
-                          >
-                            {child.image ? (
-                              <Box
-                                component="img"
-                                src={child.image}
-                                alt={name(child)}
-                                sx={{
-                                  width: "100%",
-                                  height: "100%",
-                                  objectFit: "cover",
-                                }}
-                              />
-                            ) : (
-                              <CategoryIcon
-                                sx={{ fontSize: 24, color: "grey.500" }}
-                              />
-                            )}
-                          </Box>
-                          <Typography
-                            sx={{
-                              fontSize: "0.75rem",
-                              fontWeight: 500,
-                              textAlign: "center",
-                              lineHeight: 1.2,
-                            }}
-                          >
-                            {name(child)}
-                          </Typography>
-                        </Box>
+                          <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100 flex items-center justify-center transition group-hover:border-[var(--color-primary)] group-hover:scale-105">
+                            {child.image
+                              ? <img src={child.image} alt={name(child)} className="w-full h-full object-cover" />
+                              : <Layers size={22} className="text-gray-400" />}
+                          </div>
+                          <span className="text-[0.75rem] font-medium text-center leading-tight">{name(child)}</span>
+                        </Link>
                       ))}
-                    </Box>
+                    </div>
                   ) : (
-                    <Typography
-                      sx={{
-                        color: "text.secondary",
-                        fontSize: "0.875rem",
-                      }}
-                    >
-                      {tHome("browseCategory")}
-                    </Typography>
+                    <p className="text-sm text-gray-400">{tHome("browseCategory")}</p>
                   )}
                 </>
               )}
-            </Box>
-          </Paper>
-        </ClickAwayListener>
-      </Popper>
-    </Box>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

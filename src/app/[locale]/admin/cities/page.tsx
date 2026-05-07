@@ -2,35 +2,7 @@
 
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Collapse,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Paper,
-  Snackbar,
-  Stack,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import { Plus, Pencil, Trash2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 
 import { citiesApi, type Area, type City } from "@/lib/api/cities";
 import { TableRowsSkeleton } from "@/components/common/Skeletons";
@@ -78,6 +50,12 @@ export default function AdminCitiesPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!snackbar) return;
+    const timer = setTimeout(() => setSnackbar(""), 3000);
+    return () => clearTimeout(timer);
+  }, [snackbar]);
 
   const cityLabel = (c: City) =>
     locale === "en" && c.name_en ? c.name_en : c.name;
@@ -171,21 +149,22 @@ export default function AdminCitiesPage() {
   };
 
   return (
-    <Box>
+    <div>
       <AdminPageHeader
         title={tCities("title")}
         subtitle={tCities("subtitle")}
         action={{
           label: tCities("newCity"),
-          icon: <AddIcon />,
+          icon: <Plus size={16} />,
           onClick: () => setCityDialog({ ...emptyCity }),
         }}
       />
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-          {error}
-        </Alert>
+        <div className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 mb-4">
+          <AlertCircle size={16} className="shrink-0 mt-0.5" />
+          <span>{error}</span>
+        </div>
       )}
 
       {loading ? (
@@ -193,64 +172,80 @@ export default function AdminCitiesPage() {
       ) : cities.length === 0 ? (
         <EmptyState message={tCities("noCities")} />
       ) : (
-        <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ width: 50 }} />
-                <TableCell sx={{ fontWeight: 700 }}>
+        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="w-12 px-4 py-3" />
+                <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
                   {tCities("cityName")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
+                </th>
+                <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
                   {tCities("cityNameEn")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
+                </th>
+                <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
                   {tCities("areasCount")}
-                </TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>{t("status")}</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>
+                </th>
+                <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
+                  {t("status")}
+                </th>
+                <th className="px-4 py-3 text-start text-xs font-bold uppercase tracking-wide text-gray-500">
                   {t("actions")}
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
               {cities.map((c) => (
                 <Fragment key={c.id}>
-                  <TableRow hover>
-                    <TableCell>
-                      <IconButton
-                        size="small"
+                  <tr className="border-b border-gray-100 hover:bg-gray-50 transition">
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition"
                         onClick={() =>
                           setExpanded((e) => ({ ...e, [c.id]: !e[c.id] }))
                         }
                       >
                         {expanded[c.id] ? (
-                          <ExpandLessIcon />
+                          <ChevronUp size={16} />
                         ) : (
-                          <ExpandMoreIcon />
+                          <ChevronDown size={16} />
                         )}
-                      </IconButton>
-                    </TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>{c.name}</TableCell>
-                    <TableCell>{c.name_en || "—"}</TableCell>
-                    <TableCell>
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 font-semibold">{c.name}</td>
+                    <td className="px-4 py-3">{c.name_en || "—"}</td>
+                    <td className="px-4 py-3">
                       {c.areas?.length ?? c.areas_count ?? 0}
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        size="small"
-                        checked={c.is_active}
-                        onChange={() => handleToggleCity(c)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Stack
-                        direction="row"
-                        spacing={0.5}
-                        sx={{ justifyContent: "flex-start" }}
-                      >
-                        <IconButton
-                          size="small"
+                    </td>
+                    <td className="px-4 py-3">
+                      <label className="cursor-pointer">
+                        <div className="relative inline-flex">
+                          <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={c.is_active}
+                            onChange={() => handleToggleCity(c)}
+                          />
+                          <div
+                            className={`w-8 h-4 rounded-full transition-colors ${
+                              c.is_active ? "bg-[var(--color-primary)]" : "bg-gray-300"
+                            }`}
+                          />
+                          <div
+                            className={`absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-white shadow transition-transform ${
+                              c.is_active ? "translate-x-4" : "translate-x-0"
+                            }`}
+                          />
+                        </div>
+                      </label>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          title={tCommon("edit")}
+                          className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition"
                           onClick={() =>
                             setCityDialog({
                               id: c.id,
@@ -259,40 +254,29 @@ export default function AdminCitiesPage() {
                             })
                           }
                         >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          title={tCommon("delete")}
+                          className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition"
                           onClick={() => handleDeleteCity(c)}
                         >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
 
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      sx={{ p: 0, bgcolor: "grey.50", border: 0 }}
-                    >
-                      <Collapse in={!!expanded[c.id]} timeout="auto" unmountOnExit>
-                        <Box sx={{ p: 2 }}>
-                          <Stack
-                            direction="row"
-                            sx={{
-                              mb: 1,
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                            }}
-                          >
-                            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                              {tCities("areas")}
-                            </Typography>
-                            <Button
-                              size="small"
-                              startIcon={<AddIcon />}
+                  {expanded[c.id] && (
+                    <tr>
+                      <td colSpan={6} className="bg-gray-50 p-0">
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-sm font-bold">{tCities("areas")}</p>
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
                               onClick={() =>
                                 setAreaDialog({
                                   city_id: c.id,
@@ -301,56 +285,61 @@ export default function AdminCitiesPage() {
                                 })
                               }
                             >
-                              {tCities("newArea")}
-                            </Button>
-                          </Stack>
+                              <Plus size={13} /> {tCities("newArea")}
+                            </button>
+                          </div>
                           {(c.areas ?? []).length === 0 ? (
-                            <Typography variant="body2" color="text.secondary">
-                              {tCities("noAreas")}
-                            </Typography>
+                            <p className="text-sm text-gray-500">{tCities("noAreas")}</p>
                           ) : (
-                            <Stack spacing={1}>
+                            <div className="space-y-2">
                               {c.areas!.map((a) => (
-                                <Stack
+                                <div
                                   key={a.id}
-                                  direction="row"
-                                  spacing={1}
-                                  sx={{
-                                    alignItems: "center",
-                                    p: 1,
-                                    bgcolor: "white",
-                                    borderRadius: 1,
-                                    border: "1px solid",
-                                    borderColor: "divider",
-                                  }}
+                                  className="flex items-center gap-3 rounded-lg border border-gray-100 bg-white px-3 py-2"
                                 >
-                                  <Box sx={{ flex: 1 }}>
-                                    <Typography sx={{ fontWeight: 600 }}>
-                                      {a.name}
-                                    </Typography>
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-sm">{a.name}</p>
                                     {a.name_en && (
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                      >
+                                      <span className="text-xs text-gray-500">
                                         {a.name_en}
-                                      </Typography>
+                                      </span>
                                     )}
-                                  </Box>
-                                  <Chip
-                                    size="small"
-                                    color={a.is_active ? "success" : "default"}
-                                    label={
-                                      a.is_active ? t("active") : t("inactive")
-                                    }
-                                  />
-                                  <Switch
-                                    size="small"
-                                    checked={a.is_active}
-                                    onChange={() => handleToggleArea(a)}
-                                  />
-                                  <IconButton
-                                    size="small"
+                                  </div>
+                                  <span
+                                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                                      a.is_active
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-gray-100 text-gray-600"
+                                    }`}
+                                  >
+                                    {a.is_active ? t("active") : t("inactive")}
+                                  </span>
+                                  <label className="cursor-pointer">
+                                    <div className="relative inline-flex">
+                                      <input
+                                        type="checkbox"
+                                        className="sr-only"
+                                        checked={a.is_active}
+                                        onChange={() => handleToggleArea(a)}
+                                      />
+                                      <div
+                                        className={`w-8 h-4 rounded-full transition-colors ${
+                                          a.is_active
+                                            ? "bg-[var(--color-primary)]"
+                                            : "bg-gray-300"
+                                        }`}
+                                      />
+                                      <div
+                                        className={`absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-white shadow transition-transform ${
+                                          a.is_active ? "translate-x-4" : "translate-x-0"
+                                        }`}
+                                      />
+                                    </div>
+                                  </label>
+                                  <button
+                                    type="button"
+                                    title={tCommon("edit")}
+                                    className="p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition"
                                     onClick={() =>
                                       setAreaDialog({
                                         id: a.id,
@@ -360,120 +349,162 @@ export default function AdminCitiesPage() {
                                       })
                                     }
                                   >
-                                    <EditIcon fontSize="small" />
-                                  </IconButton>
-                                  <IconButton
-                                    size="small"
-                                    color="error"
+                                    <Pencil size={16} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    title={tCommon("delete")}
+                                    className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition"
                                     onClick={() => handleDeleteArea(a)}
                                   >
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
-                                </Stack>
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
                               ))}
-                            </Stack>
+                            </div>
                           )}
-                        </Box>
-                      </Collapse>
-                    </TableCell>
-                  </TableRow>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </Fragment>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* City dialog */}
-      <Dialog
-        open={!!cityDialog}
-        onClose={() => setCityDialog(null)}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle>
-          {cityDialog?.id ? tCities("editCity") : tCities("newCity")}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label={tCities("cityName")}
-              value={cityDialog?.name ?? ""}
-              onChange={(e) =>
-                setCityDialog((c) => (c ? { ...c, name: e.target.value } : c))
-              }
-              required
-              autoFocus
-            />
-            <TextField
-              label={tCities("cityNameEn")}
-              value={cityDialog?.name_en ?? ""}
-              onChange={(e) =>
-                setCityDialog((c) =>
-                  c ? { ...c, name_en: e.target.value } : c
-                )
-              }
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCityDialog(null)}>
-            {tCommon("cancel")}
-          </Button>
-          <Button variant="contained" onClick={handleSaveCity}>
-            {tCommon("save")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {cityDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setCityDialog(null)}
+          />
+          <div className="relative z-10 w-full max-w-xs bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">
+                {cityDialog.id ? tCities("editCity") : tCities("newCity")}
+              </h2>
+            </div>
+            <div className="px-6 py-4 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {tCities("cityName")}
+                </label>
+                <input
+                  type="text"
+                  value={cityDialog.name}
+                  autoFocus
+                  onChange={(e) =>
+                    setCityDialog((c) => (c ? { ...c, name: e.target.value } : c))
+                  }
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {tCities("cityNameEn")}
+                </label>
+                <input
+                  type="text"
+                  value={cityDialog.name_en}
+                  onChange={(e) =>
+                    setCityDialog((c) => (c ? { ...c, name_en: e.target.value } : c))
+                  }
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                onClick={() => setCityDialog(null)}
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+                style={{ background: "var(--color-primary)" }}
+                onClick={handleSaveCity}
+              >
+                {tCommon("save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Area dialog */}
-      <Dialog
-        open={!!areaDialog}
-        onClose={() => setAreaDialog(null)}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle>
-          {areaDialog?.id ? tCities("editArea") : tCities("newArea")}
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
-            <TextField
-              label={tCities("areaName")}
-              value={areaDialog?.name ?? ""}
-              onChange={(e) =>
-                setAreaDialog((a) => (a ? { ...a, name: e.target.value } : a))
-              }
-              required
-              autoFocus
-            />
-            <TextField
-              label={tCities("areaNameEn")}
-              value={areaDialog?.name_en ?? ""}
-              onChange={(e) =>
-                setAreaDialog((a) =>
-                  a ? { ...a, name_en: e.target.value } : a
-                )
-              }
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAreaDialog(null)}>
-            {tCommon("cancel")}
-          </Button>
-          <Button variant="contained" onClick={handleSaveArea}>
-            {tCommon("save")}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {areaDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setAreaDialog(null)}
+          />
+          <div className="relative z-10 w-full max-w-xs bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h2 className="text-lg font-bold">
+                {areaDialog.id ? tCities("editArea") : tCities("newArea")}
+              </h2>
+            </div>
+            <div className="px-6 py-4 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {tCities("areaName")}
+                </label>
+                <input
+                  type="text"
+                  value={areaDialog.name}
+                  autoFocus
+                  onChange={(e) =>
+                    setAreaDialog((a) => (a ? { ...a, name: e.target.value } : a))
+                  }
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  {tCities("areaNameEn")}
+                </label>
+                <input
+                  type="text"
+                  value={areaDialog.name_en}
+                  onChange={(e) =>
+                    setAreaDialog((a) => (a ? { ...a, name_en: e.target.value } : a))
+                  }
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                />
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
+                onClick={() => setAreaDialog(null)}
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+                style={{ background: "var(--color-primary)" }}
+                onClick={handleSaveArea}
+              >
+                {tCommon("save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Snackbar
-        open={!!snackbar}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar("")}
-        message={snackbar}
-      />
-    </Box>
+      {snackbar && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-lg">
+          {snackbar}
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,44 +1,15 @@
 "use client";
 
-/**
- * SHEIN-style filter sidebar for the storefront products listing.
- *
- * Renders a sticky vertical column of collapsible groups: Category, Brand,
- * Color (swatches), Size (chips), Price range, In-stock toggle. Designed to
- * fit a 280px column on the products page (and to be reusable inside a Drawer
- * on mobile via the same component).
- */
 import { useMemo, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Box,
-  Stack,
-  Typography,
-  Divider,
-  IconButton,
-  Collapse,
-  Slider,
-  TextField,
-  InputAdornment,
-  FormControlLabel,
-  Switch,
-  Button,
-  Chip,
-  Tooltip,
-} from "@mui/material";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckIcon from "@mui/icons-material/Check";
+import { ChevronUp, ChevronDown, Check, Square, CheckSquare, Circle, CheckCircle } from "lucide-react";
 import type { Brand, Category, ProductOption } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export interface FilterState {
-  categoryId: string; // single select; "" == all
-  brandIds: number[]; // multi
-  optionValueIds: number[]; // multi (color + size + ...)
+  categoryId: string;
+  brandIds: number[];
+  optionValueIds: number[];
   priceMin: number | "";
   priceMax: number | "";
   inStock: boolean;
@@ -59,14 +30,9 @@ interface Props {
   options: ProductOption[];
   value: FilterState;
   onChange: (next: FilterState) => void;
-  /** Range bounds for the price slider; computed from the catalog. */
   priceBounds: { min: number; max: number };
 }
 
-/**
- * Section wrapper: bold title with collapse toggle, hairline divider below.
- * Matches the SHEIN look (uppercase title, +/- chevron on right).
- */
 function FilterSection({
   title,
   children,
@@ -78,38 +44,30 @@ function FilterSection({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <Box>
-      <Stack
-        direction="row"
-        sx={{
-          alignItems: "center",
-          justifyContent: "space-between",
-          py: 1.5,
-          cursor: "pointer",
-          userSelect: "none",
-        }}
+    <div>
+      <button
+        type="button"
+        className="flex w-full items-center justify-between py-3 select-none"
         onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
       >
-        <Typography
-          sx={{
-            fontWeight: 700,
-            fontSize: 14,
-            letterSpacing: 0.3,
-            color: "text.primary",
-          }}
-        >
-          {title}
-        </Typography>
-        <IconButton size="small" sx={{ p: 0.25 }} aria-label={title}>
-          {open ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
-        </IconButton>
-      </Stack>
-      <Collapse in={open} unmountOnExit>
-        <Box sx={{ pb: 2 }}>{children}</Box>
-      </Collapse>
-      <Divider sx={{ borderColor: "grey.200" }} />
-    </Box>
+        <span className="text-sm font-bold tracking-wide">{title}</span>
+        {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      </button>
+      {open && <div className="pb-4">{children}</div>}
+      <hr className="border-gray-200" />
+    </div>
   );
+}
+
+function isDarkSwatch(hex: string): boolean {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return false;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 0xff;
+  const g = (n >> 8) & 0xff;
+  const b = n & 0xff;
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.55;
 }
 
 export default function ProductsFilterSidebar({
@@ -123,8 +81,6 @@ export default function ProductsFilterSidebar({
   const t = useTranslations();
   const locale = useLocale();
 
-  // Local price slider state — only commits to parent on `onChangeCommitted`
-  // so we don't refetch on every drag tick.
   const [priceRange, setPriceRange] = useState<[number, number]>([
     typeof value.priceMin === "number" ? value.priceMin : priceBounds.min,
     typeof value.priceMax === "number" ? value.priceMax : priceBounds.max,
@@ -139,16 +95,11 @@ export default function ProductsFilterSidebar({
     [options]
   );
   const otherOptions = useMemo(
-    () =>
-      options.filter(
-        (o) => o.id !== colorOption?.id && o.id !== sizeOption?.id
-      ),
+    () => options.filter((o) => o.id !== colorOption?.id && o.id !== sizeOption?.id),
     [options, colorOption, sizeOption]
   );
 
-  const labelOf = (
-    item: { name?: string; name_en?: string | null; value?: string; value_en?: string | null }
-  ): string => {
+  const labelOf = (item: { name?: string; name_en?: string | null; value?: string; value_en?: string | null }): string => {
     if (locale === "en") return (item.name_en || item.value_en || item.name || item.value || "") as string;
     return (item.name || item.value || item.name_en || item.value_en || "") as string;
   };
@@ -163,341 +114,219 @@ export default function ProductsFilterSidebar({
     (value.priceMin !== "" || value.priceMax !== "" ? 1 : 0) +
     (value.inStock ? 1 : 0);
 
+  const commitPrice = () => {
+    const [lo, hi] = priceRange;
+    onChange({
+      ...value,
+      priceMin: lo > priceBounds.min ? lo : "",
+      priceMax: hi < priceBounds.max ? hi : "",
+    });
+  };
+
   return (
-    <Box
-      sx={{
-        bgcolor: "white",
-        borderRadius: 2,
-        border: "1px solid",
-        borderColor: "grey.200",
-        p: 2,
-      }}
-    >
-      {/* Header */}
-      <Stack
-        direction="row"
-        sx={{
-          alignItems: "center",
-          justifyContent: "space-between",
-          pb: 1.5,
-        }}
-      >
-        <Typography sx={{ fontWeight: 800, fontSize: 18 }}>
-          {t("product.filter") || "Filter"}
-        </Typography>
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="flex items-center justify-between pb-3">
+        <span className="text-lg font-extrabold">{t("product.filter") || "Filter"}</span>
         {activeCount > 0 && (
-          <Button
-            size="small"
-            color="primary"
+          <button
+            type="button"
+            className="text-sm font-bold hover:underline"
+            style={{ color: "var(--color-primary)" }}
             onClick={() => {
               onChange(emptyFilterState());
               setPriceRange([priceBounds.min, priceBounds.max]);
             }}
-            sx={{ fontWeight: 700, textTransform: "none" }}
           >
             {t("product.clearAll") || "Clear all"}
-          </Button>
+          </button>
         )}
-      </Stack>
-      <Divider sx={{ borderColor: "grey.200", mb: 0.5 }} />
+      </div>
+      <hr className="border-gray-200 mb-1" />
 
-      {/* Category — single select radio list */}
       {categories.length > 0 && (
         <FilterSection title={t("product.category") || "Category"}>
-          <Stack spacing={0.75}>
-            <Stack
-              direction="row"
-              sx={{ alignItems: "center", cursor: "pointer", py: 0.25 }}
-              onClick={() => onChange({ ...value, categoryId: "" })}
-            >
-              {value.categoryId === "" ? (
-                <RadioButtonCheckedIcon fontSize="small" color="primary" />
-              ) : (
-                <RadioButtonUncheckedIcon fontSize="small" sx={{ color: "grey.400" }} />
-              )}
-              <Typography sx={{ ml: 1, fontSize: 14 }}>
-                {t("category.allCategories") || "All categories"}
-              </Typography>
-            </Stack>
-            {categories.map((cat) => {
+          <div className="flex flex-col gap-1.5">
+            {[{ id: "", name: t("category.allCategories") || "All categories" } as { id: string | number; name: string }, ...categories.map(c => ({ id: c.id, name: labelOf(c) }))].map((cat) => {
               const selected = value.categoryId === String(cat.id);
               return (
-                <Stack
+                <button
                   key={cat.id}
-                  direction="row"
-                  sx={{ alignItems: "center", cursor: "pointer", py: 0.25 }}
-                  onClick={() => onChange({ ...value, categoryId: String(cat.id) })}
+                  type="button"
+                  className="flex items-center gap-2 text-sm py-0.5 w-full text-start"
+                  onClick={() => onChange({ ...value, categoryId: String(cat.id === "" ? "" : cat.id) })}
                 >
-                  {selected ? (
-                    <RadioButtonCheckedIcon fontSize="small" color="primary" />
-                  ) : (
-                    <RadioButtonUncheckedIcon fontSize="small" sx={{ color: "grey.400" }} />
-                  )}
-                  <Typography sx={{ ml: 1, fontSize: 14 }}>{labelOf(cat)}</Typography>
-                </Stack>
+                  {selected
+                    ? <CheckCircle size={15} style={{ color: "var(--color-primary)" }} />
+                    : <Circle size={15} className="text-gray-300" />}
+                  {cat.name}
+                </button>
               );
             })}
-          </Stack>
+          </div>
         </FilterSection>
       )}
 
-      {/* Color — swatch grid; tick mark when selected */}
       {colorOption && colorOption.values.length > 0 && (
         <FilterSection title={t("product.color") || "Color"}>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+          <div className="flex flex-wrap gap-2">
             {colorOption.values.map((val) => {
               const selected = value.optionValueIds.includes(val.id);
               const swatchColor = val.hex_color || "#E0E0E0";
               return (
-                <Tooltip key={val.id} title={labelOf(val)}>
-                  <Box
-                    onClick={() =>
-                      onChange({
-                        ...value,
-                        optionValueIds: toggleId(value.optionValueIds, val.id),
-                      })
-                    }
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "50%",
-                      bgcolor: swatchColor,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      border: selected
-                        ? "2px solid"
-                        : "1px solid rgba(0,0,0,0.15)",
-                      borderColor: selected ? "primary.main" : "rgba(0,0,0,0.15)",
-                      boxShadow: selected
-                        ? "0 0 0 2px rgba(255,255,255,1) inset"
-                        : "none",
-                      transition: "all 120ms",
-                      "&:hover": {
-                        transform: "scale(1.07)",
-                      },
-                    }}
-                  >
-                    {selected && (
-                      <CheckIcon
-                        sx={{
-                          fontSize: 16,
-                          color: isDarkSwatch(swatchColor) ? "#fff" : "#000",
-                        }}
-                      />
-                    )}
-                  </Box>
-                </Tooltip>
+                <button
+                  key={val.id}
+                  type="button"
+                  title={labelOf(val)}
+                  onClick={() => onChange({ ...value, optionValueIds: toggleId(value.optionValueIds, val.id) })}
+                  className="relative w-8 h-8 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                  style={{
+                    backgroundColor: swatchColor,
+                    border: selected ? `2px solid var(--color-primary)` : "1px solid rgba(0,0,0,0.15)",
+                    boxShadow: selected ? "0 0 0 2px white inset" : "none",
+                  }}
+                >
+                  {selected && (
+                    <Check size={13} style={{ color: isDarkSwatch(swatchColor) ? "#fff" : "#000" }} />
+                  )}
+                </button>
               );
             })}
-          </Box>
+          </div>
         </FilterSection>
       )}
 
-      {/* Size — squarish chips */}
       {sizeOption && sizeOption.values.length > 0 && (
         <FilterSection title={t("product.size") || "Size"}>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
+          <div className="flex flex-wrap gap-1.5">
             {sizeOption.values.map((val) => {
               const selected = value.optionValueIds.includes(val.id);
               return (
-                <Chip
+                <button
                   key={val.id}
-                  label={labelOf(val)}
-                  clickable
-                  onClick={() =>
-                    onChange({
-                      ...value,
-                      optionValueIds: toggleId(value.optionValueIds, val.id),
-                    })
-                  }
-                  sx={{
-                    minWidth: 44,
-                    borderRadius: 1,
-                    fontWeight: 600,
-                    bgcolor: selected ? "primary.main" : "grey.100",
-                    color: selected ? "white" : "text.primary",
-                    border: selected
-                      ? "1px solid"
-                      : "1px solid transparent",
-                    borderColor: selected ? "primary.main" : "transparent",
-                    "&:hover": {
-                      bgcolor: selected ? "primary.dark" : "grey.200",
-                    },
-                  }}
-                />
+                  type="button"
+                  onClick={() => onChange({ ...value, optionValueIds: toggleId(value.optionValueIds, val.id) })}
+                  className={cn(
+                    "min-w-[44px] rounded px-3 py-1 text-sm font-semibold border transition",
+                    selected ? "text-white border-transparent" : "bg-gray-100 border-transparent hover:bg-gray-200"
+                  )}
+                  style={selected ? { backgroundColor: "var(--color-primary)" } : {}}
+                >
+                  {labelOf(val)}
+                </button>
               );
             })}
-          </Box>
+          </div>
         </FilterSection>
       )}
 
-      {/* Other generic option groups (Material, Style, ...) as chip lists */}
-      {otherOptions.map(
-        (opt) =>
-          opt.values.length > 0 && (
-            <FilterSection key={opt.id} title={labelOf(opt)} defaultOpen={false}>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
-                {opt.values.map((val) => {
-                  const selected = value.optionValueIds.includes(val.id);
-                  return (
-                    <Chip
-                      key={val.id}
-                      label={labelOf(val)}
-                      clickable
-                      size="small"
-                      variant={selected ? "filled" : "outlined"}
-                      color={selected ? "primary" : "default"}
-                      onClick={() =>
-                        onChange({
-                          ...value,
-                          optionValueIds: toggleId(value.optionValueIds, val.id),
-                        })
-                      }
-                    />
-                  );
-                })}
-              </Box>
-            </FilterSection>
-          )
+      {otherOptions.map((opt) =>
+        opt.values.length > 0 ? (
+          <FilterSection key={opt.id} title={labelOf(opt)} defaultOpen={false}>
+            <div className="flex flex-wrap gap-1.5">
+              {opt.values.map((val) => {
+                const selected = value.optionValueIds.includes(val.id);
+                return (
+                  <button
+                    key={val.id}
+                    type="button"
+                    onClick={() => onChange({ ...value, optionValueIds: toggleId(value.optionValueIds, val.id) })}
+                    className={cn(
+                      "rounded-lg border px-2.5 py-1 text-xs font-semibold transition",
+                      selected ? "text-white border-transparent" : "border-gray-200 hover:border-gray-400"
+                    )}
+                    style={selected ? { backgroundColor: "var(--color-primary)" } : {}}
+                  >
+                    {labelOf(val)}
+                  </button>
+                );
+              })}
+            </div>
+          </FilterSection>
+        ) : null
       )}
 
-      {/* Brand — checkbox list */}
       {brands.length > 0 && (
         <FilterSection title={t("product.brand") || "Brand"} defaultOpen={false}>
-          <Stack spacing={0.5} sx={{ maxHeight: 220, overflowY: "auto", pr: 0.5 }}>
+          <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto pe-1">
             {brands.map((b) => {
               const selected = value.brandIds.includes(b.id);
               return (
-                <Stack
+                <button
                   key={b.id}
-                  direction="row"
-                  sx={{ alignItems: "center", cursor: "pointer", py: 0.25 }}
-                  onClick={() =>
-                    onChange({ ...value, brandIds: toggleId(value.brandIds, b.id) })
-                  }
+                  type="button"
+                  className="flex items-center gap-2 text-sm py-0.5 w-full text-start"
+                  onClick={() => onChange({ ...value, brandIds: toggleId(value.brandIds, b.id) })}
                 >
-                  {selected ? (
-                    <CheckBoxIcon fontSize="small" color="primary" />
-                  ) : (
-                    <CheckBoxOutlineBlankIcon fontSize="small" sx={{ color: "grey.400" }} />
-                  )}
-                  <Typography sx={{ ml: 1, fontSize: 14 }}>{labelOf(b)}</Typography>
-                </Stack>
+                  {selected
+                    ? <CheckSquare size={15} style={{ color: "var(--color-primary)" }} />
+                    : <Square size={15} className="text-gray-300" />}
+                  {labelOf(b)}
+                </button>
               );
             })}
-          </Stack>
+          </div>
         </FilterSection>
       )}
 
-      {/* Price — slider + min/max inputs */}
       <FilterSection title={t("product.price") || "Price"}>
-        <Box sx={{ px: 0.5 }}>
-          <Slider
-            value={priceRange}
+        <div className="px-1">
+          <input
+            type="range"
             min={priceBounds.min}
             max={priceBounds.max}
-            onChange={(_, v) => setPriceRange(v as [number, number])}
-            onChangeCommitted={(_, v) => {
-              const [lo, hi] = v as [number, number];
-              onChange({
-                ...value,
-                priceMin: lo > priceBounds.min ? lo : "",
-                priceMax: hi < priceBounds.max ? hi : "",
-              });
-            }}
-            valueLabelDisplay="auto"
-            size="small"
+            value={priceRange[1]}
+            onChange={(e) => setPriceRange(([lo]) => [lo, Number(e.target.value)])}
+            onMouseUp={commitPrice}
+            onTouchEnd={commitPrice}
+            className="w-full accent-[var(--color-primary)]"
           />
-          <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-            <TextField
-              size="small"
-              type="number"
-              placeholder={t("product.min") || "Min"}
-              value={priceRange[0]}
-              onChange={(e) =>
-                setPriceRange(([_, hi]) => [Number(e.target.value || 0), hi])
-              }
-              onBlur={() => {
-                const [lo, hi] = priceRange;
-                onChange({
-                  ...value,
-                  priceMin: lo > priceBounds.min ? lo : "",
-                  priceMax: hi < priceBounds.max ? hi : "",
-                });
-              }}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      {t("common.currency") || ""}
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-            <TextField
-              size="small"
-              type="number"
-              placeholder={t("product.max") || "Max"}
-              value={priceRange[1]}
-              onChange={(e) =>
-                setPriceRange(([lo]) => [lo, Number(e.target.value || 0)])
-              }
-              onBlur={() => {
-                const [lo, hi] = priceRange;
-                onChange({
-                  ...value,
-                  priceMin: lo > priceBounds.min ? lo : "",
-                  priceMax: hi < priceBounds.max ? hi : "",
-                });
-              }}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      {t("common.currency") || ""}
-                    </InputAdornment>
-                  ),
-                },
-              }}
-            />
-          </Stack>
-        </Box>
+          <div className="flex gap-2 mt-2">
+            <div className="flex-1 relative">
+              <input
+                type="number"
+                className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm pe-10"
+                placeholder={t("product.min") || "Min"}
+                value={priceRange[0]}
+                onChange={(e) => setPriceRange(([, hi]) => [Number(e.target.value || 0), hi])}
+                onBlur={commitPrice}
+              />
+              <span className="absolute end-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">{t("common.currency") || ""}</span>
+            </div>
+            <div className="flex-1 relative">
+              <input
+                type="number"
+                className="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm pe-10"
+                placeholder={t("product.max") || "Max"}
+                value={priceRange[1]}
+                onChange={(e) => setPriceRange(([lo]) => [lo, Number(e.target.value || 0)])}
+                onBlur={commitPrice}
+              />
+              <span className="absolute end-2 top-1/2 -translate-y-1/2 text-xs text-gray-400">{t("common.currency") || ""}</span>
+            </div>
+          </div>
+        </div>
       </FilterSection>
 
-      {/* In-stock toggle */}
-      <Box sx={{ pt: 1.5 }}>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={value.inStock}
-              onChange={(_, v) => onChange({ ...value, inStock: v })}
-            />
-          }
-          label={
-            <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
-              {t("product.inStockOnly") || "In stock only"}
-            </Typography>
-          }
-        />
-      </Box>
-    </Box>
+      <div className="pt-3 flex items-center justify-between">
+        <span className="text-sm font-semibold">{t("product.inStockOnly") || "In stock only"}</span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={value.inStock}
+          onClick={() => onChange({ ...value, inStock: !value.inStock })}
+          className={cn(
+            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-all duration-200",
+            value.inStock ? "bg-[var(--color-primary)]" : "bg-gray-200"
+          )}
+        >
+          <span
+            className={cn(
+              "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-all duration-200",
+              value.inStock ? "translate-x-5" : "translate-x-0"
+            )}
+          />
+        </button>
+      </div>
+    </div>
   );
-}
-
-/**
- * Decide tick-mark color for a swatch: dark hex -> white tick, light -> black.
- */
-function isDarkSwatch(hex: string): boolean {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!m) return false;
-  const n = parseInt(m[1], 16);
-  const r = (n >> 16) & 0xff;
-  const g = (n >> 8) & 0xff;
-  const b = n & 0xff;
-  // Perceived luminance
-  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return lum < 0.55;
 }

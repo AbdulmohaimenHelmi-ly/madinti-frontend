@@ -1,16 +1,6 @@
-﻿"use client";
+"use client";
 import { useState, useEffect, use } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import {
-  Container,
-  Typography,
-  Card,
-  CardContent,
-  Box,
-  Chip,
-  Divider,
-  Grid,
-} from "@mui/material";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import ErrorMessage from "@/components/common/ErrorMessage";
 import type { Order } from "@/lib/types";
@@ -25,123 +15,68 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    ordersApi
-      .getById(id)
-      .then((res) => setOrder(res.data.data))
-      .catch(() => setError(t("common.error")))
-      .finally(() => setLoading(false));
+    ordersApi.getById(id).then((res) => setOrder(res.data.data)).catch(() => setError(t("common.error"))).finally(() => setLoading(false));
   }, [id, t]);
 
   if (loading) return <LoadingSpinner />;
   if (error || !order) return <ErrorMessage message={error || undefined} />;
 
+  const shippingAddr = typeof order.shipping_address === "string"
+    ? `${order.shipping_address}${order.shipping_city ? ", " + order.shipping_city : ""}`
+    : `${order.shipping_address?.address ?? ""}${order.shipping_address?.city ? ", " + order.shipping_address.city : ""}`;
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" gutterBottom sx={{ fontWeight: 700 }}>
-        {t("order.orderDetails")}
-      </Typography>
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography color="text.secondary">{t("order.orderNumber")}</Typography>
-              <Typography sx={{ fontWeight: 600 }}>#{order.order_number}</Typography>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography color="text.secondary">{t("order.status")}</Typography>
-              <Chip label={t(`order.statuses.${order.status}`)} color="primary" size="small" />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography color="text.secondary">{t("order.shippingAddress")}</Typography>
-              <Typography>
-                {typeof order.shipping_address === "string"
-                  ? `${order.shipping_address}${order.shipping_city ? ", " + order.shipping_city : ""}`
-                  : `${order.shipping_address?.address ?? ""}${order.shipping_address?.city ? ", " + order.shipping_address.city : ""}`}
-              </Typography>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Typography color="text.secondary">{t("order.date")}</Typography>
-              <Typography>
-                {new Date(order.created_at).toLocaleDateString(locale === "ar" ? "ar-LY" : "en-US")}
-              </Typography>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            {t("order.items")}
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
+    <div className="max-w-[1200px] mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">{t("order.orderDetails")}</h1>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-400">{t("order.orderNumber")}</p>
+            <p className="font-semibold">#{order.order_number}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400">{t("order.status")}</p>
+            <span className="text-xs px-3 py-1 rounded-full font-semibold bg-blue-100 text-blue-700">{t(`order.statuses.${order.status}`)}</span>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400">{t("order.shippingAddress")}</p>
+            <p>{shippingAddr}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-400">{t("order.date")}</p>
+            <p>{new Date(order.created_at).toLocaleDateString(locale === "ar" ? "ar-LY" : "en-US")}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 className="text-lg font-semibold mb-3">{t("order.items")}</h2>
+        <hr className="border-gray-100 mb-4" />
+        <div className="flex flex-col gap-4">
           {order.items?.map((item) => {
-            const img =
-              item.variant_image ||
-              item.product_image ||
-              item.product?.image ||
-              item.product?.images?.[0]?.image ||
-              "/placeholder-product.svg";
+            const img = item.variant_image || item.product_image || item.product?.image || item.product?.images?.[0]?.image || "/placeholder-product.svg";
             return (
-              <Box
-                key={item.id}
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 2,
-                  gap: 2,
-                  flexWrap: "wrap",
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 64,
-                    height: 64,
-                    flexShrink: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: 1,
-                    borderColor: "grey.200",
-                    borderRadius: 2,
-                    bgcolor: "grey.50",
-                    overflow: "hidden",
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={img}
-                    alt={item.product_name || item.product?.name || "Product image"}
-                    sx={{ maxWidth: 56, maxHeight: 56, objectFit: "contain" }}
-                  />
-                </Box>
-                <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-                  <Typography sx={{ fontWeight: 600 }}>
+              <div key={item.id} className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="w-16 h-16 shrink-0 border border-gray-100 rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden">
+                  <img src={img} alt={item.product_name || item.product?.name || "Product"} className="max-w-[56px] max-h-[56px] object-contain" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold">
                     {item.product_name || item.product?.name || `Product #${item.product_id}`} × {item.quantity}
-                  </Typography>
-                  {item.variant_label && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
-                      {item.variant_label}
-                    </Typography>
-                  )}
-                </Box>
-                <Typography sx={{ fontWeight: 600, flexShrink: 0 }}>
-                  {item.total} {t("common.currency")}
-                </Typography>
-              </Box>
+                  </p>
+                  {item.variant_label && <p className="text-xs text-gray-400">{item.variant_label}</p>}
+                </div>
+                <p className="font-semibold shrink-0">{item.total} {t("common.currency")}</p>
+              </div>
             );
           })}
-          <Divider sx={{ my: 2 }} />
-          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {t("cart.total")}
-            </Typography>
-            <Typography variant="h6" color="primary" sx={{ fontWeight: 700 }}>
-              {order.total} {t("common.currency")}
-            </Typography>
-          </Box>
-        </CardContent>
-      </Card>
-    </Container>
+        </div>
+        <hr className="border-gray-100 my-4" />
+        <div className="flex justify-between items-center">
+          <span className="text-lg font-bold">{t("cart.total")}</span>
+          <span className="text-lg font-bold" style={{ color: "var(--color-primary)" }}>{order.total} {t("common.currency")}</span>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -4,23 +4,7 @@ import { ChangeEvent, useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Alert,
-  Box,
-  Button,
-  Divider,
-  FormControlLabel,
-  Grid,
-  InputAdornment,
-  MenuItem,
-  Paper,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from "@mui/material";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import SaveIcon from "@mui/icons-material/Save";
+import { AlertCircle, ArrowLeft, Save } from "lucide-react";
 
 import { adminApi } from "@/lib/api/admin";
 import type { Brand, Category, ContentType, Vendor } from "@/lib/types";
@@ -167,102 +151,116 @@ export default function AdminCreateProductPage() {
   };
 
   return (
-    <Box>
+    <div>
       <AdminPageHeader
         title={t("addProduct")}
         subtitle={t("addProductSubtitle")}
       />
 
-      <Box sx={{ mb: 2 }}>
-        <Button
-          component={Link}
+      <div className="mb-4">
+        <Link
           href={`/${locale}/admin/products`}
-          startIcon={
-            <ArrowBackIcon
-              sx={{ transform: uiLocale === "ar" ? "scaleX(-1)" : "none" }}
-            />
-          }
-          size="small"
+          className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50"
         >
+          <ArrowLeft
+            size={16}
+            style={{ transform: uiLocale === "ar" ? "scaleX(-1)" : "none" }}
+          />
           {tCommon("back")}
-        </Button>
-      </Box>
+        </Link>
+      </div>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-          {error}
-        </Alert>
+        <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <AlertCircle size={16} className="mt-0.5 shrink-0" />
+          <span>{error}</span>
+        </div>
       )}
 
-      <Stack spacing={3}>
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-            {t("basicInfo")}
-          </Typography>
+      <div className="flex flex-col gap-6">
+        {/* Basic info */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-6">
+          <h3 className="mb-4 text-base font-bold">{t("basicInfo")}</h3>
 
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                select
-                fullWidth
-                label={t("selectVendor")}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {/* Vendor */}
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">
+                {t("selectVendor")} *
+              </label>
+              <select
                 value={form.vendor_id}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, vendor_id: Number(e.target.value) || "" }))
                 }
-                required
                 disabled={fieldDisabled}
+                className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
               >
+                <option value="">—</option>
                 {vendors.map((vendor) => (
-                  <MenuItem key={vendor.id} value={vendor.id}>
+                  <option key={vendor.id} value={vendor.id}>
                     {vendorLabel(vendor)}
-                  </MenuItem>
+                  </option>
                 ))}
-              </TextField>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                label={t("nameAr")}
+              </select>
+            </div>
+
+            {/* Name AR */}
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">
+                {t("nameAr")} *
+              </label>
+              <input
+                type="text"
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                required
                 disabled={fieldDisabled}
+                className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
               />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                label={t("nameEn")}
+            </div>
+
+            {/* Name EN */}
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">
+                {t("nameEn")}
+              </label>
+              <input
+                type="text"
                 value={form.name_en}
                 onChange={(e) => setForm((f) => ({ ...f, name_en: e.target.value }))}
                 disabled={fieldDisabled}
+                className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
               />
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                select
-                fullWidth
-                label={t("category")}
+            </div>
+
+            {/* Category */}
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">
+                {t("category")} *
+              </label>
+              <select
                 value={form.category_id}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, category_id: Number(e.target.value) || "" }))
                 }
-                required
                 disabled={fieldDisabled}
+                className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
               >
+                <option value="">—</option>
                 {categories.map((category) => (
-                  <MenuItem key={category.id} value={category.id}>
+                  <option key={category.id} value={category.id}>
                     {labelOf(category)}
-                  </MenuItem>
+                  </option>
                 ))}
-              </TextField>
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                select
-                fullWidth
-                label={t("brand")}
+              </select>
+            </div>
+
+            {/* Brand */}
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">
+                {t("brand")}
+              </label>
+              <select
                 value={form.brand_id}
                 onChange={(e) =>
                   setForm((f) => ({
@@ -271,20 +269,23 @@ export default function AdminCreateProductPage() {
                   }))
                 }
                 disabled={fieldDisabled}
+                className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
               >
-                <MenuItem value="">{tCommon("none")}</MenuItem>
+                <option value="">{tCommon("none")}</option>
                 {brands.map((brand) => (
-                  <MenuItem key={brand.id} value={brand.id}>
+                  <option key={brand.id} value={brand.id}>
                     {labelOf(brand)}
-                  </MenuItem>
+                  </option>
                 ))}
-              </TextField>
-            </Grid>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <TextField
-                select
-                fullWidth
-                label={t("audience")}
+              </select>
+            </div>
+
+            {/* Audience */}
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">
+                {t("audience")}
+              </label>
+              <select
                 value={form.content_type}
                 onChange={(e) =>
                   setForm((f) => ({
@@ -293,202 +294,237 @@ export default function AdminCreateProductPage() {
                   }))
                 }
                 disabled={fieldDisabled}
+                className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
               >
                 {audienceOptions.map((option) => (
-                  <MenuItem key={option.value || "unisex"} value={option.value || "unisex"}>
+                  <option key={option.value || "unisex"} value={option.value || "unisex"}>
                     {option.label}
-                  </MenuItem>
+                  </option>
                 ))}
-              </TextField>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                multiline
-                minRows={2}
-                label={t("descriptionAr")}
+              </select>
+            </div>
+
+            {/* Description AR */}
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">
+                {t("descriptionAr")}
+              </label>
+              <textarea
+                rows={3}
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                 disabled={fieldDisabled}
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
               />
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField
-                fullWidth
-                multiline
-                minRows={2}
-                label={t("descriptionEn")}
+            </div>
+
+            {/* Description EN */}
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">
+                {t("descriptionEn")}
+              </label>
+              <textarea
+                rows={3}
                 value={form.description_en}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, description_en: e.target.value }))
                 }
                 disabled={fieldDisabled}
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
               />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <FormControlLabel
-                control={
-                  <Switch
+            </div>
+
+            {/* Toggles */}
+            <div className="flex items-center gap-6">
+              <label className="flex cursor-pointer select-none items-center gap-2">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
                     checked={form.is_active}
-                    onChange={(_, checked) =>
-                      setForm((f) => ({ ...f, is_active: checked }))
-                    }
                     disabled={fieldDisabled}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, is_active: e.target.checked }))
+                    }
                   />
-                }
-                label={t("active")}
-              />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <FormControlLabel
-                control={
-                  <Switch
+                  <div
+                    className={`h-5 w-10 rounded-full transition-colors ${form.is_active ? "bg-[var(--color-primary)]" : "bg-gray-300"}`}
+                  />
+                  <div
+                    className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.is_active ? "translate-x-5" : "translate-x-0"}`}
+                  />
+                </div>
+                <span className="text-sm font-medium">{t("active")}</span>
+              </label>
+
+              <label className="flex cursor-pointer select-none items-center gap-2">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
                     checked={form.is_featured}
-                    onChange={(_, checked) =>
-                      setForm((f) => ({ ...f, is_featured: checked }))
+                    disabled={fieldDisabled}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, is_featured: e.target.checked }))
                     }
+                  />
+                  <div
+                    className={`h-5 w-10 rounded-full transition-colors ${form.is_featured ? "bg-[var(--color-primary)]" : "bg-gray-300"}`}
+                  />
+                  <div
+                    className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.is_featured ? "translate-x-5" : "translate-x-0"}`}
+                  />
+                </div>
+                <span className="text-sm font-medium">{t("featured")}</span>
+              </label>
+            </div>
+
+            {/* Images */}
+            <div className="md:col-span-2">
+              <hr className="my-4 border-gray-100" />
+              <p className="mb-1 text-sm font-bold">{t("images")}</p>
+              <p className="mb-3 text-sm text-gray-500">{t("imagesReplaceHint")}</p>
+              <div className="flex flex-col gap-3">
+                <label className="inline-flex cursor-pointer items-center gap-2 self-start rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                  {t("uploadImages")}
+                  <input
+                    hidden
+                    multiple
+                    accept="image/*"
+                    type="file"
+                    onChange={handleImagesChange}
                     disabled={fieldDisabled}
                   />
-                }
-                label={t("featured")}
-              />
-            </Grid>
-            <Grid size={{ xs: 12 }}>
-              <Divider sx={{ my: 1.5 }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-                {t("images")}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                {t("imagesReplaceHint")}
-              </Typography>
-              <Stack spacing={1.5}>
-                <Button component="label" variant="outlined" sx={{ alignSelf: "flex-start" }} disabled={fieldDisabled}>
-                  {t("uploadImages")}
-                  <input hidden multiple accept="image/*" type="file" onChange={handleImagesChange} />
-                </Button>
-                <Typography variant="body2" color="text.secondary">
+                </label>
+                <p className="text-sm text-gray-500">
                   {imageFiles.length
                     ? `${t("selectedImages")}: ${imageFiles.length}`
                     : t("noImagesSelected")}
-                </Typography>
+                </p>
                 {imagePreviews.length > 0 && (
-                  <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: "wrap" }}>
+                  <div className="flex flex-wrap gap-3">
                     {imagePreviews.map((src, index) => (
-                      <Box
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
                         key={src}
-                        component="img"
                         src={src}
                         alt={`preview-${index + 1}`}
-                        sx={{
-                          width: 84,
-                          height: 84,
-                          objectFit: "cover",
-                          borderRadius: 2,
-                          border: "1px solid",
-                          borderColor: "divider",
-                        }}
+                        className="h-21 w-21 rounded-lg border border-gray-200 object-cover"
+                        style={{ width: 84, height: 84 }}
                       />
                     ))}
-                  </Stack>
+                  </div>
                 )}
-              </Stack>
-            </Grid>
-          </Grid>
-        </Paper>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <Paper sx={{ p: 3 }}>
-          <Stack
-            direction="row"
-            sx={{ mb: 2, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {t("pricingStock")}
-            </Typography>
-            <FormControlLabel
-              control={
-                <Switch
+        {/* Pricing & stock */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-base font-bold">{t("pricingStock")}</h3>
+            <label className="flex cursor-pointer select-none items-center gap-2">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  className="sr-only"
                   checked={form.has_variants}
-                  onChange={(_, checked) =>
-                    setForm((f) => ({ ...f, has_variants: checked }))
-                  }
                   disabled={fieldDisabled}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, has_variants: e.target.checked }))
+                  }
                 />
-              }
-              label={t("hasVariants")}
-            />
-          </Stack>
+                <div
+                  className={`h-5 w-10 rounded-full transition-colors ${form.has_variants ? "bg-[var(--color-primary)]" : "bg-gray-300"}`}
+                />
+                <div
+                  className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.has_variants ? "translate-x-5" : "translate-x-0"}`}
+                />
+              </div>
+              <span className="text-sm font-medium">{t("hasVariants")}</span>
+            </label>
+          </div>
 
           {form.has_variants ? (
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
+            <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700">
               {t("createVariantsAfterSave")}
-            </Alert>
+            </div>
           ) : (
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="relative">
+                <label className="mb-1 block text-xs font-semibold text-gray-600">
+                  {tCommon("price")}
+                </label>
+                <input
                   type="number"
-                  label={tCommon("price")}
                   value={form.price}
                   onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
                   disabled={fieldDisabled}
-                  slotProps={{
-                    input: {
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          {tCommon("currency")}
-                        </InputAdornment>
-                      ),
-                    },
-                  }}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 pe-8 ps-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
                 />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
+                <span className="absolute bottom-0 end-0 flex h-9 items-center pe-3 text-xs text-gray-400">
+                  {tCommon("currency")}
+                </span>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-gray-600">
+                  {t("comparePrice")}
+                </label>
+                <input
                   type="number"
-                  label={t("comparePrice")}
                   value={form.compare_price}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, compare_price: e.target.value }))
                   }
                   disabled={fieldDisabled}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
                 />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-gray-600">
+                  {tCommon("quantity")}
+                </label>
+                <input
                   type="number"
-                  label={tCommon("quantity")}
                   value={form.quantity}
                   onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))}
                   disabled={fieldDisabled}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
                 />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  fullWidth
-                  label={t("sku")}
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-gray-600">
+                  {t("sku")}
+                </label>
+                <input
+                  type="text"
                   value={form.sku}
                   onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
                   disabled={fieldDisabled}
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:opacity-50"
                 />
-              </Grid>
-            </Grid>
+              </div>
+            </div>
           )}
 
-          <Box sx={{ mt: 2, textAlign: "right" }}>
-            <Button
-              variant="contained"
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
               onClick={handleSave}
               disabled={fieldDisabled}
-              startIcon={<SaveIcon />}
+              className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-50"
+              style={{ background: "var(--color-primary)" }}
             >
+              <Save size={16} />
               {t("saveProduct")}
-            </Button>
-          </Box>
-        </Paper>
-      </Stack>
-    </Box>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
