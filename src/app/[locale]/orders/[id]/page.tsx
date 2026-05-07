@@ -26,7 +26,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     : `${order.shipping_address?.address ?? ""}${order.shipping_address?.city ? ", " + order.shipping_address.city : ""}`;
 
   return (
-    <div className="max-w-screen-lg mx-auto px-4 py-8">
+    <div className="max-w-[1200px] mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">{t("order.orderDetails")}</h1>
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

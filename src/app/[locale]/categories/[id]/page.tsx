@@ -39,10 +39,10 @@ export default function CategoryDetailPage({ params }: { params: Promise<{ id: s
 
   const name = category ? (locale === "en" && category.name_en ? category.name_en : category.name) : "";
 
-  if (loading) return <div className="max-w-screen-lg mx-auto px-4 py-8"><h1 className="text-3xl font-bold mb-6">{t("category.productsIn")}</h1><ProductGridSkeleton count={12} /></div>;
+  if (loading) return <div className="max-w-[1200px] mx-auto px-4 py-8"><h1 className="text-3xl font-bold mb-6">{t("category.productsIn")}</h1><ProductGridSkeleton count={12} /></div>;
 
   return (
-    <div className="max-w-screen-lg mx-auto px-4 py-8">
+    <div className="max-w-[1200px] mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">{t("category.productsIn")} {name}</h1>
       {products.length === 0 ? <EmptyState message={t("product.noProducts")} /> : (
         <>

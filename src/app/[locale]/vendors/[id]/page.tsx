@@ -34,7 +34,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
   }, [id, page, requestKey, t]);
 
   if (loading) return (
-    <div className="max-w-screen-lg mx-auto px-4 py-8">
+    <div className="max-w-[1200px] mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-4">
         <Store size={36} style={{ color: "var(--color-primary)" }} />
         <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
@@ -51,7 +51,7 @@ export default function VendorDetailPage({ params }: { params: Promise<{ id: str
   const rating = Number(vendor.rating) || 0;
 
   return (
-    <div className="max-w-screen-lg mx-auto px-4 py-8">
+    <div className="max-w-[1200px] mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-2">
         <Store size={36} style={{ color: "var(--color-primary)" }} />
         <h1 className="text-3xl font-bold">{name}</h1>

@@ -34,7 +34,7 @@ export default function CartPage() {
 
   if (isLoading && carts.length === 0) {
     return (
-      <div className="max-w-screen-lg mx-auto px-4 py-10">
+      <div className="max-w-[1200px] mx-auto px-4 py-10">
         <h1 className="text-3xl font-extrabold mb-6">{t("cart.title")}</h1>
         <CartSkeleton />
       </div>
@@ -43,7 +43,7 @@ export default function CartPage() {
 
   if (carts.length === 0) {
     return (
-      <div className="max-w-screen-lg mx-auto px-4 py-12">
+      <div className="max-w-[1200px] mx-auto px-4 py-12">
         <EmptyState message={t("cart.empty")} />
         <div className="text-center mt-6">
           <Link href={`/${locale}/products`} className="inline-flex items-center gap-2 px-8 py-3 rounded-full text-white font-bold no-underline" style={{ background: "var(--color-primary)" }}>
@@ -55,7 +55,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-screen-lg mx-auto px-4 py-10">
+    <div className="max-w-[1200px] mx-auto px-4 py-10">
       <div className="flex items-start justify-between gap-4 flex-wrap mb-8">
         <div>
           <h1 className="text-3xl font-extrabold mb-1">{t("cart.title")}</h1>

@@ -220,7 +220,7 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="max-w-screen-lg mx-auto px-4 py-10">
+    <div className="max-w-[1200px] mx-auto px-4 py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold mb-1">{t("title")}</h1>
         <p className="text-gray-500">{vendorName ? t("subtitleVendor", { vendor: vendorName }) : t("subtitle")}</p>

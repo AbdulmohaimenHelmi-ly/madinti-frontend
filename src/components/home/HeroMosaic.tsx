@@ -129,7 +129,7 @@ export default function HeroMosaic({ categories, brands, banners }: HeroMosaicPr
 
   return (
     <div className="mb-4 md:mb-5">
-      <div className="mx-0 md:mx-[clamp(24px,2.8vw,48px)] grid gap-3 md:gap-[clamp(10px,1.15vw,16px)]"
+      <div className="grid gap-3 md:gap-[clamp(10px,1.15vw,16px)]"
         style={{ gridTemplateColumns: "1fr", alignItems: "stretch" }}>
         <div className="md:hidden flex overflow-hidden">
           {/* Mobile: slider only */}

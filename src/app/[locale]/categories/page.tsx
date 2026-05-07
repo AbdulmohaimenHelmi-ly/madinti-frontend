@@ -87,7 +87,7 @@ function MobileCategoriesLayout({ categories }: { categories: Category[] }) {
 function DesktopCategoriesLayout({ categories }: { categories: Category[] }) {
   const t = useTranslations();
   return (
-    <div className="max-w-screen-lg mx-auto px-4 py-8">
+    <div className="max-w-[1200px] mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">{t("category.allCategories")}</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {categories.map((cat) => <CategoryCard key={cat.id} category={cat} />)}
@@ -122,7 +122,7 @@ export default function CategoriesPage() {
           ))}
         </div>
       </div>
-      <div className="hidden md:block max-w-screen-lg mx-auto px-4 py-8"><CategoryGridSkeleton count={8} /></div>
+      <div className="hidden md:block max-w-[1200px] mx-auto px-4 py-8"><CategoryGridSkeleton count={8} /></div>
     </>
   );
 

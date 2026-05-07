@@ -27,7 +27,7 @@ export default function ImpersonationBanner() {
 
   return (
     <div className="sticky top-0 z-[1200] bg-purple-800 text-white">
-      <div className="max-w-screen-lg mx-auto px-4 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="max-w-[1200px] mx-auto px-4 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <span className="font-semibold text-sm">{t("impersonatingAs", { name: user.name })}</span>
         <button
           type="button"

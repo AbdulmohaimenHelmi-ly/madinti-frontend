@@ -17,7 +17,7 @@ export default function VendorsPage() {
   }, []);
 
   if (loading) return (
-    <div className="max-w-screen-lg mx-auto px-4 py-8">
+    <div className="max-w-[1200px] mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">{t("vendor.title")}</h1>
       <VendorGridSkeleton count={6} />
     </div>
@@ -25,7 +25,7 @@ export default function VendorsPage() {
   if (vendors.length === 0) return <EmptyState message={t("vendor.noVendors")} />;
 
   return (
-    <div className="max-w-screen-lg mx-auto px-4 py-8">
+    <div className="max-w-[1200px] mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">{t("vendor.title")}</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {vendors.map((v) => <VendorCard key={v.id} vendor={v} />)}

@@ -27,10 +27,10 @@ export default function OrdersPage() {
   }, []);
 
   if (loading) return <LoadingSpinner />;
-  if (orders.length === 0) return <div className="max-w-screen-lg mx-auto px-4 py-8"><EmptyState message={t("order.noOrders")} /></div>;
+  if (orders.length === 0) return <div className="max-w-[1200px] mx-auto px-4 py-8"><EmptyState message={t("order.noOrders")} /></div>;
 
   return (
-    <div className="max-w-screen-lg mx-auto px-4 py-8">
+    <div className="max-w-[1200px] mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-6">{t("order.title")}</h1>
       <div className="flex flex-col gap-3">
         {orders.map((order) => (

@@ -46,7 +46,7 @@ export default function FavoritesPage() {
 
   if (isInitialized && !isAuthenticated) {
     return (
-      <div className="max-w-screen-lg mx-auto px-4 py-12">
+      <div className="max-w-[1200px] mx-auto px-4 py-12">
         <EmptyState message={t("product.noFavorites")} />
         <div className="text-center mt-6">
           <Link href={`/${locale}/auth/login`} className="inline-flex items-center px-8 py-3 rounded-full text-white font-bold no-underline" style={{ background: "var(--color-primary)" }}>
@@ -58,7 +58,7 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="max-w-screen-lg mx-auto px-4 py-10">
+    <div className="max-w-[1200px] mx-auto px-4 py-10">
       <div className="flex items-center gap-2 mb-6">
         <Heart size={22} className="text-red-500 fill-red-500" />
         <h1 className="text-2xl font-bold">{t("product.myFavorites")}</h1>

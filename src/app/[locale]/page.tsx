@@ -83,7 +83,7 @@ export default function HomePage() {
   if (loading) return <HomePageSkeleton />;
 
   return (
-    <div className="max-w-[1680px] mx-auto px-3 md:px-4 pt-3 md:pt-4">
+    <div className="max-w-[1200px] mx-auto px-4 md:px-6 pt-3 md:pt-4">
       {/* Mobile search bar */}
       <form action={`/${locale}/products`} method="get" className="md:hidden mt-2 mb-3">
         {contentType && <input type="hidden" name="content_type" value={contentType} />}
@@ -106,7 +106,7 @@ export default function HomePage() {
 
       {categories.length > 0 && (
         <div>
-          <div className="px-4 md:px-10 mb-1">
+          <div className="mb-1">
             <h2 className="text-lg md:text-2xl font-extrabold text-gray-900">{t("home.topCategories")}</h2>
             <div className="w-9 h-[3px] rounded-sm mt-1.5" style={{ background: "linear-gradient(90deg, var(--color-primary), var(--color-primary-light))" }} />
           </div>
@@ -115,7 +115,7 @@ export default function HomePage() {
       )}
 
       {featured.length > 0 && (
-        <div className="mb-10 md:mb-20 px-4 md:px-10">
+        <div className="mb-10 md:mb-20">
           <SectionHeader title={t("home.featuredProducts")} linkText={t("common.viewAll")} linkHref={productsHref} isRtl={isRtl} />
           <ProductRail products={featured.slice(0, 8)} />
         </div>
@@ -124,7 +124,7 @@ export default function HomePage() {
       <ForYouSection contentType={contentType ?? undefined} />
 
       {vendors.length > 0 && (
-        <div className="mb-10 md:mb-20 px-4 md:px-10">
+        <div className="mb-10 md:mb-20">
           <SectionHeader title={t("home.topVendors")} linkText={t("common.viewAll")} linkHref={`/${locale}/vendors`} isRtl={isRtl} />
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {vendors.slice(0, 4).map((vendor) => <VendorCard key={vendor.id} vendor={vendor} />)}

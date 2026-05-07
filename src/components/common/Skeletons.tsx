@@ -17,7 +17,7 @@ interface GridSkeletonProps { count?: number }
 
 export function HomePageSkeleton() {
   return (
-    <div className="max-w-[1680px] mx-auto px-4 md:px-6 pt-4 md:pt-6">
+    <div className="max-w-[1200px] mx-auto px-4 md:px-6 pt-4 md:pt-6">
       <div className="flex justify-center mb-4 md:mb-6">
         <Bone className="w-64 h-10 rounded-full" />
       </div>

@@ -24,7 +24,7 @@ export default function Footer() {
       {/* top accent line */}
       <div className="absolute top-0 start-0 end-0 h-1" style={{ background: "linear-gradient(90deg, var(--color-secondary-dark), var(--color-secondary), var(--color-secondary-dark))" }} />
 
-      <div className="max-w-screen-lg mx-auto px-4 grid grid-cols-12 gap-8">
+      <div className="max-w-[1200px] mx-auto px-4 grid grid-cols-12 gap-8">
         {/* brand */}
         <div className="col-span-12 md:col-span-4">
           <h2 className="inline-flex items-center gap-2 text-xl font-extrabold mb-3">
@@ -71,7 +71,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="max-w-screen-lg mx-auto px-4 mt-10 pt-4 border-t border-white/15 text-center">
+      <div className="max-w-[1200px] mx-auto px-4 mt-10 pt-4 border-t border-white/15 text-center">
         <p className="text-xs opacity-60">
           © {new Date().getFullYear()} {t("common.appName")}. {t("footer.rights")}
         </p>

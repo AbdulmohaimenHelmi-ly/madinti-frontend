@@ -58,7 +58,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   if (error || !product) return <ErrorMessage message={error || undefined} />;
 
   return (
-    <div className="max-w-screen-lg mx-auto px-4 py-10">
+    <div className="max-w-[1200px] mx-auto px-4 py-10">
       <ProductDetails product={product} />
 
       <div className="mt-16">

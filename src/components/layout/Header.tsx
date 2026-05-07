@@ -61,7 +61,7 @@ export default function Header() {
 
         {/* Desktop toolbar */}
         <div className="hidden md:block">
-          <div className="max-w-screen-lg mx-auto px-4 flex items-center gap-3 min-h-[64px]">
+          <div className="max-w-[1200px] mx-auto px-4 flex items-center gap-3 min-h-[64px]">
             <Link
               href={`/${locale}`}
               className="shrink-0 inline-flex items-center gap-2 no-underline"

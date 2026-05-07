@@ -102,7 +102,7 @@ export default function ProductsPage() {
   ];
 
   return (
-    <div className="max-w-screen-xl mx-auto px-4 py-6 md:py-10">
+    <div className="max-w-[1200px] mx-auto px-4 py-6 md:py-10">
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold mb-2">{t("common.products")}</h1>
         <div className="w-12 h-1 rounded-full" style={{ background: "linear-gradient(90deg, var(--color-primary), var(--color-primary-light))" }} />
